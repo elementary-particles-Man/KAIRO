@@ -20,3 +20,17 @@ git submodule update --remote protocols/kairo-client
 
 AI-TCP uses the interface from `protocols/kairo-client` to send commands to
 and receive responses from the KAIRO server.
+
+## Log Collection
+
+Logs are recorded in JSON Lines format using `src/log_recorder.py`. A helper
+script `src/collect_logs.py` collects logs from multiple nodes and appends them
+into `vov/log.jsonl`. The signing key rotates every 24 hours automatically.
+
+To generate logs from two example nodes:
+
+```bash
+python -m src.collect_logs 192.168.1.10 192.168.1.11 --count 5
+```
+
+See `vov/README.md` for the log schema.
