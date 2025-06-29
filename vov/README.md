@@ -13,5 +13,9 @@ Each log entry follows the schema:
 | `signature` | HMAC signature of the log payload |
 | `deny_flag` | Boolean indicating if access was denied |
 
+Failure logs created via `LogRecorder.log_error` additionally include the
+fields `transaction_id` and `error_type` so that issues can be traced while the
+VoV layer records the corresponding `uuid`, `timestamp` and `hash`.
+
 Logs are appended to ``vov/log.jsonl`` and the signing key rotates every 24
 hours. Example logs can be found in ``vov/example_log.jsonl``.
