@@ -7,3 +7,4 @@ vov/raw_logs/
 __pycache__/
 *.pyc
 
+rust-core/target/
