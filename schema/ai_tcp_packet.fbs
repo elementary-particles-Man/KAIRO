@@ -1,0 +1,11 @@
+namespace kairo;
+
+table AiTcpPacket {
+  uuid:string (required);         // パケットUUID
+  timestamp:ulong (required);     // タイムスタンプ (Unixナノ秒)
+  sequence_id:ulong (required);   // 暗号化されたシーケンスID
+  payload:[ubyte] (required);     // 暗号化された本体ペイロード
+  signature:[ubyte] (required);   // パケット全体の署名
+}
+
+root_type AiTcpPacket;
