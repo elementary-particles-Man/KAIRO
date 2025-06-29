@@ -17,6 +17,12 @@ class LogEntry:
     deny_flag: bool
 
 
+@dataclass
+class ErrorEntry(LogEntry):
+    transaction_id: str
+    error_type: str
+
+
 class LogRecorder:
     """Record logs in JSON Lines format with key rotation."""
 
@@ -51,6 +57,33 @@ class LogRecorder:
         ).hexdigest()
         base_record["hash"] = hash_val
         entry = LogEntry(**base_record)
+        with open(self.log_file, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(asdict(entry)) + "\n")
+        return entry
+
+    def log_error(
+        self, transaction_id: str, error_type: str, source_ip: str
+    ) -> ErrorEntry:
+        """Record a failure event for VoV auditing."""
+        self._rotate_key_if_needed()
+        uid = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat()
+        base_record = {
+            "uuid": uid,
+            "timestamp": timestamp,
+            "transaction_id": transaction_id,
+            "error_type": error_type,
+            "source_ip": source_ip,
+            "deny_flag": True,
+        }
+        payload = json.dumps(base_record, sort_keys=True)
+        signature = self._sign(payload)
+        base_record["signature"] = signature
+        hash_val = sha256(
+            json.dumps(base_record, sort_keys=True).encode()
+        ).hexdigest()
+        base_record["hash"] = hash_val
+        entry = ErrorEntry(**base_record)
         with open(self.log_file, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(asdict(entry)) + "\n")
         return entry

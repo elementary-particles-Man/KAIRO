@@ -81,6 +81,20 @@ The executable will be written to `go-p2p/bin/`.
 
 ---
 
+### Developer-facing Errors
+
+Client libraries raise structured exceptions with a `transaction_id` so that
+failures can be correlated with VoV logs. The exposed errors are:
+
+- `AuthenticationError`
+- `TimeoutError`
+- `ConnectionLostError`
+
+Cryptographic issues are logged via `LogRecorder.log_error` but are not exposed
+directly to client code.
+
+---
+
 ## Security Note
 
 All AI-TCP packets handled by KAIRO are designed to be fully binary using **FlatBuffers**,
