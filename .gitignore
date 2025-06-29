@@ -4,3 +4,6 @@ keys/
 *.pem
 *.crt
 vov/raw_logs/
+__pycache__/
+*.pyc
+
