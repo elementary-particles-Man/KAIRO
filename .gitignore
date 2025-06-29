@@ -1,3 +1,6 @@
 logs/
+keys/
 *.key
 *.pem
+*.crt
+vov/raw_logs/
