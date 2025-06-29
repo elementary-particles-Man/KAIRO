@@ -3,27 +3,27 @@
 // ===========================
 
 // ---------- 外部クレート ----------
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
 
 // ---------- 内部モジュール ----------
-pub mod keygen;               // Ephemeral Key Generation
-pub mod signature;            // Common signature helpers
-pub mod force_disconnect;     // Force disconnect logic
-pub mod fw_filter;            // Firewall filter logic
-pub mod packet_parser;        // FlatBuffers parsing + sequence validation
-pub mod packet_signer;        // Ephemeral Key signing for packets
-pub mod compression;          // LZ4/Zstd compression utilities
-pub mod session;              // Ephemeral DH session management
-pub mod rate_control;         // Adaptive sending rate controller
-pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
+pub mod keygen;                  // Ephemeral Key Generation
+pub mod signature;               // Common signature helpers
+pub mod force_disconnect;        // Force disconnect logic
+pub mod fw_filter;               // Firewall filter logic
+pub mod packet_parser;           // FlatBuffers parsing + sequence validation
+pub mod packet_signer;           // Ephemeral Key signing for packets
+pub mod compression;             // LZ4/Zstd compression utilities
+pub mod session;                 // Ephemeral DH session management
+pub mod rate_control;            // Adaptive sending rate controller
+pub mod log_recorder;            // VoV log recorder with HMAC & key rotation
 pub mod ai_tcp_packet_generated; // FlatBuffers generated code
-pub mod error;                // Custom error types
+pub mod error;                   // Custom error types
 
 // ---------- Coordination Node Skeleton (Optional) ----------
-// pub mod coordination;       // Uncomment when using coordination node
+// pub mod coordination;         // Uncomment when using coordination node
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
@@ -76,4 +76,15 @@ impl LogRecorder {
         self.key_start = Utc::now();
         OsRng.fill_bytes(&mut self.key);
     }
+}
+
+// ---------- テストモジュール ----------
+#[cfg(test)]
+mod tests {
+    mod coordination_test;
+    mod packet_parser_test;
+    mod crypto_stress;
+    mod key_rotation_test;
+    mod signature_verification_test;
+    mod test_link;
 }
