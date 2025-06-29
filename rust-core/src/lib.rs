@@ -7,6 +7,9 @@ use sha2::Sha256;
 pub mod signature;       // Common signature helpers
 pub mod packet_parser;   // FlatBuffers parsing + sequence validation
 pub mod packet_signer;   // Ephemeral Key signing for packets
+pub mod compression;     // LZ4/Zstd compression utilities
+pub mod session;         // Ephemeral DH session management
+pub mod rate_control;    // Adaptive sending rate controller
 
 /// LogRecorder handles VoV log HMAC signing with daily key rotation.
 pub struct LogRecorder {
