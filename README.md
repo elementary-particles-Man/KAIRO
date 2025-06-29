@@ -1,1 +1,2 @@
-# KAIRO: AI-TCP Secure Control Layer
+KAIRO
+AI-TCP Step2
