@@ -59,3 +59,9 @@ impl LogRecorder {
         self.key_start
     }
 }
+
+/// Transmit encoded packet to the wire.
+/// Currently just a stub to satisfy the API server.
+pub fn transmit_packet(_packet: &[u8]) {
+    // In real implementation this would send bytes over the network
+}
