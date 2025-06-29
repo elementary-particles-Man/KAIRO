@@ -1,11 +1,16 @@
-namespace kairo;
+// /schema/ai_tcp_packet.fbs
+namespace AITCP;
 
-table AiTcpPacket {
-  uuid:string (required);         // パケットUUID
-  timestamp:ulong (required);     // タイムスタンプ (Unixナノ秒)
-  sequence_id:ulong (required);   // 暗号化されたシーケンスID
-  payload:[ubyte] (required);     // 暗号化された本体ペイロード
-  signature:[ubyte] (required);   // パケット全体の署名
+/// AI-TCP Binary Packet Schema
+/// Fully encrypted. VoV log captures UUID, timestamp, hash externally.
+
+table AITcpPacket {
+  version:ubyte;                  // Protocol version
+  ephemeral_key:[ubyte] (required);  // Ephemeral public key for this packet
+  nonce:[ubyte] (required);          // Nonce for ChaCha20-Poly1305
+  encrypted_sequence_id:[ubyte] (required);  // Encrypted sequence ID
+  encrypted_payload:[ubyte] (required);      // Encrypted payload
+  signature:[ubyte] (required);              // Ed25519 signature over the whole packet
 }
 
-root_type AiTcpPacket;
+root_type AITcpPacket;
