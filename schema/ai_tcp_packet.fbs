@@ -1,0 +1,12 @@
+namespace AITCP;
+
+table AITcpPacket {
+  version:ubyte;
+  ephemeral_key:[ubyte];
+  nonce:[ubyte];
+  encrypted_sequence_id:[ubyte];
+  encrypted_payload:[ubyte];
+  signature:[ubyte];
+}
+
+root_type AITcpPacket;

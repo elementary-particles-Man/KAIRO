@@ -4,6 +4,8 @@ use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
 
 pub mod signature;
+pub mod packet_parser;
+pub mod packet_signer;
 
 pub struct LogRecorder {
     key: [u8; 32],
