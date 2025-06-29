@@ -130,3 +130,6 @@ which records immutable UUIDs, timestamps, and integrity hashes.
 
 東京のタイムスタンプ（日本標準時）：2025-06-30 00:02
 ```
+
+## OpenAI API Transition
+See `docs/openai_api_compatibility_plan.md` for the phased deprecation plan and `cli-migrate` helper.
