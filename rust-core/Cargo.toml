@@ -1,17 +1,16 @@
+# D:\dev\KAIRO\rust-core\Cargo.toml
+
 [package]
 name = "rust-core"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# ライブラリ本体とテストの両方で必要な依存関係
+thiserror = "1.0"
+flatbuffers = "24.3.25"
 chrono = "0.4"
+ed25519-dalek = "1.0" # ed25519-dalek v1系はrand_core 0.5に依存
+rand = "0.7"          # ed25519-dalek v1系に合わせてrand 0.7系を指定
 hmac = "0.12"
 sha2 = "0.10"
-rand = "0.8"
-flatbuffers = "0.8"
-tiny_http = "0.12"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-lz4_flex = "0.11"
-chacha20poly1305 = "0.10"
-ed25519-dalek = "1.0"
