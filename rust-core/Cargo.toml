@@ -1,4 +1,8 @@
-# rust-core/Cargo.toml
+[package]
+name = "rust-core"
+version = "0.1.0"
+edition = "2021"
+
 [dependencies]
 flatbuffers = "23.5.26"
 ed25519-dalek = "1.0.1"
@@ -11,9 +15,3 @@ criterion = "0.5"
 [[bench]]
 name = "benchmark_flatbuffers"
 harness = false
-<<<<<<< Updated upstream
-=======
-
-[dev-dependencies]
-criterion = "0.5"
->>>>>>> Stashed changes
