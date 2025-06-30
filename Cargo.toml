@@ -1,0 +1,12 @@
+
+---
+
+## ✅ 【2️⃣ Cargo.toml `[bench]` 記述例】
+
+```toml
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "benchmark_flatbuffers"
+harness = false
