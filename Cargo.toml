@@ -1,11 +1,5 @@
+# Top-level Cargo.toml
 [workspace]
 members = ["rust-core"]
 
-# Example dev-dependencies and benchmark configuration
-#
-# [dev-dependencies]
-# criterion = "0.5"
-#
-# [[bench]]
-# name = "benchmark_flatbuffers"
-# harness = false
+# 共通 dev-dependencies は rust-core に寄せる

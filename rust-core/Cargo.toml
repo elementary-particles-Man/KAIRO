@@ -1,21 +1,8 @@
-# D:\dev\KAIRO\rust-core\Cargo.toml
-
-[package]
-name = "rust-core"
-version = "0.1.0"
-edition = "2021"
-
+# rust-core/Cargo.toml
 [dependencies]
-# ライブラリ本体とテストの両方で必要な依存関係
-thiserror = "1.0"
-flatbuffers = "24.3.25"
-chrono = "0.4"
-ed25519-dalek = "1.0" # ed25519-dalek v1系はrand_core 0.5に依存
-rand = "0.7"          # ed25519-dalek v1系に合わせてrand 0.7系を指定
-hmac = "0.12"
-sha2 = "0.10"
-warp = "0.3"
-tokio = { version = "1", features = ["full"] }
+flatbuffers = "23.5.26"
+ed25519-dalek = "1.0.1"
+rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
@@ -24,9 +11,3 @@ criterion = "0.5"
 [[bench]]
 name = "benchmark_flatbuffers"
 harness = false
-<<<<<<< Updated upstream
-=======
-
-[dev-dependencies]
-criterion = "0.5"
->>>>>>> Stashed changes
