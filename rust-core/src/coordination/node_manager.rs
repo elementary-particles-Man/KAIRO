@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize)]
 pub struct Node {
     pub id: String, // 128-bit Unique ID represented as hex string
     pub public_key: Vec<u8>,
