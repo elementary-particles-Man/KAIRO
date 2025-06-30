@@ -11,3 +11,9 @@ criterion = "0.5"
 [[bench]]
 name = "benchmark_flatbuffers"
 harness = false
+<<<<<<< Updated upstream
+=======
+
+[dev-dependencies]
+criterion = "0.5"
+>>>>>>> Stashed changes
