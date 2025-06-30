@@ -14,3 +14,6 @@ ed25519-dalek = "1.0" # ed25519-dalek v1系はrand_core 0.5に依存
 rand = "0.7"          # ed25519-dalek v1系に合わせてrand 0.7系を指定
 hmac = "0.12"
 sha2 = "0.10"
+warp = "0.3"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }

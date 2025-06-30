@@ -4,3 +4,4 @@ pub mod error;
 pub mod packet_parser;
 pub mod signature;
 pub mod log_recorder;
+pub mod coordination;
