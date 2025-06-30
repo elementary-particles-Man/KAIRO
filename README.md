@@ -147,3 +147,18 @@ which records immutable UUIDs, timestamps, and integrity hashes.
 
 ## OpenAI API Transition
 See `docs/openai_api_compatibility_plan.md` for the phased deprecation plan and `cli-migrate` helper.
+
+## Coordination Node Skeleton (AITCP-CORE-001)
+The directory `AI-TCP/core/kairo_coord_node/` contains a Rust prototype of the self-governing Coordination Node. It manages peer public keys and assigns virtual IPs in the `100.64.0.0/16` range without relying on external services.
+
+### UUID, Mesh IP and Key Management Flow
+1. On startup, the node uses `KAIRO_NODE_ID` if provided or generates a 128-bit UUID.
+2. Each added peer receives a unique UUID and a Mesh IP such as `100.64.0.x`.
+3. All creation and removal events are logged under `logs/CoordinationNode_YYYYMMDD.log` with JST/ISO8601 timestamps.
+4. Placeholder APIs for future REST/gRPC configuration are defined in the crate.
+
+Run the node with:
+```bash
+cd AI-TCP/core/kairo_coord_node
+cargo run
+```
