@@ -1,3 +1,5 @@
+# rust-core/Cargo.toml
+
 [package]
 name = "rust-core"
 version = "0.1.0"
