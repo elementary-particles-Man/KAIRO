@@ -1,38 +1,32 @@
 package pkg
 
 import (
-    "encoding/binary"
+    "github.com/google/flatbuffers/go"
+    "github.com/elementary-particles-Man/KAIRO/go-p2p/pkg/generated/AITCP"
 )
 
-// Packet represents the AI-TCP packet structure.
-type Packet struct {
-    Version            byte
-    EphemeralKey       []byte
-    Nonce              []byte
-    EncryptedSeqID     []byte
-    EncryptedPayload   []byte
-    Signature          []byte
-}
+func SerializeAITcpPacket(seqID uint64, payload []byte) []byte {
+    builder := flatbuffers.NewBuilder(0)
 
-// Serialize converts the packet into the binary format used by the Rust parser.
-func Serialize(p Packet) []byte {
-    size := 1 + 1 + len(p.EphemeralKey) + 1 + len(p.Nonce) + 2 + len(p.EncryptedSeqID) + 2 + len(p.EncryptedPayload) + 2 + len(p.Signature)
-    out := make([]byte, 0, size)
-    out = append(out, p.Version)
-    out = append(out, byte(len(p.EphemeralKey)))
-    out = append(out, p.EphemeralKey...)
-    out = append(out, byte(len(p.Nonce)))
-    out = append(out, p.Nonce...)
-    tmp := make([]byte, 2)
-    binary.BigEndian.PutUint16(tmp, uint16(len(p.EncryptedSeqID)))
-    out = append(out, tmp...)
-    out = append(out, p.EncryptedSeqID...)
-    binary.BigEndian.PutUint16(tmp, uint16(len(p.EncryptedPayload)))
-    out = append(out, tmp...)
-    out = append(out, p.EncryptedPayload...)
-    binary.BigEndian.PutUint16(tmp, uint16(len(p.Signature)))
-    out = append(out, tmp...)
-    out = append(out, p.Signature...)
-    return out
-}
+    // 必要ならベクトル化
+    ephemeralKey := builder.CreateByteVector(make([]byte, 32))
+    nonce := builder.CreateByteVector(make([]byte, 12))
+    encryptedSeqID := builder.CreateByteVector([]byte{
+        byte(seqID >> 56), byte(seqID >> 48), byte(seqID >> 40), byte(seqID >> 32),
+        byte(seqID >> 24), byte(seqID >> 16), byte(seqID >> 8), byte(seqID),
+    })
+    encryptedPayload := builder.CreateByteVector(payload)
+    signature := builder.CreateByteVector(make([]byte, 64)) // 仮でダミー
 
+    AITCP.AITcpPacketStart(builder)
+    AITCP.AITcpPacketAddVersion(builder, 1)
+    AITCP.AITcpPacketAddEphemeralKey(builder, ephemeralKey)
+    AITCP.AITcpPacketAddNonce(builder, nonce)
+    AITCP.AITcpPacketAddEncryptedSequenceId(builder, encryptedSeqID)
+    AITCP.AITcpPacketAddEncryptedPayload(builder, encryptedPayload)
+    AITCP.AITcpPacketAddSignature(builder, signature)
+    pkt := AITCP.AITcpPacketEnd(builder)
+
+    builder.Finish(pkt)
+    return builder.FinishedBytes()
+}
