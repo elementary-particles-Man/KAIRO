@@ -20,3 +20,7 @@ serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
 criterion = "0.5"
+
+[[bench]]
+name = "benchmark_flatbuffers"
+harness = false
