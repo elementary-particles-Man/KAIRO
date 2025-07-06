@@ -1,38 +1,21 @@
-use hmac::{Hmac, Mac};
-use sha2::Sha256;
-use rand::{rngs::OsRng, RngCore};
+// D:\dev\KAIRO\rust-core\src\packet_parser.rs
 
-pub struct PacketSigner {
-    key: [u8; 32],
+use crate::ai_tcp_packet_generated::aitcp as fb;
+use crate::error::KairoError;
+
+pub struct PacketParser {
+    // ... （今後の実装で使用）
 }
 
-impl PacketSigner {
-    pub fn new() -> Self {
-        let mut key = [0u8; 32];
-        OsRng.fill_bytes(&mut key);
-        Self { key }
-    }
+impl PacketParser {
+    // バイト列からAITcpPacketをパースする単純な関数
+    pub fn parse<'a>(buffer: &'a [u8]) -> Result<fb::AITcpPacket<'a>, KairoError> {
+        // flatcが生成した正しい関数名でパケットを読み取る
+        let packet = fb::root_as_aitcp_packet(buffer)
+            .map_err(|_| KairoError::PacketParseFailed)?;
 
-    pub fn sign(&self, data: &[u8]) -> [u8; 32] {
-        let mut mac = Hmac::<Sha256>::new_from_slice(&self.key).expect("HMAC can take key of any size");
-        mac.update(data);
-        let result = mac.finalize().into_bytes();
-        let mut sig = [0u8; 32];
-        sig.copy_from_slice(&result[..32]);
-        sig
-    }
+        // TODO: 今後、署名検証やシーケンスIDのチェックロジックをここに追加する
 
-    pub fn verify(&self, data: &[u8], signature: &[u8]) -> bool {
-        let mut mac = Hmac::<Sha256>::new_from_slice(&self.key).expect("HMAC can take key of any size");
-        mac.update(data);
-        mac.verify_slice(signature).is_ok()
-    }
-
-    pub fn encrypt(&self, data: &[u8], ephemeral_key: &[u8]) -> Vec<u8> {
-        data.iter().zip(ephemeral_key.iter().cycle()).map(|(b,k)| b ^ k).collect()
-    }
-
-    pub fn decrypt(&self, data: &[u8], ephemeral_key: &[u8]) -> Vec<u8> {
-        self.encrypt(data, ephemeral_key)
+        Ok(packet)
     }
 }

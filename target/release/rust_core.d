@@ -1,0 +1,1 @@
+D:\Dev\KAIRO\target\release\rust_core.dll: D:\Dev\KAIRO\rust-core\src\ai_tcp_packet_generated.rs D:\Dev\KAIRO\rust-core\src\error.rs D:\Dev\KAIRO\rust-core\src\lib.rs D:\Dev\KAIRO\rust-core\src\log_recorder.rs D:\Dev\KAIRO\rust-core\src\packet_parser.rs D:\Dev\KAIRO\rust-core\src\signature.rs

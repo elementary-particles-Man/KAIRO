@@ -1,0 +1,7 @@
+{
+  "task_id": "KAIRO-SEC-003",
+  "status": "failure",
+  "command": "cargo run --bin benchmark_flatbuffers",
+  "stdout": "",
+  "stderr": "error: no bin target named `benchmark_flatbuffers` in default-run packages"
+}

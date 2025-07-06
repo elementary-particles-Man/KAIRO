@@ -1,25 +1,20 @@
 package pkg
 
 import (
-    "encoding/json"
-    "net/http"
+	"fmt"
+	"net/http"
 )
 
-// APIHandler exposes HTTP endpoints to interact with the P2P manager.
-type APIHandler struct{
-    M *Manager
+type APIHandler struct {
+	manager *Manager
 }
 
-func NewAPIHandler(m *Manager) *APIHandler {
-    return &APIHandler{M: m}
+func NewAPIHandler(manager *Manager) *APIHandler {
+	fmt.Println("NewAPIHandler created with manager:", manager)
+	return &APIHandler{manager: manager}
 }
 
+// ServeHTTP を実装して http.Handler にする
 func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    switch r.URL.Path {
-    case "/force_disconnect":
-        h.M.ForceDisconnect()
-        json.NewEncoder(w).Encode(map[string]bool{"disconnected": true})
-    default:
-        w.WriteHeader(http.StatusNotFound)
-    }
+	fmt.Fprintf(w, "Hello from APIHandler! Manager: %+v\n", h.manager)
 }

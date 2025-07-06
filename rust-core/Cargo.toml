@@ -3,13 +3,47 @@ name = "rust-core"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "rust_core"
+crate-type = ["cdylib"]
+
 [dependencies]
-chrono = "0.4"
-hmac = "0.12"
-sha2 = "0.10"
+# FlatBuffers: バージョン固定（メインは 25.2.10 に統一）
+flatbuffers = "25.2.10"
+
+# Ed25519 署名
+ed25519-dalek = "1.0.1"
+# ランダム値生成
 rand = "0.8"
 rand_core = "0.6"
-flatbuffers = "0.8"
+
+# 圧縮系（Codex/implement-lz4/zstd-compression-module）
 lz4_flex = "0.11"
 zstd = "0.12"
+
+# Curve演算（x25519）
 x25519-dalek = "2"
+
+# JSONシリアライズ
+serde = { version = "1.0", features = ["derive"] }
+
+# HMAC/ハッシュ
+hmac = "0.12.1"
+sha2 = "0.10.8"
+
+# 時刻管理
+chrono = "0.4"
+
+# エラー管理
+thiserror = "1.0"
+
+# APIサーバ（warp）と非同期（tokio）
+warp = "0.3"
+tokio = { version = "1", features = ["full"] }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "benchmark_flatbuffers"
+harness = false
