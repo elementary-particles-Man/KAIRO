@@ -5,6 +5,7 @@ edition = "2021"
 
 [lib]
 name = "rust_core"
+path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -13,6 +14,7 @@ flatbuffers = "25.2.10"
 
 # Ed25519 署名
 ed25519-dalek = "1.0.1"
+
 # ランダム値生成
 rand = "0.8"
 rand_core = "0.6"
@@ -43,6 +45,7 @@ tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 criterion = "0.5"
+libloading = "0.7"
 
 [[bench]]
 name = "benchmark_flatbuffers"
