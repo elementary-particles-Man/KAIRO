@@ -100,6 +100,11 @@ cd rust-core
 cargo build --release
 ```
 Artifacts are placed in `rust-core/target/`.
+If you update the FlatBuffers schema run:
+```bash
+python scripts/update_flatbuffers.py
+```
+to regenerate `rust-core/src/ai_tcp_packet_generated.rs`.
 
 ---
 
@@ -169,8 +174,16 @@ which preserves immutable UUIDs, timestamps, and integrity hashes.
 
 ## Sample PCAP
 
-See [samples/README.md](samples/README.md) for an example packet capture.
-Regenerate the capture with `python scripts/generate_kairo_pcap.py`.
+No binary PCAP files are stored in the repository.  To create the sample
+captures for local testing, run the helper scripts described in
+[samples/README.md](samples/README.md).
+
+```bash
+python scripts/generate_kairo_pcap.py
+python scripts/generate_test_pcaps.py
+```
+Set the environment variable `READ_ONLY=1` to skip file writes when running in a
+restricted environment such as CI.
 
 ## OpenAI API Transition
 

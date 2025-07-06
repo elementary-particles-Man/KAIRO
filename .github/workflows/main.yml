@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Run Rust tests
+        run: cargo test --manifest-path rust-core/Cargo.toml --verbose
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install Python deps
+        run: pip install pytest
+      - name: Run Python tests
+        run: pytest -q
