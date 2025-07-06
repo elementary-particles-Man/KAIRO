@@ -1,1 +1,1 @@
-cargo:rustc-env=MIME_TYPES_GENERATED_PATH=D:\Dev\kairo\target\debug\build\mime_guess-ce06f00443512bb5\out\mime_types_generated.rs
+cargo:rustc-env=MIME_TYPES_GENERATED_PATH=D:\Dev\KAIRO\target\debug\build\mime_guess-ce06f00443512bb5\out\mime_types_generated.rs

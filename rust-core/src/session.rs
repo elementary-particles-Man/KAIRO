@@ -12,7 +12,7 @@ pub struct SessionKey {
 
 impl SessionKey {
     fn new() -> Self {
-        let private = StaticSecret::new(&mut OsRng);
+        let private = StaticSecret::random_from_rng(&mut OsRng);
         let public = PublicKey::from(&private);
         Self { private, public, created: Instant::now() }
     }
