@@ -1,6 +1,12 @@
 # Sample PCAP
 
-This directory holds example packet captures used for testing or demonstration.
-Only the provided sample trace should be committed to version control. Any
-additional `.pcap` files generated during development should remain untracked.
+This directory contains example packet captures used for testing or demonstration.
 
+A small example capture `kairo_sample.pcap` shows a basic connection between a KAIRO client and server.
+
+## How to regenerate the capture
+
+To regenerate the capture, run:
+
+```bash
+python scripts/generate_kairo_pcap.py

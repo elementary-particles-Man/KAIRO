@@ -167,6 +167,11 @@ which preserves immutable UUIDs, timestamps, and integrity hashes.
 
 ---
 
+## Sample PCAP
+
+See [samples/README.md](samples/README.md) for an example packet capture.
+Regenerate the capture with `python scripts/generate_kairo_pcap.py`.
+
 ## OpenAI API Transition
 
 See `docs/openai_api_compatibility_plan.md` for the phased deprecation plan  
