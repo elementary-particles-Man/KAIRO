@@ -43,6 +43,7 @@ tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 criterion = "0.5"
+libloading = "0.7"
 
 [[bench]]
 name = "benchmark_flatbuffers"
