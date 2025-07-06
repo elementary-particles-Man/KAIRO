@@ -9,18 +9,21 @@ use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
 
 // ---------- 内部モジュール ----------
-pub mod signature;        // Common signature helpers
-pub mod packet_parser;    // FlatBuffers parsing + sequence validation
-pub mod packet_signer;    // Ephemeral Key signing for packets
-pub mod compression;      // LZ4/Zstd compression utilities
-pub mod session;          // Ephemeral DH session management
-pub mod rate_control;     // Adaptive sending rate controller
-pub mod log_recorder;     // VoV log recorder with HMAC & key rotation
-pub mod ai_tcp_packet_generated; // FlatBuffers generated
-pub mod error;            // Custom error types
+pub mod keygen;               // Ephemeral Key Generation
+pub mod signature;            // Common signature helpers
+pub mod force_disconnect;     // Force disconnect logic
+pub mod fw_filter;            // Firewall filter logic
+pub mod packet_parser;        // FlatBuffers parsing + sequence validation
+pub mod packet_signer;        // Ephemeral Key signing for packets
+pub mod compression;          // LZ4/Zstd compression utilities
+pub mod session;              // Ephemeral DH session management
+pub mod rate_control;         // Adaptive sending rate controller
+pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
+pub mod ai_tcp_packet_generated; // FlatBuffers generated code
+pub mod error;                // Custom error types
 
 // ---------- Coordination Node Skeleton (Optional) ----------
-// pub mod coordination;   // Uncomment when using coordination node
+// pub mod coordination;       // Uncomment when using coordination node
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
@@ -39,14 +42,14 @@ pub extern "C" fn add_numbers(a: i32, b: i32) -> i32 {
     a + b
 }
 
-// ---------- LogRecorder 構造体のサンプル ----------
+// ---------- LogRecorder 構造体 ----------
 pub struct LogRecorder {
     key: [u8; 32],
     key_start: DateTime<Utc>,
-    // 追加フィールドがあればここに
+    // 必要なら追加フィールド
 }
 
-// LogRecorder 実装例
+// LogRecorder 実装
 impl LogRecorder {
     pub fn new() -> Self {
         let mut key = [0u8; 32];

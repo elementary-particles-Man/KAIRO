@@ -1,5 +1,19 @@
+# =============================
 # Top-level Cargo.toml
-[workspace]
-members = ["rust-core"]
+# =============================
 
-# 共通 dev-dependencies は rust-core に寄せる
+[workspace]
+members = [
+    "rust-core"
+]
+
+# ✅ ポイント
+# - ルートに共通 dev-dependencies は定義せず
+# - 各メンバー（rust-core）側に dev-dependencies を寄せて管理
+#   （例: criterion, mockall, rstest など）
+
+# もし将来、共通 dev-dependencies を workspace でまとめるなら
+# [workspace.dependencies] で整理
+# 例:
+# [workspace.dependencies]
+# criterion = "0.5"
