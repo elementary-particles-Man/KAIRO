@@ -7,7 +7,6 @@ use super::node_manager::{NodeManager, Node};
 
 #[derive(Deserialize)]
 struct RegisterRequest {
-    id: String,
     public_key: Vec<u8>,
 }
 
@@ -43,8 +42,8 @@ fn with_manager(manager: Arc<NodeManager>) -> impl Filter<Extract = (Arc<NodeMan
 
 async fn handle_register(req: RegisterRequest, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
     // TODO: VoV logging of registration event
-    let ip = manager.register_node(req.id, req.public_key);
-    let ip = ip.unwrap_or_default();
+    let node = manager.register_node(req.public_key);
+    let ip = node.map(|n| n.virtual_ip).unwrap_or_default();
     Ok(warp::reply::json(&RegisterResponse { virtual_ip: ip }))
 }
 
