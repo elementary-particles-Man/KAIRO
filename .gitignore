@@ -1,10 +1,20 @@
-logs/
-keys/
-*.key
-*.pem
-*.crt
-vov/raw_logs/
+# Rust
+/target/
+
+# Python
 __pycache__/
-*.pyc
-rust-core/target/
-go-p2p/bin/
+/*.pyc
+
+# PCAP（例外を除く）
+samples/*.pcap
+!samples/kairo_ipv6_sample.pcap
+
+# VSCode
+.vscode/
+
+# Idea
+.idea/
+
+# その他
+.DS_Store
+*.log
