@@ -1,0 +1,41 @@
+name: Build rust_core library
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-linux:
+    name: Build Linux library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Build
+        run: cargo build --manifest-path rust-core/Cargo.toml --release
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: rust-core/target/release/librust_core.so
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    name: Build Windows library
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Build
+        run: cargo build --manifest-path rust-core/Cargo.toml --release
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: rust-core/target/release/rust_core.dll
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

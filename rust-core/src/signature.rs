@@ -1,3 +1,8 @@
+// ===========================
+// 📄 rust-core/src/signature.rs
+// ===========================
+
+// --- SHA-256 シグネチャ実装 ---
 use sha2::{Digest, Sha256};
 use std::fmt;
 
@@ -5,7 +10,7 @@ use std::fmt;
 pub struct Sha256Signature([u8; 32]);
 
 impl Sha256Signature {
-    /// Sign the provided message and return the SHA-256 digest as a signature.
+    /// SHA-256 でメッセージを署名（ダイジェスト作成）
     pub fn sign(message: &[u8]) -> Self {
         let mut hasher = Sha256::new();
         hasher.update(message);
@@ -15,7 +20,7 @@ impl Sha256Signature {
         Sha256Signature(sig)
     }
 
-    /// Verify that the provided signature matches the message.
+    /// SHA-256 シグネチャが一致するか検証
     pub fn verify(message: &[u8], signature: &Sha256Signature) -> bool {
         Sha256Signature::sign(message) == *signature
     }
@@ -31,4 +36,17 @@ impl fmt::Debug for Sha256Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Sha256Signature({:x?})", &self.0)
     }
+}
+
+// --- Ed25519 シグネチャ実装 ---
+use ed25519_dalek::{Keypair, PublicKey, Signer, Verifier, Signature as Ed25519Signature};
+
+/// Ed25519 署名
+pub fn sign_ed25519(keypair: &Keypair, message: &[u8]) -> Ed25519Signature {
+    keypair.sign(message)
+}
+
+/// Ed25519 検証
+pub fn verify_ed25519(public_key: &PublicKey, message: &[u8], signature: &Ed25519Signature) -> bool {
+    public_key.verify(message, signature).is_ok()
 }
