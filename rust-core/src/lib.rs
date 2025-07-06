@@ -37,6 +37,26 @@ pub extern "C" fn add_numbers(a: i32, b: i32) -> i32 {
 }
 
 // ----------------------------
+// ✅ VoVログ検証関数 (dummy implementation)
+// ----------------------------
+
+#[no_mangle]
+pub extern "C" fn validate_vov_log() -> i32 {
+    // In a real implementation this would validate VoV log entries.
+    0
+}
+
+// ----------------------------
+// ✅ 署名生成関数 (dummy implementation)
+// ----------------------------
+
+#[no_mangle]
+pub extern "C" fn generate_signature() -> i32 {
+    // In a real implementation this would return a generated signature.
+    0
+}
+
+// ----------------------------
 // ✅ 必要に応じて内部ロジックをここに置く
 // ----------------------------
 
