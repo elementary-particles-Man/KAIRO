@@ -23,7 +23,6 @@ __pycache__/
 
 # PCAP生成物（サンプル以外）
 samples/*.pcap
-!samples/kairo_ipv6_sample.pcap
 
 # VSCode/IDE
 .vscode/

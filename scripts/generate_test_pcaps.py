@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Generate a sample pcap with IPv6 KAIRO destination options."""
+"""Generate deterministic PCAP samples using fixed test vectors.
+
+This script creates a reproducible capture that can be compared in tests.
+"""
 
 import hashlib
 import os
@@ -10,10 +13,10 @@ from pathlib import Path
 
 
 def _build_packet(seq_id: int) -> bytes:
-    """Return raw bytes for a single IPv6 packet."""
-    uid = uuid.uuid4()
-    sha = hashlib.sha256(f"packet{seq_id}".encode()).digest()
-    sig = hashlib.sha256(f"signature{seq_id}".encode()).digest()
+    """Return raw bytes for a single IPv6 packet based on deterministic data."""
+    uid = uuid.uuid5(uuid.NAMESPACE_DNS, f"test-{seq_id}")
+    sha = hashlib.sha256(f"payload{seq_id}".encode()).digest()
+    sig = hashlib.sha256(f"sig{seq_id}".encode()).digest()
 
     option_data = uid.bytes + struct.pack("!I", seq_id) + sha + sig
     option_header = struct.pack("!BB", 0x63, len(option_data))
@@ -33,7 +36,7 @@ def _build_packet(seq_id: int) -> bytes:
 
 
 def main() -> None:
-    out_path = Path(__file__).resolve().parents[1] / "samples" / "kairo_ipv6_sample.pcap"
+    out_path = Path(__file__).resolve().parents[1] / "samples" / "kairo_test_vectors.pcap"
     if os.environ.get("READ_ONLY") == "1":
         print("Repository is read-only; run this script locally to regenerate the sample.")
         return
@@ -49,7 +52,7 @@ def main() -> None:
             fh.write(struct.pack("<IIII", ts + i, 0, len(pkt), len(pkt)))
             fh.write(pkt)
 
-    print(f"Sample pcap written to {out_path}")
+    print(f"Deterministic sample written to {out_path}")
 
 
 if __name__ == "__main__":
