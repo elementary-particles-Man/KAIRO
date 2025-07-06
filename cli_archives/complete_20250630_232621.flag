@@ -1,0 +1,9 @@
+{
+  "task_id": "KAIRO-SEC-002",
+  "status": "success",
+  "uuid": "1158ca53-03f2-42c3-9aea-97a799a4e03c",
+  "timestamp": "2025-06-30T23:26:21.421344+09:00",
+  "hash": "affdbf1f77ecf859ab4cb4fdf4e9e80ac3c5bba8d00c86ede8d11ddd31cd2059",
+  "stdout": "Validation Passed",
+  "stderr": ""
+}

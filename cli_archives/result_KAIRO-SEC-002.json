@@ -1,0 +1,7 @@
+{
+  "task_id": "KAIRO-SEC-002",
+  "status": "success",
+  "command": "python scripts/validate_logs.py --check logs/VoV_Trace.log logs/CoordinationNode_*.log",
+  "stdout": "Validation Passed\r\n",
+  "stderr": ""
+}

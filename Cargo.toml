@@ -1,0 +1,5 @@
+# Top-level Cargo.toml
+[workspace]
+members = ["rust-core"]
+
+# 共通 dev-dependencies は rust-core に寄せる

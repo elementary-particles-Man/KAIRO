@@ -1,3 +1,10 @@
 logs/
+keys/
 *.key
 *.pem
+*.crt
+vov/raw_logs/
+__pycache__/
+*.pyc
+rust-core/target/
+go-p2p/bin/

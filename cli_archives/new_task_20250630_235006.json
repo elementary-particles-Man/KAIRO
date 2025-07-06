@@ -1,0 +1,25 @@
+{
+  "id": "KAIRO_FINAL_TESTS",
+  "tasks": [
+    {
+      "id": "KAIRO-TEST-001",
+      "task": "Add crypto_stress.rs test",
+      "details": "Place in rust-core/tests/. Implements repeated HMAC key rotation, FlatBuffers packet generation/parsing, and Ed25519 signature generation/verification loop. Validate version() accessor works. Loop 100-1000 times."
+    },
+    {
+      "id": "KAIRO-TEST-002",
+      "task": "Unify Cargo.toml bench config",
+      "details": "Ensure [bench] sections are only in rust-core/Cargo.toml. Remove duplicates in root Cargo.toml. Criterion benchmark for FlatBuffers must build with 'cargo bench'."
+    },
+    {
+      "id": "KAIRO-TEST-003",
+      "task": "Validate VoV log signing and hash chain",
+      "details": "Extend LogRecorder tests to ensure UUID, timestamp, and hash are consistent across rotations. Add integration test that writes and checks VoV logs."
+    },
+    {
+      "id": "KAIRO-TEST-004",
+      "task": "Perform external node stress test",
+      "details": "Run crypto_stress.rs over VPN/unstable network. Verify VoV logs from multiple nodes align by UUID/timestamp/hash. Confirm self-healing if keys rotate mid-transaction."
+    }
+  ]
+}

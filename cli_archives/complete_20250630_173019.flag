@@ -1,0 +1,9 @@
+{
+  "task_id": "KAIRO-SEC-002",
+  "status": "failed",
+  "uuid": "a78dbad8-128b-4fa4-bfa8-727000f0ccd5",
+  "timestamp": "2025-06-30T17:30:19.554522+09:00",
+  "hash": "cd0a8ba4b474f69ebfa85bace72eee2a67ef4807c357560adae935fe9e94a16c",
+  "stdout": "",
+  "stderr": "python: can't open file 'D:\\\\Dev\\\\KAIRO\\\\scripts\\\\validate_logs.py': [Errno 2] No such file or directory"
+}
