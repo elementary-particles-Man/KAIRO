@@ -1,0 +1,1 @@
+D:\dev\KAIRO\rust-core\target\release\librust_core.rlib: D:\dev\KAIRO\rust-core\src\ai_tcp_packet_generated.rs D:\dev\KAIRO\rust-core\src\error.rs D:\dev\KAIRO\rust-core\src\lib.rs D:\dev\KAIRO\rust-core\src\packet_parser.rs

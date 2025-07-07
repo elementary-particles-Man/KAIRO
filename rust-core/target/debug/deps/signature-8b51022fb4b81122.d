@@ -1,0 +1,11 @@
+D:\dev\KAIRO\rust-core\target\debug\deps\signature-8b51022fb4b81122.d: C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\lib.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\error.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\keypair.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\signature.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\signer.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\verifier.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\../README.md
+
+D:\dev\KAIRO\rust-core\target\debug\deps\libsignature-8b51022fb4b81122.rmeta: C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\lib.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\error.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\keypair.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\signature.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\signer.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\verifier.rs C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\../README.md
+
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\lib.rs:
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\error.rs:
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\keypair.rs:
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\signature.rs:
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\signer.rs:
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\verifier.rs:
+C:\Users\flux5\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\signature-1.6.4\src\../README.md:
