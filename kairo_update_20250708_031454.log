@@ -1,0 +1,844 @@
+=== Current Directory ===
+
+Path
+----
+D:\Dev\KAIRO
+
+
+=== Cargo.toml [dependencies] ===
+[workspace]
+members = [
+    "rust-core"
+]
+resolver = "2"
+
+=== cargo update ===
+    Updating crates.io index
+     Locking 0 packages to latest compatible versions
+    Removing addr2line v0.24.2
+    Removing adler2 v2.0.1
+    Removing aho-corasick v1.1.3
+    Removing android-tzdata v0.1.1
+    Removing android_system_properties v0.1.5
+    Removing anes v0.1.6
+    Removing anstyle v1.0.11
+    Removing autocfg v1.5.0
+    Removing backtrace v0.3.75
+    Removing base64 v0.21.7
+    Removing bitflags v2.9.1
+    Removing block-buffer v0.9.0
+    Removing block-buffer v0.10.4
+    Removing bumpalo v3.19.0
+    Removing byteorder v1.5.0
+    Removing bytes v1.10.1
+    Removing cast v0.3.0
+    Removing cc v1.2.29
+    Removing chrono v0.4.41
+    Removing ciborium v0.2.2
+    Removing ciborium-io v0.2.2
+    Removing ciborium-ll v0.2.2
+    Removing clap v4.5.40
+    Removing clap_builder v4.5.40
+    Removing clap_lex v0.7.5
+    Removing core-foundation-sys v0.8.7
+    Removing cpufeatures v0.2.17
+    Removing criterion v0.5.1
+    Removing criterion-plot v0.5.0
+    Removing crossbeam-deque v0.8.6
+    Removing crossbeam-epoch v0.9.18
+    Removing crossbeam-utils v0.8.21
+    Removing crunchy v0.2.4
+    Removing crypto-common v0.1.6
+    Removing curve25519-dalek v3.2.1
+    Removing curve25519-dalek v4.1.3
+    Removing curve25519-dalek-derive v0.1.1
+    Removing data-encoding v2.9.0
+    Removing digest v0.9.0
+    Removing digest v0.10.7
+    Removing displaydoc v0.2.5
+    Removing ed25519 v1.5.3
+    Removing ed25519-dalek v1.0.1
+    Removing either v1.15.0
+    Removing encoding_rs v0.8.35
+    Removing equivalent v1.0.2
+    Removing fiat-crypto v0.2.9
+    Removing flatbuffers v25.2.10
+    Removing fnv v1.0.7
+    Removing form_urlencoded v1.2.1
+    Removing futures-channel v0.3.31
+    Removing futures-core v0.3.31
+    Removing futures-sink v0.3.31
+    Removing futures-task v0.3.31
+    Removing futures-util v0.3.31
+    Removing generic-array v0.14.7
+    Removing getrandom v0.1.16
+    Removing getrandom v0.3.3
+    Removing gimli v0.31.1
+    Removing h2 v0.3.26
+    Removing half v2.6.0
+    Removing hashbrown v0.15.4
+    Removing headers v0.3.9
+    Removing headers-core v0.2.0
+    Removing hermit-abi v0.5.2
+    Removing hmac v0.12.1
+    Removing http v0.2.12
+    Removing http v1.3.1
+    Removing http-body v0.4.6
+    Removing httparse v1.10.1
+    Removing httpdate v1.0.3
+    Removing hyper v0.14.32
+    Removing iana-time-zone v0.1.63
+    Removing iana-time-zone-haiku v0.1.2
+    Removing icu_collections v2.0.0
+    Removing icu_locale_core v2.0.0
+    Removing icu_normalizer v2.0.0
+    Removing icu_normalizer_data v2.0.0
+    Removing icu_properties v2.0.1
+    Removing icu_properties_data v2.0.1
+    Removing icu_provider v2.0.0
+    Removing idna v1.0.3
+    Removing idna_adapter v1.2.1
+    Removing indexmap v2.10.0
+    Removing io-uring v0.7.8
+    Removing is-terminal v0.4.16
+    Removing itertools v0.10.5
+    Removing itoa v1.0.15
+    Removing jobserver v0.1.33
+    Removing js-sys v0.3.77
+    Removing libloading v0.7.4
+    Removing litemap v0.8.0
+    Removing lock_api v0.4.13
+    Removing log v0.4.27
+    Removing lz4_flex v0.11.5
+    Removing memchr v2.7.5
+    Removing mime v0.3.17
+    Removing mime_guess v2.0.5
+    Removing miniz_oxide v0.8.9
+    Removing mio v1.0.4
+    Removing multer v2.1.0
+    Removing num-traits v0.2.19
+    Removing object v0.36.7
+    Removing once_cell v1.21.3
+    Removing oorandom v11.1.5
+    Removing opaque-debug v0.3.1
+    Removing parking_lot v0.12.4
+    Removing parking_lot_core v0.9.11
+    Removing percent-encoding v2.3.1
+    Removing pin-project v1.1.10
+    Removing pin-project-internal v1.1.10
+    Removing pin-project-lite v0.2.16
+    Removing pin-utils v0.1.0
+    Removing pkg-config v0.3.32
+    Removing plotters v0.3.7
+    Removing plotters-backend v0.3.7
+    Removing plotters-svg v0.3.7
+    Removing potential_utf v0.1.2
+    Removing r-efi v5.3.0
+    Removing rand v0.7.3
+   Unchanged rand v0.8.5 (available: v0.9.1)
+    Removing rand_chacha v0.2.2
+    Removing rand_core v0.5.1
+   Unchanged rand_core v0.6.4 (available: v0.9.3)
+    Removing rand_hc v0.2.0
+    Removing rayon v1.10.0
+    Removing rayon-core v1.12.1
+    Removing redox_syscall v0.5.13
+    Removing regex v1.11.1
+    Removing regex-automata v0.4.9
+    Removing regex-syntax v0.8.5
+    Removing rustc-demangle v0.1.25
+    Removing rustc_version v0.4.1
+    Removing rustversion v1.0.21
+    Removing ryu v1.0.20
+    Removing same-file v1.0.6
+    Removing scoped-tls v1.0.1
+    Removing scopeguard v1.2.0
+    Removing semver v1.0.26
+    Removing serde v1.0.219
+    Removing serde_derive v1.0.219
+    Removing serde_json v1.0.140
+    Removing serde_urlencoded v0.7.1
+    Removing sha1 v0.10.6
+    Removing sha2 v0.9.9
+    Removing sha2 v0.10.9
+    Removing shlex v1.3.0
+    Removing signal-hook-registry v1.4.5
+    Removing signature v1.6.4
+    Removing slab v0.4.10
+    Removing smallvec v1.15.1
+    Removing socket2 v0.5.10
+    Removing spin v0.9.8
+    Removing stable_deref_trait v1.2.0
+    Removing subtle v2.6.1
+    Removing synstructure v0.13.2
+    Removing thiserror v1.0.69
+    Removing thiserror-impl v1.0.69
+    Removing tinystr v0.8.1
+    Removing tinytemplate v1.2.1
+    Removing tokio v1.46.1
+    Removing tokio-macros v2.5.0
+    Removing tokio-tungstenite v0.21.0
+    Removing tokio-util v0.7.15
+    Removing tower-service v0.3.3
+    Removing tracing v0.1.41
+    Removing tracing-core v0.1.34
+    Removing try-lock v0.2.5
+    Removing tungstenite v0.21.0
+    Removing twox-hash v2.1.1
+    Removing typenum v1.18.0
+    Removing unicase v2.8.1
+    Removing url v2.5.4
+    Removing utf-8 v0.7.6
+    Removing utf8_iter v1.0.4
+    Removing version_check v0.9.5
+    Removing walkdir v2.5.0
+    Removing want v0.3.1
+    Removing warp v0.3.7
+    Removing wasi v0.9.0+wasi-snapshot-preview1
+    Removing wasi v0.14.2+wasi-0.2.4
+    Removing wasm-bindgen v0.2.100
+    Removing wasm-bindgen-backend v0.2.100
+    Removing wasm-bindgen-macro v0.2.100
+    Removing wasm-bindgen-macro-support v0.2.100
+    Removing wasm-bindgen-shared v0.2.100
+    Removing web-sys v0.3.77
+    Removing winapi v0.3.9
+    Removing winapi-i686-pc-windows-gnu v0.4.0
+    Removing winapi-util v0.1.9
+    Removing winapi-x86_64-pc-windows-gnu v0.4.0
+    Removing windows-core v0.61.2
+    Removing windows-implement v0.60.0
+    Removing windows-interface v0.59.1
+    Removing windows-link v0.1.3
+    Removing windows-result v0.3.4
+    Removing windows-strings v0.4.2
+    Removing windows-sys v0.52.0
+    Removing windows-sys v0.59.0
+    Removing windows-targets v0.52.6
+    Removing windows_aarch64_gnullvm v0.52.6
+    Removing windows_aarch64_msvc v0.52.6
+    Removing windows_i686_gnu v0.52.6
+    Removing windows_i686_gnullvm v0.52.6
+    Removing windows_i686_msvc v0.52.6
+    Removing windows_x86_64_gnu v0.52.6
+    Removing windows_x86_64_gnullvm v0.52.6
+    Removing windows_x86_64_msvc v0.52.6
+    Removing wit-bindgen-rt v0.39.0
+    Removing writeable v0.6.1
+    Removing x25519-dalek v2.0.1
+    Removing yoke v0.8.0
+    Removing yoke-derive v0.8.0
+    Removing zerofrom v0.1.6
+    Removing zerofrom-derive v0.1.6
+    Removing zeroize v1.3.0
+    Removing zeroize_derive v1.4.2
+    Removing zerotrie v0.2.2
+    Removing zerovec v0.11.2
+    Removing zerovec-derive v0.11.1
+    Removing zstd v0.12.4
+    Removing zstd-safe v6.0.6
+    Removing zstd-sys v2.0.15+zstd.1.5.7
+note: to see how you depend on a package, run `cargo tree --invert --package <dep>@<ver>`
+
+=== cargo tree (rand_core) ===
+
+笏・  笏・  笏披楳笏 rand_core v0.6.4
+笏・  笏披楳笏 rand_core v0.6.4 (*)
+笏披楳笏 rand_core v0.6.4 (*)
+
+
+=== cargo build ===
+   Compiling rust-core v0.1.0 (D:\Dev\KAIRO\rust-core)
+error[E0463]: can't find crate for `flatbuffers`
+ --> rust-core\src\ai_tcp_packet_generated.rs:9:1
+  |
+9 | extern crate flatbuffers;
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
+
+error[E0463]: can't find crate for `flatbuffers`
+  --> rust-core\src\ai_tcp_packet_generated.rs:18:3
+   |
+18 |   extern crate flatbuffers;
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
+
+error[E0432]: unresolved import `crate::error`
+ --> rust-core\src\packet_parser.rs:5:12
+  |
+5 | use crate::error::KairoError;
+  |            ^^^^^
+  |            |
+  |            unresolved import
+  |            help: a similar path exists: `core::error`
+
+error[E0432]: unresolved import `hmac`
+ --> rust-core\src\log_recorder.rs:2:5
+  |
+2 | use hmac::Hmac;
+  |     ^^^^ use of unresolved module or unlinked crate `hmac`
+  |
+  = help: if you wanted to use a crate named `hmac`, use `cargo add hmac` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `sha2`
+ --> rust-core\src\log_recorder.rs:3:5
+  |
+3 | use sha2::Sha256;
+  |     ^^^^ use of unresolved module or unlinked crate `sha2`
+  |
+  = help: if you wanted to use a crate named `sha2`, use `cargo add sha2` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `chrono`
+ --> rust-core\src\log_recorder.rs:4:5
+  |
+4 | use chrono::{DateTime, Utc};
+  |     ^^^^^^ use of unresolved module or unlinked crate `chrono`
+  |
+  = help: if you wanted to use a crate named `chrono`, use `cargo add chrono` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `chrono`
+  --> rust-core\src\lib.rs:24:9
+   |
+24 | pub use chrono::{DateTime, Utc};
+   |         ^^^^^^ use of unresolved module or unlinked crate `chrono`
+   |
+   = help: if you wanted to use a crate named `chrono`, use `cargo add chrono` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `sha2`
+ --> rust-core\src\signature.rs:6:5
+  |
+6 | use sha2::{Digest, Sha256};
+  |     ^^^^ use of unresolved module or unlinked crate `sha2`
+  |
+  = help: if you wanted to use a crate named `sha2`, use `cargo add sha2` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `ed25519_dalek`
+  --> rust-core\src\signature.rs:42:5
+   |
+42 | use ed25519_dalek::{Keypair, PublicKey, Signer, Verifier, Signature as Ed25519Signature};
+   |     ^^^^^^^^^^^^^ use of unresolved module or unlinked crate `ed25519_dalek`
+   |
+   = help: if you wanted to use a crate named `ed25519_dalek`, use `cargo add ed25519_dalek` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `uuid`
+ --> rust-core\src\coordination\node_manager.rs:4:5
+  |
+4 | use uuid::Uuid;
+  |     ^^^^ use of unresolved module or unlinked crate `uuid`
+  |
+  = help: if you wanted to use a crate named `uuid`, use `cargo add uuid` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `warp`
+ --> rust-core\src\coordination\api.rs:2:5
+  |
+2 | use warp::Filter;
+  |     ^^^^ use of unresolved module or unlinked crate `warp`
+  |
+  = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `serde`
+ --> rust-core\src\coordination\api.rs:3:5
+  |
+3 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: if you wanted to use a crate named `serde`, use `cargo add serde` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `serde`
+ --> rust-core\src\coordination\node_manager.rs:6:17
+  |
+6 | #[derive(Clone, serde::Serialize)]
+  |                 ^^^^^ use of unresolved module or unlinked crate `serde`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:21:14
+   |
+21 |         .and(warp::body::json())
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:47:8
+   |
+47 |     Ok(warp::reply::json(&RegisterResponse { virtual_ip: ip }))
+   |        ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:53:8
+   |
+53 |     Ok(warp::reply::json(&peers))
+   |        ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+warning: unused import: `core::mem`
+ --> rust-core\src\ai_tcp_packet_generated.rs:6:5
+  |
+6 | use core::mem;
+  |     ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `core::cmp::Ordering`
+ --> rust-core\src\ai_tcp_packet_generated.rs:7:5
+  |
+7 | use core::cmp::Ordering;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+error[E0223]: ambiguous associated type
+  --> rust-core\src\ai_tcp_packet_generated.rs:33:50
+   |
+33 |   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+   |                                                  ^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `Inner` implemented for `AITcpPacket<'a>`, you could use the fully-qualified path
+   |
+33 -   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+33 +   unsafe fn follow(buf: &'a [u8], loc: usize) -> <AITcpPacket<'a> as Example>::Inner {
+   |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:18:80
+   |
+18 | pub fn register_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                                ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:18:101
+   |
+18 | pub fn register_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                                                     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:19:5
+   |
+19 |     warp::post()
+   |     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:20:14
+   |
+20 |         .and(warp::path("register"))
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:26:77
+   |
+26 | pub fn peers_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                             ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:26:98
+   |
+26 | pub fn peers_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                                                  ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:27:5
+   |
+27 |     warp::get()
+   |     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:28:14
+   |
+28 |         .and(warp::path("peers"))
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:29:14
+   |
+29 |         .and(warp::query::<PeerQuery>())
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:40:5
+   |
+40 |     warp::any().map(move || manager.clone())
+   |     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:43:90
+   |
+43 | async fn handle_register(req: RegisterRequest, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                          ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:43:103
+   |
+43 | async fn handle_register(req: RegisterRequest, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                                       ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:50:83
+   |
+50 | async fn handle_peers(query: PeerQuery, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                   ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:50:96
+   |
+50 | async fn handle_peers(query: PeerQuery, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                                ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+Some errors have detailed explanations: E0223, E0432, E0433, E0463.
+For more information about an error, try `rustc --explain E0223`.
+warning: `rust-core` (lib) generated 2 warnings
+error: could not compile `rust-core` (lib) due to 31 previous errors; 2 warnings emitted
+
+=== cargo test ===
+   Compiling rust-core v0.1.0 (D:\Dev\KAIRO\rust-core)
+error[E0583]: file not found for module `coordination_test`
+  --> rust-core\src\lib.rs:36:5
+   |
+36 |     mod coordination_test;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: to create the module `coordination_test`, create file "rust-core\src\tests\coordination_test.rs" or "rust-core\src\tests\coordination_test\mod.rs"
+   = note: if there is a `mod coordination_test` elsewhere in the crate already, import it with `use crate::...` instead
+
+error[E0463]: can't find crate for `flatbuffers`
+ --> rust-core\src\ai_tcp_packet_generated.rs:9:1
+  |
+9 | extern crate flatbuffers;
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
+
+error[E0583]: file not found for module `packet_parser_test`
+  --> rust-core\src\lib.rs:37:5
+   |
+37 |     mod packet_parser_test;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: to create the module `packet_parser_test`, create file "rust-core\src\tests\packet_parser_test.rs" or "rust-core\src\tests\packet_parser_test\mod.rs"
+   = note: if there is a `mod packet_parser_test` elsewhere in the crate already, import it with `use crate::...` instead
+
+error[E0583]: file not found for module `test_link`
+  --> rust-core\src\lib.rs:38:5
+   |
+38 |     mod test_link;
+   |     ^^^^^^^^^^^^^^
+   |
+   = help: to create the module `test_link`, create file "rust-core\src\tests\test_link.rs" or "rust-core\src\tests\test_link\mod.rs"
+   = note: if there is a `mod test_link` elsewhere in the crate already, import it with `use crate::...` instead
+
+error[E0583]: file not found for module `crypto_stress`
+  --> rust-core\src\lib.rs:39:5
+   |
+39 |     mod crypto_stress;
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = help: to create the module `crypto_stress`, create file "rust-core\src\tests\crypto_stress.rs" or "rust-core\src\tests\crypto_stress\mod.rs"
+   = note: if there is a `mod crypto_stress` elsewhere in the crate already, import it with `use crate::...` instead
+
+error[E0583]: file not found for module `key_rotation_test`
+  --> rust-core\src\lib.rs:40:5
+   |
+40 |     mod key_rotation_test;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: to create the module `key_rotation_test`, create file "rust-core\src\tests\key_rotation_test.rs" or "rust-core\src\tests\key_rotation_test\mod.rs"
+   = note: if there is a `mod key_rotation_test` elsewhere in the crate already, import it with `use crate::...` instead
+
+error[E0463]: can't find crate for `flatbuffers`
+  --> rust-core\src\ai_tcp_packet_generated.rs:18:3
+   |
+18 |   extern crate flatbuffers;
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
+
+error[E0583]: file not found for module `signature_verification_test`
+  --> rust-core\src\lib.rs:41:5
+   |
+41 |     mod signature_verification_test;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: to create the module `signature_verification_test`, create file "rust-core\src\tests\signature_verification_test.rs" or "rust-core\src\tests\signature_verification_test\mod.rs"
+   = note: if there is a `mod signature_verification_test` elsewhere in the crate already, import it with `use crate::...` instead
+
+error[E0432]: unresolved import `crate::error`
+ --> rust-core\src\packet_parser.rs:5:12
+  |
+5 | use crate::error::KairoError;
+  |            ^^^^^
+  |            |
+  |            unresolved import
+  |            help: a similar path exists: `core::error`
+
+error[E0432]: unresolved import `hmac`
+ --> rust-core\src\log_recorder.rs:2:5
+  |
+2 | use hmac::Hmac;
+  |     ^^^^ use of unresolved module or unlinked crate `hmac`
+  |
+  = help: if you wanted to use a crate named `hmac`, use `cargo add hmac` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `sha2`
+ --> rust-core\src\log_recorder.rs:3:5
+  |
+3 | use sha2::Sha256;
+  |     ^^^^ use of unresolved module or unlinked crate `sha2`
+  |
+  = help: if you wanted to use a crate named `sha2`, use `cargo add sha2` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `chrono`
+ --> rust-core\src\log_recorder.rs:4:5
+  |
+4 | use chrono::{DateTime, Utc};
+  |     ^^^^^^ use of unresolved module or unlinked crate `chrono`
+  |
+  = help: if you wanted to use a crate named `chrono`, use `cargo add chrono` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `chrono`
+  --> rust-core\src\lib.rs:24:9
+   |
+24 | pub use chrono::{DateTime, Utc};
+   |         ^^^^^^ use of unresolved module or unlinked crate `chrono`
+   |
+   = help: if you wanted to use a crate named `chrono`, use `cargo add chrono` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `sha2`
+ --> rust-core\src\signature.rs:6:5
+  |
+6 | use sha2::{Digest, Sha256};
+  |     ^^^^ use of unresolved module or unlinked crate `sha2`
+  |
+  = help: if you wanted to use a crate named `sha2`, use `cargo add sha2` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `ed25519_dalek`
+  --> rust-core\src\signature.rs:42:5
+   |
+42 | use ed25519_dalek::{Keypair, PublicKey, Signer, Verifier, Signature as Ed25519Signature};
+   |     ^^^^^^^^^^^^^ use of unresolved module or unlinked crate `ed25519_dalek`
+   |
+   = help: if you wanted to use a crate named `ed25519_dalek`, use `cargo add ed25519_dalek` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `uuid`
+ --> rust-core\src\coordination\node_manager.rs:4:5
+  |
+4 | use uuid::Uuid;
+  |     ^^^^ use of unresolved module or unlinked crate `uuid`
+  |
+  = help: if you wanted to use a crate named `uuid`, use `cargo add uuid` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `warp`
+ --> rust-core\src\coordination\api.rs:2:5
+  |
+2 | use warp::Filter;
+  |     ^^^^ use of unresolved module or unlinked crate `warp`
+  |
+  = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `serde`
+ --> rust-core\src\coordination\api.rs:3:5
+  |
+3 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: if you wanted to use a crate named `serde`, use `cargo add serde` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `serde`
+ --> rust-core\src\coordination\node_manager.rs:6:17
+  |
+6 | #[derive(Clone, serde::Serialize)]
+  |                 ^^^^^ use of unresolved module or unlinked crate `serde`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:21:14
+   |
+21 |         .and(warp::body::json())
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:47:8
+   |
+47 |     Ok(warp::reply::json(&RegisterResponse { virtual_ip: ip }))
+   |        ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:53:8
+   |
+53 |     Ok(warp::reply::json(&peers))
+   |        ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+warning: unused import: `core::mem`
+ --> rust-core\src\ai_tcp_packet_generated.rs:6:5
+  |
+6 | use core::mem;
+  |     ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `core::cmp::Ordering`
+ --> rust-core\src\ai_tcp_packet_generated.rs:7:5
+  |
+7 | use core::cmp::Ordering;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+error[E0223]: ambiguous associated type
+  --> rust-core\src\ai_tcp_packet_generated.rs:33:50
+   |
+33 |   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+   |                                                  ^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `Inner` implemented for `AITcpPacket<'a>`, you could use the fully-qualified path
+   |
+33 -   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+33 +   unsafe fn follow(buf: &'a [u8], loc: usize) -> <AITcpPacket<'a> as Example>::Inner {
+   |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:18:80
+   |
+18 | pub fn register_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                                ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:18:101
+   |
+18 | pub fn register_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                                                     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:19:5
+   |
+19 |     warp::post()
+   |     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:20:14
+   |
+20 |         .and(warp::path("register"))
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:26:77
+   |
+26 | pub fn peers_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                             ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:26:98
+   |
+26 | pub fn peers_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+   |                                                                                                  ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:27:5
+   |
+27 |     warp::get()
+   |     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:28:14
+   |
+28 |         .and(warp::path("peers"))
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:29:14
+   |
+29 |         .and(warp::query::<PeerQuery>())
+   |              ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:40:5
+   |
+40 |     warp::any().map(move || manager.clone())
+   |     ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:43:90
+   |
+43 | async fn handle_register(req: RegisterRequest, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                          ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:43:103
+   |
+43 | async fn handle_register(req: RegisterRequest, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                                       ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:50:83
+   |
+50 | async fn handle_peers(query: PeerQuery, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                   ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `warp`
+  --> rust-core\src\coordination\api.rs:50:96
+   |
+50 | async fn handle_peers(query: PeerQuery, manager: Arc<NodeManager>) -> Result<impl warp::Reply, warp::Rejection> {
+   |                                                                                                ^^^^ use of unresolved module or unlinked crate `warp`
+   |
+   = help: if you wanted to use a crate named `warp`, use `cargo add warp` to add it to your `Cargo.toml`
+
+Some errors have detailed explanations: E0223, E0432, E0433, E0463, E0583.
+For more information about an error, try `rustc --explain E0223`.
+warning: `rust-core` (lib test) generated 2 warnings
+error: could not compile `rust-core` (lib test) due to 37 previous errors; 2 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+Some errors have detailed explanations: E0223, E0432, E0433, E0463.
+warning: `rust-core` (lib) generated 2 warnings (2 duplicates)
+error: could not compile `rust-core` (lib) due to 31 previous errors; 2 warnings emitted
+
+=== All steps done. Log saved: kairo_update_20250708_031454.log ===

@@ -1,0 +1,55 @@
+=== Current Directory ===
+
+Path
+----
+D:\Dev\KAIRO
+
+
+=== Cargo.toml [dependencies] ===
+# =============================
+# Top-level Cargo.toml
+# =============================
+
+[workspace]
+members = [
+    "rust-core"
+]
+
+# ✅ ポイント
+# - ルートに共通 dev-dependencies は定義せず
+# - 各メンバー（rust-core）側に dev-dependencies を寄せて管理
+#   （例: criterion, mockall, rstest など）
+
+# もし将来、共通 dev-dependencies を workspace でまとめるなら
+# [workspace.dependencies] で整理
+# 例:
+# [workspace.dependencies]
+# criterion = "0.5"
+
+=== cargo update ===
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+error: failed to get `chrono` as a dependency of package `rust-core v0.1.0 (D:\Dev\KAIRO\rust-core)`
+
+Caused by:
+  error in environment variable `CARGO_HTTP_CHECK_REVOKE`: provided string was not `true` or `false`
+
+=== cargo tree (rand_core) ===
+
+=== cargo build ===
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+error: error in environment variable `CARGO_HTTP_CHECK_REVOKE`: provided string was not `true` or `false`
+
+=== cargo test ===
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+error: error in environment variable `CARGO_HTTP_CHECK_REVOKE`: provided string was not `true` or `false`
+
+=== All steps done. Log saved: kairo_update_20250708_030918.log ===
