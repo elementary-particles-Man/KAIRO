@@ -1,0 +1,15 @@
+namespace KAIRO;
+
+/// Base schema for VoV logs transmitted in binary form.
+/// This mirrors the fields stored in the JSONL logs.
+
+table VovLog {
+  uuid:[ubyte] (required);
+  timestamp:ulong;
+  hash:[ubyte] (required);
+  source_ip:string;
+  signature:[ubyte] (required);
+  deny_flag:bool;
+}
+
+root_type VovLog;
