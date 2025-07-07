@@ -3,9 +3,10 @@
 # =============================
 
 [workspace]
-members = [
+members = [ "kairof",
     "rust-core"
 ]
+resolver = "1"
 
 # ✅ ポイント
 # - ルートに共通 dev-dependencies は定義せず

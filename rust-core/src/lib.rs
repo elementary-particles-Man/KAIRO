@@ -42,6 +42,12 @@ pub extern "C" fn add_numbers(a: i32, b: i32) -> i32 {
     a + b
 }
 
+#[no_mangle]
+pub extern "C" fn log_parse_error() {
+    let err = error::KairoError::PacketParseFailed;
+    eprintln!("Kairo error: {err}");
+}
+
 // ---------- LogRecorder 構造体 ----------
 pub struct LogRecorder {
     key: [u8; 32],
