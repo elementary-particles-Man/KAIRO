@@ -15,6 +15,7 @@ pub mod force_disconnect;     // Force disconnect logic
 pub mod fw_filter;            // Firewall filter logic
 pub mod packet_parser;        // FlatBuffers parsing + sequence validation
 pub mod packet_signer;        // Ephemeral Key signing for packets
+pub mod packet_validator;        // Packet validation
 pub mod compression;          // LZ4/Zstd compression utilities
 pub mod session;              // Ephemeral DH session management
 pub mod connection_manager;   // Manage ephemeral sessions per connection
