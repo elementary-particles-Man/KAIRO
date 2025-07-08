@@ -1,7 +1,7 @@
 // D:\dev\KAIRO\rust-core\tests\packet_parser_test.rs
-use rust_core::packet_parser::PacketParser;
+use crate::packet_parser::PacketParser;
 use flatbuffers::FlatBufferBuilder;
-use rust_core::ai_tcp_packet_generated::aitcp as fb;
+use crate::ai_tcp_packet_generated::aitcp as fb;
 
 #[test]
 fn test_packet_parsing_success() {

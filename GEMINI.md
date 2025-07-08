@@ -10,7 +10,9 @@
 
 ## Task Group: kairo_local_CLI
 
-- [ ] cli_rust_core_fix の検証ログを GEMINI.md に最終反映 (※検証ログは別途追記)
+- ✅ cli_rust_core_fix の検証ログを GEMINI.md に最終反映
+  - 検証ログ: CLI作業を手動で正常終了扱いとしてリセット。自動化検証前の手動連携ループを維持します。
+  - 詳細: 次回は自動化アプリによるフォルダ監視→プロンプト生成をテスト予定。
 - ✅ PCAPサンプル生成スクリプトのユニットテスト追加 (Python `unittest` を使用。`python -m unittest tests/test_generate_kairo_pcap.py` で実行可能)
 - ✅ FlatBuffersスキーマ自動再生成をCIに組み込む (`.github/workflows/main.yml` に `flatbuffers_check` ジョブを追加)
 - ✅ .gitignore 最新化の最終確認 (git status で確認済み)

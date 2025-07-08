@@ -12,17 +12,55 @@ fn sha256_sign_and_verify() {
     assert!(Sha256Signature::verify(msg, &sig));
 }
 
+#[test]
+fn sha256_verify_with_wrong_message() {
+    let msg = b"hello";
+    let wrong_msg = b"world";
+    let sig = Sha256Signature::sign(msg);
+    assert!(!Sha256Signature::verify(wrong_msg, &sig));
+}
+
+#[test]
+fn sha256_verify_with_wrong_signature() {
+    let msg = b"hello";
+    let mut sig = Sha256Signature::sign(msg);
+    sig.0[0] = sig.0[0].wrapping_add(1); // Tamper with the signature
+    assert!(!Sha256Signature::verify(msg, &sig));
+}
+
 // --- Ed25519 Signature Test ---
-use ed25519_dalek::Keypair;
+use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
 use rand::rngs::OsRng;
-use rust_core::signature::{sign, verify};
+use crate::signature::{sign_ed25519, verify_ed25519};
 
 #[test]
 fn ed25519_signature_verification() {
     let mut csprng = OsRng{};
-    let keypair: Keypair = Keypair::generate(&mut csprng);
+    let signing_key = SigningKey::generate(&mut csprng);
     let message: &[u8] = b"test";
 
-    let signature = sign(&keypair, message);
-    assert!(verify(&keypair.public, message, &signature));
+    let signature = sign_ed25519(&signing_key, message);
+    assert!(verify_ed25519(&signing_key.verifying_key(), message, &signature).is_ok());
+}
+
+#[test]
+fn ed25519_verify_with_wrong_message() {
+    let mut csprng = OsRng{};
+    let signing_key = SigningKey::generate(&mut csprng);
+    let message: &[u8] = b"test";
+    let wrong_message: &[u8] = b"wrong";
+
+    let signature = sign_ed25519(&signing_key, message);
+    assert!(verify_ed25519(&signing_key.verifying_key(), wrong_message, &signature).is_err());
+}
+
+#[test]
+fn ed25519_verify_with_wrong_signature() {
+    let mut csprng = OsRng{};
+    let signing_key = SigningKey::generate(&mut csprng);
+    let message: &[u8] = b"test";
+
+    let mut signature = sign_ed25519(&signing_key, message);
+    signature.0[0] = signature.0[0].wrapping_add(1); // Tamper with the signature
+    assert!(verify_ed25519(&signing_key.verifying_key(), message, &signature).is_err());
 }

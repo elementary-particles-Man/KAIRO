@@ -1,9 +1,9 @@
 use ed25519_dalek::Keypair;
 use rand::rngs::OsRng;
 use flatbuffers::FlatBufferBuilder;
-use rust_core::ai_tcp_packet_generated::aitcp as fb;
-use rust_core::log_recorder::LogRecorder;
-use rust_core::packet_parser::PacketParser;
+use crate::ai_tcp_packet_generated::aitcp as fb;
+use crate::log_recorder::LogRecorder;
+use crate::packet_parser::PacketParser;
 use rust_core::signature::{sign, verify};
 
 #[test]

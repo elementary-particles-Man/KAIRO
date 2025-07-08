@@ -32,10 +32,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install flatc
         run: sudo snap install flatbuffers
-      - name: Generate FlatBuffers for Rust
-        run: flatc --rust -o rust-core/src/ schema/ai_tcp_packet.fbs
-      - name: Generate FlatBuffers for Go
-        run: flatc --go -o go-p2p/pkg/generated/AITCP/ schema/ai_tcp_packet.fbs
+      - name: Generate FlatBuffers
+        run: make generate_schema
       - name: Check for uncommitted changes
         run: |
           git status --porcelain
