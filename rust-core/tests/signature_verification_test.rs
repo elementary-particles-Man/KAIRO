@@ -30,7 +30,7 @@ fn sha256_verify_with_wrong_signature() {
 
 // --- Ed25519 Signature Test ---
 use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
-use rand::rngs::OsRng;
+use rand_core::{OsRng, RngCore};
 use crate::signature::{sign_ed25519, verify_ed25519};
 
 #[test]
