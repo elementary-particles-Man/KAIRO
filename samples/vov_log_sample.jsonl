@@ -1,0 +1,2 @@
+{"timestamp":"2024-01-01T00:00:00Z","event":"key_rotated","hmac":"000000"}
+{"timestamp":"2024-01-01T00:00:01Z","event":"log_signed","hmac":"111111"}
