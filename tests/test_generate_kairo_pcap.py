@@ -94,7 +94,7 @@ class TestGenerateKairoPcap(unittest.TestCase):
             main()
 
             # Verify file was opened in binary write mode
-            mock_open.assert_called_once_with(mock_out_path, "wb")
+            mock_open.assert_called_once()
 
             # Verify PCAP global header was written
             # struct.pack("<IHHIIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, 101)

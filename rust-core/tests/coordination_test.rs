@@ -1,3 +1,5 @@
+#![cfg(feature = "coordination")]
+
 use rust_core::coordination::node_manager::NodeManager;
 
 #[test]

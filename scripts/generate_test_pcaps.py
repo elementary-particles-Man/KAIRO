@@ -45,7 +45,7 @@ def main() -> None:
 
     packets = [_build_packet(i) for i in range(1, 4)]
 
-    with out_path.open("wb") as fh:
+    with open(out_path, "wb") as fh:
         fh.write(struct.pack("<IHHIIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, 101))
         ts = int(time.time())
         for i, pkt in enumerate(packets):

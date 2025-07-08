@@ -22,6 +22,8 @@ jobs:
         run: pip install pytest
       - name: Run Python tests
         run: pytest -q
+      - name: Validate example logs
+        run: python scripts/validate_logs.py --check vov/example_log.jsonl
 
   flatbuffers_check:
     runs-on: ubuntu-latest

@@ -3,10 +3,7 @@
 // ===========================
 
 // ---------- 外部クレート ----------
-use chrono::{DateTime, Duration, Utc};
-use hmac::{Hmac, Mac};
-use rand::{rngs::OsRng, RngCore};
-use sha2::Sha256;
+
 
 // ---------- 内部モジュール ----------
 pub mod keygen;               // Ephemeral Key Generation
@@ -48,32 +45,5 @@ pub extern "C" fn log_parse_error() {
     eprintln!("Kairo error: {err}");
 }
 
-// ---------- LogRecorder 構造体 ----------
-pub struct LogRecorder {
-    key: [u8; 32],
-    key_start: DateTime<Utc>,
-    // 必要なら追加フィールド
-}
-
-// LogRecorder 実装
-impl LogRecorder {
-    pub fn new() -> Self {
-        let mut key = [0u8; 32];
-        OsRng.fill_bytes(&mut key);
-        Self {
-            key,
-            key_start: Utc::now(),
-        }
-    }
-
-    pub fn sign_log(&self, data: &[u8]) -> Vec<u8> {
-        let mut mac = Hmac::<Sha256>::new_from_slice(&self.key).expect("HMAC init failed");
-        mac.update(data);
-        mac.finalize().into_bytes().to_vec()
-    }
-
-    pub fn rotate_key(&mut self) {
-        self.key_start = Utc::now();
-        OsRng.fill_bytes(&mut self.key);
-    }
-}
+// Re-export LogRecorder for convenience
+pub use crate::log_recorder::LogRecorder;

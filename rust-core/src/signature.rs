@@ -42,11 +42,11 @@ impl fmt::Debug for Sha256Signature {
 use ed25519_dalek::{Keypair, PublicKey, Signer, Verifier, Signature as Ed25519Signature};
 
 /// Ed25519 署名
-pub fn sign_ed25519(keypair: &Keypair, message: &[u8]) -> Ed25519Signature {
+pub fn sign(keypair: &Keypair, message: &[u8]) -> Ed25519Signature {
     keypair.sign(message)
 }
 
 /// Ed25519 検証
-pub fn verify_ed25519(public_key: &PublicKey, message: &[u8], signature: &Ed25519Signature) -> bool {
+pub fn verify(public_key: &PublicKey, message: &[u8], signature: &Ed25519Signature) -> bool {
     public_key.verify(message, signature).is_ok()
 }

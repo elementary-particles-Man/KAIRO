@@ -1,25 +1,33 @@
 // D:\dev\KAIRO\rust-core\src\log_recorder.rs
-use hmac::Hmac;
+use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use chrono::{DateTime, Utc};
+use rand::{rngs::OsRng, RngCore};
 
 type HmacSha256 = Hmac<Sha256>;
 
 pub struct LogRecorder {
-    key: Vec<u8>,
-    key_creation_time: DateTime<Utc>,
+    key: [u8; 32],
+    key_start: DateTime<Utc>,
 }
 
 impl LogRecorder {
-    pub fn new(initial_key: Vec<u8>) -> Self {
+    pub fn new() -> Self {
+        let mut key = [0u8; 32];
+        OsRng.fill_bytes(&mut key);
         Self {
-            key: initial_key,
-            key_creation_time: Utc::now(),
+            key,
+            key_start: Utc::now(),
         }
     }
-    // ダミーのキーローテーション関数
-    pub fn rotate_key_if_needed(&mut self) {
-        self.key = vec![0; 32]; // 新しいキーに更新
-        self.key_creation_time = Utc::now();
+
+    pub fn sign_log(&self, data: &[u8]) -> Vec<u8> {
+        let mut mac = Hmac::<Sha256>::new_from_slice(&self.key).expect("HMAC init failed");
+        mac.update(data);
+        mac.finalize().into_bytes().to_vec()
     }
-}
+
+    pub fn rotate_key(&mut self) {
+        self.key_start = Utc::now();
+        OsRng.fill_bytes(&mut self.key);
+    }}

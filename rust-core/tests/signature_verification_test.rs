@@ -3,7 +3,7 @@
 // ===========================
 
 // --- SHA256 Signature Test ---
-use crate::signature::Sha256Signature;
+use rust_core::signature::Sha256Signature;
 
 #[test]
 fn sha256_sign_and_verify() {
@@ -15,7 +15,7 @@ fn sha256_sign_and_verify() {
 // --- Ed25519 Signature Test ---
 use ed25519_dalek::Keypair;
 use rand::rngs::OsRng;
-use crate::signature::{sign_ed25519, verify_ed25519};
+use rust_core::signature::{sign, verify};
 
 #[test]
 fn ed25519_signature_verification() {
@@ -23,6 +23,6 @@ fn ed25519_signature_verification() {
     let keypair: Keypair = Keypair::generate(&mut csprng);
     let message: &[u8] = b"test";
 
-    let signature = sign_ed25519(&keypair, message);
-    assert!(verify_ed25519(&keypair.public, message, &signature));
+    let signature = sign(&keypair, message);
+    assert!(verify(&keypair.public, message, &signature));
 }
