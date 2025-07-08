@@ -1,3 +1,8 @@
+// ===========================
+// 📄 rust-core/src/packet_validator.rs
+// ===========================
+
+// Validate AITcpPacket fields, signatures, and consistency.
 use crate::ai_tcp_packet_generated::aitcp as fb;
 use crate::signature::verify_ed25519;
 use ed25519_dalek::{Signature as Ed25519Signature, VerifyingKey};
@@ -11,34 +16,37 @@ pub fn validate_packet(
     packet: &fb::AITcpPacket,
     verifying_key: &VerifyingKey,
     expected_sequence: u64,
-) -> bool {
-    // Verify sequence number
+) -> Result<(), String> {
+    // Verify sequence number length
     let seq_vec = packet.encrypted_sequence_id();
     if seq_vec.len() != 8 {
-        return false;
+        return Err("Invalid sequence ID length".into());
     }
+
+    // Extract sequence number
     let mut seq_bytes = [0u8; 8];
     for (dst, src) in seq_bytes.iter_mut().zip(seq_vec.iter()) {
         *dst = *src;
     }
     let seq = u64::from_le_bytes(seq_bytes);
     if seq != expected_sequence {
-        return false;
+        return Err(format!("Sequence ID mismatch: expected {}, got {}", expected_sequence, seq));
     }
 
-    // Prepare signature and message
+    // Prepare signature
     let sig_vec = packet.signature();
     if sig_vec.len() != 64 {
-        return false;
+        return Err("Invalid signature length".into());
     }
     let mut sig_bytes = [0u8; 64];
     for (dst, src) in sig_bytes.iter_mut().zip(sig_vec.iter()) {
         *dst = *src;
     }
-    let signature = match Ed25519Signature::from_bytes(&sig_bytes) {
-        Ok(s) => s,
-        Err(_) => return false,
-    };
+    let signature = Ed25519Signature::from_bytes(&sig_bytes)
+        .map_err(|_| "Failed to parse Ed25519 signature")?;
+
+    // Verify signature
     let message: Vec<u8> = packet.encrypted_payload().iter().copied().collect();
-    verify_ed25519(verifying_key, &message, &signature).is_ok()
+    verify_ed25519(verifying_key, &message, &signature)
+        .map_err(|_| "Signature verification failed".into())
 }

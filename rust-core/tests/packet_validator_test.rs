@@ -1,3 +1,7 @@
+// ===========================
+// 📄 rust-core/tests/packet_validator_test.rs
+// ===========================
+
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use flatbuffers::FlatBufferBuilder;
 use rand_core::OsRng;
@@ -5,6 +9,7 @@ use rust_core::ai_tcp_packet_generated::aitcp as fb;
 use rust_core::packet_validator::validate_packet;
 use rust_core::signature::sign_ed25519;
 
+/// Build a valid AITcpPacket FlatBuffer for testing.
 fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();
     let ephemeral_key_vec = builder.create_vector(&[1u8; 32]);
@@ -34,7 +39,7 @@ fn validate_success() {
     let payload = b"hello";
     let buf = build_packet(1, &key, payload);
     let packet = fb::root_as_aitcp_packet(&buf).unwrap();
-    assert!(validate_packet(&packet, &VerifyingKey::from(&key), 1));
+    assert!(validate_packet(&packet, &VerifyingKey::from(&key), 1).is_ok());
 }
 
 #[test]
@@ -43,7 +48,7 @@ fn validate_wrong_sequence() {
     let payload = b"hello";
     let buf = build_packet(1, &key, payload);
     let packet = fb::root_as_aitcp_packet(&buf).unwrap();
-    assert!(!validate_packet(&packet, &VerifyingKey::from(&key), 2));
+    assert!(validate_packet(&packet, &VerifyingKey::from(&key), 2).is_err());
 }
 
 #[test]
@@ -51,8 +56,8 @@ fn validate_bad_signature() {
     let key = SigningKey::generate(&mut OsRng);
     let payload = b"hello";
     let buf = build_packet(1, &key, payload);
-    let mut packet = fb::root_as_aitcp_packet(&buf).unwrap();
-    // Rebuild with tampered signature
+
+    // Tamper signature: build new buffer with zeroed signature
     let mut builder = FlatBufferBuilder::new();
     let ephemeral_key_vec = builder.create_vector(&[1u8; 32]);
     let nonce_vec = builder.create_vector(&[0u8; 12]);
@@ -72,6 +77,7 @@ fn validate_bad_signature() {
     );
     builder.finish(packet_offset, None);
     let tampered_buf = builder.finished_data();
-    packet = fb::root_as_aitcp_packet(tampered_buf).unwrap();
-    assert!(!validate_packet(&packet, &VerifyingKey::from(&key), 1));
+    let packet = fb::root_as_aitcp_packet(tampered_buf).unwrap();
+
+    assert!(validate_packet(&packet, &VerifyingKey::from(&key), 1).is_err());
 }

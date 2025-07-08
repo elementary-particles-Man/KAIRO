@@ -18,11 +18,13 @@ pub mod packet_signer;        // Ephemeral Key signing for packets
 pub mod packet_validator;        // Packet validation
 pub mod compression;          // LZ4/Zstd compression utilities
 pub mod session;              // Ephemeral DH session management
+pub mod connection_manager;   // Manage ephemeral sessions per connection
 pub mod rate_control;         // Adaptive sending rate controller
 pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
 pub mod ai_tcp_packet_generated; // FlatBuffers generated code
 pub mod error;                // Custom error types
 pub mod coordination;         // Coordination Node Skeleton (Optional)
+pub mod packet_validator;     // AITcpPacket validation logic
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
