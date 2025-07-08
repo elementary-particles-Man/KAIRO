@@ -3,7 +3,7 @@
 # =============================
 
 [workspace]
-members = [ "kairof",
+members = [ "kairof", "mesh-node",
     "rust-core"
 ]
 resolver = "1"
