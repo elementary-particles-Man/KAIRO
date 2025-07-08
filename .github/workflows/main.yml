@@ -24,6 +24,8 @@ jobs:
         run: pytest -q
       - name: Validate example logs
         run: python scripts/validate_logs.py --check vov/example_log.jsonl
+      - name: Build Docker image
+        run: docker build -t kairo-cli .
 
   flatbuffers_check:
     runs-on: ubuntu-latest

@@ -22,6 +22,7 @@ pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
 pub mod ai_tcp_packet_generated; // FlatBuffers generated code
 pub mod error;                // Custom error types
 pub mod coordination;         // Coordination Node Skeleton (Optional)
+pub mod packet_validator;     // AITcpPacket validation logic
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
