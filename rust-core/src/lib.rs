@@ -17,6 +17,7 @@ pub mod packet_parser;        // FlatBuffers parsing + sequence validation
 pub mod packet_signer;        // Ephemeral Key signing for packets
 pub mod compression;          // LZ4/Zstd compression utilities
 pub mod session;              // Ephemeral DH session management
+pub mod connection_manager;   // Manage ephemeral sessions per connection
 pub mod rate_control;         // Adaptive sending rate controller
 pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
 pub mod ai_tcp_packet_generated; // FlatBuffers generated code
