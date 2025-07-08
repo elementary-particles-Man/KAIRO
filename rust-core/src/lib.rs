@@ -72,6 +72,4 @@ impl LogRecorder {
 
     pub fn rotate_key(&mut self) {
         self.key_start = Utc::now();
-        thread_rng().fill_bytes(&mut self.key);
-    }
-}
+        thread_rng().fill_bytes(&mut self.

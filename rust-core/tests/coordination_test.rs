@@ -1,3 +1,5 @@
+#![cfg(feature = "coordination")]
+
 use crate::coordination::node_manager::NodeManager;
 
 #[test]

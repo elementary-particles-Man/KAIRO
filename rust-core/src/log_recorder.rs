@@ -1,4 +1,3 @@
-// D:\dev\KAIRO\rust-core\src\log_recorder.rs
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use chrono::{DateTime, Utc};
@@ -7,17 +6,20 @@ use rand::{rngs::OsRng, RngCore};
 type HmacSha256 = Hmac<Sha256>;
 
 pub struct LogRecorder {
-    key: Vec<u8>,
-    key_creation_time: DateTime<Utc>,
+    key: [u8; 32],
+    key_start: DateTime<Utc>,
 }
 
 impl LogRecorder {
-    pub fn new(initial_key: Vec<u8>) -> Self {
+    pub fn new() -> Self {
+        let mut key = [0u8; 32];
+        OsRng.fill_bytes(&mut key);
         Self {
-            key: initial_key,
-            key_creation_time: Utc::now(),
+            key,
+            key_start: Utc::now(),
         }
     }
+
     /// Sign arbitrary data with the current HMAC key
     pub fn sign(&self, data: &[u8]) -> Vec<u8> {
         let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC init");
@@ -33,13 +35,13 @@ impl LogRecorder {
     }
 
     /// Rotate the signing key
-    pub fn rotate_key_if_needed(&mut self) {
-        self.key_creation_time = Utc::now();
-        let mut new_key = vec![0u8; 32];
-        OsRng.fill_bytes(&mut new_key);
-        self.key = new_key;
+    pub fn rotate_key(&mut self) {
+        self.key_start = Utc::now();
+        OsRng.fill_bytes(&mut self.key);
     }
 
+    /// Access the current key
     pub fn key(&self) -> &[u8] {
         &self.key
-    }}
+    }
+}

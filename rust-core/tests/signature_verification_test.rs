@@ -3,7 +3,7 @@
 // ===========================
 
 // --- SHA256 Signature Test ---
-use crate::signature::Sha256Signature;
+use rust_core::signature::Sha256Signature;
 
 #[test]
 fn sha256_sign_and_verify() {
@@ -24,15 +24,14 @@ fn sha256_verify_with_wrong_message() {
 fn sha256_verify_with_wrong_signature() {
     let msg = b"hello";
     let mut sig = Sha256Signature::sign(msg);
-    sig.signature[0] = sig.signature[0].wrapping_add(1); // Tamper with the signature
+    sig.0[0] = sig.0[0].wrapping_add(1); // Tamper with the signature
     assert!(!Sha256Signature::verify(msg, &sig));
 }
 
 // --- Ed25519 Signature Test ---
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
 use rand::rngs::OsRng;
 use crate::signature::{sign_ed25519, verify_ed25519};
-use ed25519_dalek::Signer;
 
 #[test]
 fn ed25519_signature_verification() {
@@ -40,7 +39,7 @@ fn ed25519_signature_verification() {
     let signing_key = SigningKey::generate(&mut csprng);
     let message: &[u8] = b"test";
 
-    let signature = signing_key.sign(message);
+    let signature = sign_ed25519(&signing_key, message);
     assert!(verify_ed25519(&signing_key.verifying_key(), message, &signature).is_ok());
 }
 
@@ -51,7 +50,7 @@ fn ed25519_verify_with_wrong_message() {
     let message: &[u8] = b"test";
     let wrong_message: &[u8] = b"wrong";
 
-    let signature = signing_key.sign(message);
+    let signature = sign_ed25519(&signing_key, message);
     assert!(verify_ed25519(&signing_key.verifying_key(), wrong_message, &signature).is_err());
 }
 
@@ -61,7 +60,7 @@ fn ed25519_verify_with_wrong_signature() {
     let signing_key = SigningKey::generate(&mut csprng);
     let message: &[u8] = b"test";
 
-    let mut signature = signing_key.sign(message);
+    let mut signature = sign_ed25519(&signing_key, message);
     signature.0[0] = signature.0[0].wrapping_add(1); // Tamper with the signature
     assert!(verify_ed25519(&signing_key.verifying_key(), message, &signature).is_err());
 }

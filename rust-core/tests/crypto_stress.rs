@@ -11,10 +11,8 @@ fn crypto_stress() {
     // 繰り返し回数（必要に応じて増減可）
     for _ in 0..100 {
         // --- 1️⃣ HMAC鍵ローテーション確認 ---
-        let initial_key = vec![1; 32];
-        let mut recorder = LogRecorder::new(initial_key.clone());
-        recorder.rotate_key_if_needed();
-        assert_eq!(recorder.key().len(), 32);
+        let mut recorder = LogRecorder::new();
+        recorder.rotate_key();
 
         // --- 2️⃣ FlatBuffersパケット生成＆パース（ゼロコピー構造確認） ---
         let mut builder = FlatBufferBuilder::new();
