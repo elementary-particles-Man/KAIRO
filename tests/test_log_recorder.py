@@ -39,3 +39,11 @@ def test_key_rotation(tmp_path):
     logger.log("2.2.2.2", False)
     assert logger._key != first_key
     assert logger._key_start > datetime.utcnow() - timedelta(minutes=1)
+
+def test_signature_changes_after_rotation(tmp_path):
+    log_file = tmp_path / "log.jsonl"
+    logger = LogRecorder(str(log_file))
+    first = logger.log("3.3.3.3", False)
+    logger._key_start -= timedelta(hours=25)
+    second = logger.log("4.4.4.4", False)
+    assert first.signature != second.signature

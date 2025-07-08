@@ -47,6 +47,10 @@ pub fn sign_ed25519(signing_key: &SigningKey, message: &[u8]) -> Ed25519Signatur
 }
 
 /// Ed25519 検証
-pub fn verify_ed25519(verifying_key: &VerifyingKey, message: &[u8], signature: &Ed25519Signature) -> Result<(), ed25519_dalek::SignatureError> {
+pub fn verify_ed25519(
+    verifying_key: &VerifyingKey,
+    message: &[u8],
+    signature: &Ed25519Signature
+) -> Result<(), ed25519_dalek::SignatureError> {
     verifying_key.verify(message, signature)
 }
