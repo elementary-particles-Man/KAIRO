@@ -1,8 +1,12 @@
-'''//! PacketParser: parses AI-TCP binary packet using FlatBuffers,
+//! PacketParser: parses AI-TCP binary packet using FlatBuffers,
 //! verifies sequence ID and triggers re-transmission if mismatch.
 
+
+
+
+
 use flatbuffers::FlatBufferBuilder;
-use crate::tcp_packet_generated::AITCP::AITcpPacket;
+use crate::ai_tcp_packet_generated::aitcp::AITcpPacket;
 
 pub struct PacketParser {
     pub session_key: Vec<u8>,
@@ -28,9 +32,9 @@ impl PacketParser {
 
     /// Parses and validates a FlatBuffers packet buffer.
     pub fn parse<'a>(&mut self, packet_buffer: &'a [u8]) -> Result<(&'a [u8], u64), &'static str> {
-        let packet = AITcpPacket::get_root_as_ai_tcp_packet(packet_buffer);
-        let encrypted_seq_id = packet.encrypted_sequence_id().ok_or("Missing sequence_id")?;
-        let seq_id = self.decrypt_sequence_id(encrypted_seq_id);
+        let packet = crate::ai_tcp_packet_generated::aitcp::root_as_aitcp_packet(packet_buffer).map_err(|_| "Invalid Flatbuffer")?;
+        let encrypted_seq_id = packet.encrypted_sequence_id();
+        let seq_id = self.decrypt_sequence_id(encrypted_seq_id.bytes());
 
         if seq_id != self.last_received_seq_id + 1 {
             return Err("Packet sequence mismatch");
@@ -38,8 +42,6 @@ impl PacketParser {
 
         self.last_received_seq_id = seq_id;
 
-        let payload = packet.encrypted_payload().ok_or("Missing payload")?;
-        Ok((payload, seq_id))
+        let payload = packet.encrypted_payload();
+        Ok((payload.bytes(), seq_id))
     }
-}
-''

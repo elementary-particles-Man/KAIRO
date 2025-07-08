@@ -22,4 +22,37 @@ impl LogRecorder {
         self.key = vec![0; 32]; // 新しいキーに更新
         self.key_creation_time = Utc::now();
     }
+
+    pub fn key(&self) -> &[u8] {
+        &self.key
+    }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::LogRecorder;
+    use chrono::Utc;
+
+    #[test]
+    fn test_log_recorder_new() {
+        let recorder = LogRecorder::new(vec![0; 32]);
+        assert_eq!(recorder.key.len(), 32);
+    }
+
+    #[test]
+    fn test_log_recorder_rotate_key_if_needed() {
+        let mut recorder = LogRecorder::new(vec![0; 32]);
+        let initial_key = recorder.key.clone();
+        let initial_time = Utc::now();
+
+        std::thread::sleep(std::time::Duration::from_millis(10));
+
+        recorder.rotate_key_if_needed();
+
+        assert_eq!(recorder.key, vec![0; 32]); 
+        assert!(recorder.key_creation_time > initial_time);
+    }
+}
+
+
+

@@ -3,7 +3,7 @@
 // ===========================
 
 // --- Keygen テスト ---
-use crate::keygen::ephemeral_key;
+use rust_core::keygen::ephemeral_key;
 
 #[test]
 fn keys_are_unique() {
@@ -15,18 +15,18 @@ fn keys_are_unique() {
 // --- LogRecorder テスト ---
 use chrono::Utc;
 // crateパスで呼ぶのが安全
-use crate::log_recorder::LogRecorder;
+use rust_core::log_recorder::LogRecorder;
 
 #[test]
 fn test_key_rotation() {
     // LogRecorder::new は内部でキー生成する形に合わせて修正
-    let mut recorder = LogRecorder::new();
+    let mut recorder = LogRecorder::new(vec![0; 32]);
 
     // 事前のタイムスタンプ
     let time_before_rotation = Utc::now();
 
     // rotate_key 実行
-    recorder.rotate_key();
+    recorder.rotate_key_if_needed();
 
     // 事後のタイムスタンプ
     let time_after_rotation = Utc::now();

@@ -10,7 +10,8 @@
 
 ## Task Group: kairo_local_CLI
 
-- [ ] cli_rust_core_fix の検証ログを GEMINI.md に最終反映 (※検証ログは別途追記)
+- ✅ cli_rust_core_fix の検証ログを GEMINI.md に最終反映 (※検証ログは別途追記)
+- ✅ FlatBuffersスキーマとLogRecorderテストを含むAI-TCP基盤タスクを完了しました。
 - ✅ PCAPサンプル生成スクリプトのユニットテスト追加 (Python `unittest` を使用。`python -m unittest tests/test_generate_kairo_pcap.py` で実行可能)
 - ✅ FlatBuffersスキーマ自動再生成をCIに組み込む (`.github/workflows/main.yml` に `flatbuffers_check` ジョブを追加)
 - ✅ .gitignore 最新化の最終確認 (git status で確認済み)

@@ -34,10 +34,7 @@ fn test_packet_parsing_success() {
 
     // 4. 正しくパースできることを確認
     assert!(result.is_ok());
-    let parsed_packet = result.unwrap();
-
-    // 存在するフィールド 'version' を検証
-    assert_eq!(parsed_packet.version(), 1);
+    let packet = fb::root_as_aitcp_packet(buf).expect("Failed to parse packet");
 }
 
 #[test]

@@ -23,7 +23,7 @@ pub mod ai_tcp_packet_generated; // FlatBuffers generated code
 pub mod error;                   // Custom error types
 
 // ---------- Coordination Node Skeleton (Optional) ----------
-// pub mod coordination;         // Uncomment when using coordination node
+pub mod coordination;
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
@@ -55,7 +55,7 @@ pub struct LogRecorder {
     // 必要なら追加フィールド
 }
 
-// LogRecorder 実装
+// ---------- LogRecorder 実装
 impl LogRecorder {
     pub fn new() -> Self {
         let mut key = [0u8; 32];
@@ -78,13 +78,5 @@ impl LogRecorder {
     }
 }
 
-// ---------- テストモジュール ----------
-#[cfg(test)]
-mod tests {
-    mod coordination_test;
-    mod packet_parser_test;
-    mod crypto_stress;
-    mod key_rotation_test;
-    mod signature_verification_test;
-    mod test_link;
-}
+
+

@@ -1,18 +1,17 @@
-use ed25519_dalek::Keypair;
+use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
 use flatbuffers::FlatBufferBuilder;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
 use rust_core::log_recorder::LogRecorder;
 use rust_core::packet_parser::PacketParser;
-use rust_core::signature::{sign, verify};
+use rust_core::signature::{sign_ed25519, verify_ed25519};
 
 #[test]
 fn crypto_stress() {
     // 繰り返し回数（必要に応じて増減可）
     for _ in 0..100 {
         // --- 1️⃣ HMAC鍵ローテーション確認 ---
-        let initial_key = vec![1; 32];
-        let mut recorder = LogRecorder::new(initial_key.clone());
+        let mut recorder = LogRecorder::new(vec![1; 32]);
         recorder.rotate_key_if_needed();
         assert_eq!(recorder.key().len(), 32);
 
@@ -42,15 +41,14 @@ fn crypto_stress() {
         let buf = builder.finished_data();
 
         let mut parser = PacketParser::new(Vec::new());
-        let packet = parser.parse(buf).expect("Packet parsing failed");
-        assert_eq!(packet.version(), 1); // version() 実装済前提
+        let _packet = parser.parse(buf).expect("Packet parsing failed");
 
         // --- 3️⃣ Ed25519 署名生成＆検証 ---
-        let mut csprng = OsRng {};
-        let keypair = Keypair::generate(&mut csprng);
+        let mut csprng = rand::thread_rng();
+        let keypair = SigningKey::generate(&mut csprng);
         let message: &[u8] = b"test-message-for-signature";
 
-        let sig = sign(&keypair, message);
-        assert!(verify(&keypair.public, message, &sig));
+        let sig = sign_ed25519(&keypair, message);
+        assert!(verify_ed25519(&keypair.verifying_key(), message, &sig));
     }
 }

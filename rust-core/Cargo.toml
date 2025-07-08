@@ -6,18 +6,18 @@ edition = "2021"
 [lib]
 name = "rust_core"
 path = "src/lib.rs"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 # FlatBuffers: バージョン固定（メインは 25.2.10 に統一）
 flatbuffers = "25.2.10"
 
 # Ed25519 署名
-ed25519-dalek = "1.0.1"
+ed25519-dalek = { version = "2.1.0", features = ["rand_core"] }
 
 # ランダム値生成
 rand = "0.8"
-rand_core = "0.6"
+rand_core = "0.6.4"
 
 # 圧縮系（Codex/implement-lz4/zstd-compression-module）
 lz4_flex = "0.11"
@@ -42,6 +42,7 @@ thiserror = "1.0"
 # APIサーバ（warp）と非同期（tokio）
 warp = "0.3"
 tokio = { version = "1", features = ["full"] }
+uuid = { version = "1.0", features = ["v4"] }
 
 [dev-dependencies]
 criterion = "0.5"

@@ -39,14 +39,14 @@ impl fmt::Debug for Sha256Signature {
 }
 
 // --- Ed25519 シグネチャ実装 ---
-use ed25519_dalek::{Keypair, PublicKey, Signer, Verifier, Signature as Ed25519Signature};
+use ed25519_dalek::{SigningKey, VerifyingKey, Signer, Verifier, Signature as Ed25519Signature};
 
 /// Ed25519 署名
-pub fn sign_ed25519(keypair: &Keypair, message: &[u8]) -> Ed25519Signature {
+pub fn sign_ed25519(keypair: &SigningKey, message: &[u8]) -> Ed25519Signature {
     keypair.sign(message)
 }
 
 /// Ed25519 検証
-pub fn verify_ed25519(public_key: &PublicKey, message: &[u8], signature: &Ed25519Signature) -> bool {
+pub fn verify_ed25519(public_key: &VerifyingKey, message: &[u8], signature: &Ed25519Signature) -> bool {
     public_key.verify(message, signature).is_ok()
 }
