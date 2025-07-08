@@ -40,3 +40,5 @@ jobs:
             git diff
             exit 1
           fi
+      - name: Run clippy
+        run: cargo clippy --package rust-core
