@@ -1,4 +1,4 @@
-use rust_core::coordination::node_manager::NodeManager;
+use crate::coordination::node_manager::NodeManager;
 
 #[test]
 fn test_register_node() {

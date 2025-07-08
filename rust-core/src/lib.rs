@@ -5,7 +5,7 @@
 // ---------- 外部クレート ----------
 use chrono::{DateTime, Duration, Utc};
 use hmac::{Hmac, Mac};
-use rand::{rngs::OsRng, RngCore};
+use rand::{thread_rng, RngCore};
 use sha2::Sha256;
 
 // ---------- 内部モジュール ----------
@@ -23,7 +23,7 @@ pub mod ai_tcp_packet_generated; // FlatBuffers generated code
 pub mod error;                // Custom error types
 
 // ---------- Coordination Node Skeleton (Optional) ----------
-// pub mod coordination;       // Uncomment when using coordination node
+pub mod coordination;       // Uncomment when using coordination node
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
@@ -59,7 +59,7 @@ pub struct LogRecorder {
 impl LogRecorder {
     pub fn new() -> Self {
         let mut key = [0u8; 32];
-        OsRng.fill_bytes(&mut key);
+        thread_rng().fill_bytes(&mut key);
         Self {
             key,
             key_start: Utc::now(),
@@ -74,6 +74,6 @@ impl LogRecorder {
 
     pub fn rotate_key(&mut self) {
         self.key_start = Utc::now();
-        OsRng.fill_bytes(&mut self.key);
+        thread_rng().fill_bytes(&mut self.key);
     }
 }

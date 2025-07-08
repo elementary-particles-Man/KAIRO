@@ -1,5 +1,5 @@
 use std::time::{Duration, Instant};
-use rand_core::OsRng;
+use rand::{thread_rng, RngCore};
 use x25519_dalek::{StaticSecret, PublicKey};
 
 /// Represents an ephemeral Diffie-Hellman key pair that can be reused
@@ -12,7 +12,7 @@ pub struct SessionKey {
 
 impl SessionKey {
     fn new() -> Self {
-        let private = StaticSecret::random_from_rng(&mut OsRng);
+        let private = StaticSecret::random_from_rng(&mut thread_rng());
         let public = PublicKey::from(&private);
         Self { private, public, created: Instant::now() }
     }
