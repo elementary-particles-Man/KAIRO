@@ -17,7 +17,7 @@ fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
     let seq_vec = builder.create_vector(&seq.to_le_bytes());
     let payload_vec = builder.create_vector(payload);
     let sig = sign_ed25519(key, payload);
-    let sig_vec = builder.create_vector(sig.as_ref());
+    let sig_vec = builder.create_vector(sig.to_bytes().as_ref());
     let packet_offset = fb::AITcpPacket::create(
         &mut builder,
         &fb::AITcpPacketArgs {

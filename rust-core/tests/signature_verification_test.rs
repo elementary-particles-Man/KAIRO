@@ -24,7 +24,7 @@ fn sha256_verify_with_wrong_message() {
 fn sha256_verify_with_wrong_signature() {
     let msg = b"hello";
     let mut sig = Sha256Signature::sign(msg);
-    sig.0[0] = sig.0[0].wrapping_add(1); // Tamper with the signature
+    sig.tamper(); // Tamper with the signature
     assert!(!Sha256Signature::verify(msg, &sig));
 }
 
@@ -61,6 +61,6 @@ fn ed25519_verify_with_wrong_signature() {
     let message: &[u8] = b"test";
 
     let mut signature = sign_ed25519(&signing_key, message);
-    signature.0[0] = signature.0[0].wrapping_add(1); // Tamper with the signature
+    signature.tamper(); // Tamper with the signature
     assert!(verify_ed25519(&signing_key.verifying_key(), message, &signature).is_err());
 }

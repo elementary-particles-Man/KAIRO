@@ -26,7 +26,7 @@ pub fn validate_packet(
     // Extract sequence number
     let mut seq_bytes = [0u8; 8];
     for (dst, src) in seq_bytes.iter_mut().zip(seq_vec.iter()) {
-        *dst = *src;
+        *dst = src;
     }
     let seq = u64::from_le_bytes(seq_bytes);
     if seq != expected_sequence {
@@ -40,13 +40,12 @@ pub fn validate_packet(
     }
     let mut sig_bytes = [0u8; 64];
     for (dst, src) in sig_bytes.iter_mut().zip(sig_vec.iter()) {
-        *dst = *src;
+        *dst = src;
     }
-    let signature = Ed25519Signature::from_bytes(&sig_bytes)
-        .map_err(|_| "Failed to parse Ed25519 signature")?;
+    let signature = Ed25519Signature::from_bytes(&sig_bytes);
 
     // Verify signature
-    let message: Vec<u8> = packet.encrypted_payload().iter().copied().collect();
+    let message: Vec<u8> = packet.encrypted_payload().iter().map(|x| x).collect();
     verify_ed25519(verifying_key, &message, &signature)
         .map_err(|_| "Signature verification failed".into())
 }
