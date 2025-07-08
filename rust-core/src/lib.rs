@@ -23,7 +23,7 @@ pub mod ai_tcp_packet_generated; // FlatBuffers generated code
 pub mod error;                // Custom error types
 
 // ---------- Coordination Node Skeleton (Optional) ----------
-// pub mod coordination;       // Uncomment when using coordination node
+pub mod coordination;
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
