@@ -23,6 +23,9 @@ __pycache__/
 
 # PCAP生成物（サンプル以外）
 samples/*.pcap
+samples/
+!samples/README.md
+!samples/*.jsonl
 
 # VSCode/IDE
 .vscode/

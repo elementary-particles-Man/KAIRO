@@ -21,9 +21,7 @@ pub mod rate_control;         // Adaptive sending rate controller
 pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
 pub mod ai_tcp_packet_generated; // FlatBuffers generated code
 pub mod error;                // Custom error types
-
-// ---------- Coordination Node Skeleton (Optional) ----------
-pub mod coordination;       // Uncomment when using coordination node
+pub mod coordination;         // Coordination Node Skeleton (Optional)
 
 // ---------- Go連携用エクスポート関数 ----------
 #[no_mangle]
