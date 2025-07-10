@@ -42,6 +42,9 @@ impl<'a> AITcpPacket<'a> {
   pub const VT_ENCRYPTED_SEQUENCE_ID: flatbuffers::VOffsetT = 10;
   pub const VT_ENCRYPTED_PAYLOAD: flatbuffers::VOffsetT = 12;
   pub const VT_SIGNATURE: flatbuffers::VOffsetT = 14;
+  pub const VT_HEADER: flatbuffers::VOffsetT = 16;
+  pub const VT_PAYLOAD: flatbuffers::VOffsetT = 18;
+  pub const VT_FOOTER: flatbuffers::VOffsetT = 20;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -53,6 +56,9 @@ impl<'a> AITcpPacket<'a> {
     args: &'args AITcpPacketArgs<'args>
   ) -> flatbuffers::WIPOffset<AITcpPacket<'bldr>> {
     let mut builder = AITcpPacketBuilder::new(_fbb);
+    if let Some(x) = args.footer { builder.add_footer(x); }
+    if let Some(x) = args.payload { builder.add_payload(x); }
+    if let Some(x) = args.header { builder.add_header(x); }
     if let Some(x) = args.signature { builder.add_signature(x); }
     if let Some(x) = args.encrypted_payload { builder.add_encrypted_payload(x); }
     if let Some(x) = args.encrypted_sequence_id { builder.add_encrypted_sequence_id(x); }
@@ -105,6 +111,30 @@ impl<'a> AITcpPacket<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_SIGNATURE, None).unwrap()}
   }
+  /// Optional unencrypted header for metadata exchange
+  #[inline]
+  pub fn header(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_HEADER, None)}
+  }
+  /// Optional plain payload for small control messages
+  #[inline]
+  pub fn payload(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_PAYLOAD, None)}
+  }
+  /// Optional footer bytes for trailing data
+  #[inline]
+  pub fn footer(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_FOOTER, None)}
+  }
 }
 
 impl flatbuffers::Verifiable for AITcpPacket<'_> {
@@ -120,6 +150,9 @@ impl flatbuffers::Verifiable for AITcpPacket<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("encrypted_sequence_id", Self::VT_ENCRYPTED_SEQUENCE_ID, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("encrypted_payload", Self::VT_ENCRYPTED_PAYLOAD, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("signature", Self::VT_SIGNATURE, true)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("header", Self::VT_HEADER, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("payload", Self::VT_PAYLOAD, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("footer", Self::VT_FOOTER, false)?
      .finish();
     Ok(())
   }
@@ -131,6 +164,9 @@ pub struct AITcpPacketArgs<'a> {
     pub encrypted_sequence_id: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub encrypted_payload: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub signature: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub header: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub payload: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub footer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
 }
 impl<'a> Default for AITcpPacketArgs<'a> {
   #[inline]
@@ -142,6 +178,9 @@ impl<'a> Default for AITcpPacketArgs<'a> {
       encrypted_sequence_id: None, // required field
       encrypted_payload: None, // required field
       signature: None, // required field
+      header: None,
+      payload: None,
+      footer: None,
     }
   }
 }
@@ -176,6 +215,18 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> AITcpPacketBuilder<'a, 'b, A> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_SIGNATURE, signature);
   }
   #[inline]
+  pub fn add_header(&mut self, header: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_HEADER, header);
+  }
+  #[inline]
+  pub fn add_payload(&mut self, payload: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_PAYLOAD, payload);
+  }
+  #[inline]
+  pub fn add_footer(&mut self, footer: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_FOOTER, footer);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> AITcpPacketBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     AITcpPacketBuilder {
@@ -204,6 +255,9 @@ impl core::fmt::Debug for AITcpPacket<'_> {
       ds.field("encrypted_sequence_id", &self.encrypted_sequence_id());
       ds.field("encrypted_payload", &self.encrypted_payload());
       ds.field("signature", &self.signature());
+      ds.field("header", &self.header());
+      ds.field("payload", &self.payload());
+      ds.field("footer", &self.footer());
       ds.finish()
   }
 }

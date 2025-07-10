@@ -23,6 +23,9 @@ fn aitcp_packet_binary_roundtrip() {
             encrypted_sequence_id: Some(seq_vec),
             encrypted_payload: Some(payload_vec),
             signature: Some(footer_vec),
+            header: None,
+            payload: None,
+            footer: None,
         },
     );
     builder.finish(pkt, None);

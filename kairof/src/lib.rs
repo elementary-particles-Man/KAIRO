@@ -28,6 +28,9 @@ pub fn build_packet(seq_id: u64) -> Vec<u8> {
         encrypted_sequence_id: Some(seq_vec),
         encrypted_payload: Some(payload_vec),
         signature: Some(signature_vec),
+        header: None,
+        payload: None,
+        footer: None,
     });
     builder.finish(pkt, None);
     builder.finished_data().to_vec()

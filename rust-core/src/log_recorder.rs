@@ -71,6 +71,9 @@ impl LogRecorder {
                 encrypted_sequence_id: Some(ts_vec),
                 encrypted_payload: Some(payload_vec),
                 signature: Some(sig_vec),
+                header: None,
+                payload: None,
+                footer: None,
             },
         );
 
