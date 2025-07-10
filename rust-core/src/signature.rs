@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 use std::fmt;
 
 #[derive(Clone)]
-pub struct Sha256Signature([u8; 32]);
+pub struct Sha256Signature(pub [u8; 32]);
 
 impl Sha256Signature {
     /// SHA-256 でメッセージを署名（ダイジェスト作成）
