@@ -24,6 +24,9 @@ fn test_packet_parsing_success() {
         // コンパイラの指摘に従い、必須フィールドを追加する
         encrypted_payload: Some(payload_vec),
         signature: Some(signature_vec),
+        header: None,
+        payload: None,
+        footer: None,
     });
     builder.finish(packet_offset, None);
     let buf = builder.finished_data();

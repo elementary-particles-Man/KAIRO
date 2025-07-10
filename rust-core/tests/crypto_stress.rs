@@ -33,6 +33,9 @@ fn crypto_stress() {
                 encrypted_sequence_id: Some(seq_id_vec),
                 encrypted_payload: Some(payload_vec),
                 signature: Some(signature_vec),
+                header: None,
+                payload: None,
+                footer: None,
             },
         );
 
