@@ -1,0 +1,37 @@
+workflow_name: "Standard Analysis Workflow"
+description: "A standard workflow for analyzing a complex issue based on a given Axiom."
+
+# This workflow can be triggered by a node with the 'initiator' role.
+trigger_role: initiator
+
+# Defines the sequence of operations.
+sequence:
+  - step: 1
+    role: initiator
+    action: DEFINE_AXIOM
+    lsc_phase: Axiom
+    description: "Receives a query and defines the foundational Axiom."
+
+  - step: 2
+    role: specialist
+    action: SPECIALIZED_ANALYSIS
+    lsc_phase: Logical Process
+    description: "Performs specialized analysis based on the Axiom. Can be executed in parallel by multiple specialist nodes."
+
+  - step: 3
+    role: generator
+    action: INTEGRATE_AND_CONCLUDE
+    lsc_phase: Conclusion
+    description: "Integrates findings from all specialist nodes and forms a coherent conclusion."
+
+  - step: 4
+    role: archivist
+    action: RECORD_PROCESS
+    lsc_phase: Record
+    description: "Archives the entire process from Axiom to Conclusion for future reference and 'Truth by Inheritance'."
+
+  - step: 5
+    role: auditor
+    action: AUDIT_LOGIC
+    lsc_phase: Audit
+    description: "Audits the final conclusion against the initial Axiom to ensure logical consistency."
