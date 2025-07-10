@@ -11,6 +11,12 @@ table AITcpPacket {
   encrypted_sequence_id:[ubyte] (required);  // Encrypted sequence ID
   encrypted_payload:[ubyte] (required);      // Encrypted payload
   signature:[ubyte] (required);              // Ed25519 signature over the whole packet
+  /// Optional unencrypted header for metadata exchange
+  header:[ubyte];
+  /// Optional plain payload for small control messages
+  payload:[ubyte];
+  /// Optional footer bytes for trailing data
+  footer:[ubyte];
 }
 
 root_type AITcpPacket;
