@@ -1,6 +1,6 @@
 // tests/conflict_resolver_test.rs
 
-use rust_core::kairo::resolvers::conflict_resolver::*;
+use crate::resolvers::conflict_resolver::{ConflictReport, LogicalConflictType, DefaultResolver, Resolution};
 
 #[test]
 fn test_contradiction_conflict_resolution() {

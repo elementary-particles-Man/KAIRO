@@ -4,7 +4,7 @@
 
 [workspace]
 members = [ "kairof", "mesh-node",
-    "rust-core"
+    "rust-core", "src/kairo"
 ]
 resolver = "1"
 

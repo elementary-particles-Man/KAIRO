@@ -1,0 +1,13 @@
+[package]
+name = "kairo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust-core = { path = "../../rust-core" }
+flatbuffers = "24.3.25"
+rand = "0.8.5"
+chrono = "0.4.38"
+
+[dev-dependencies]
+# Add any dev-dependencies specific to kairo here if needed
