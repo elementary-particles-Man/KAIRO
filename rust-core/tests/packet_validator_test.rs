@@ -3,6 +3,7 @@
 // ===========================
 
 use ed25519_dalek::{SigningKey, VerifyingKey};
+use rust_core::keygen::ephemeral_key;
 use flatbuffers::FlatBufferBuilder;
 use rand_core::OsRng;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
@@ -27,6 +28,9 @@ fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
             encrypted_sequence_id: Some(seq_vec),
             encrypted_payload: Some(payload_vec),
             signature: Some(sig_vec),
+            header: None,
+            payload: None,
+            footer: None,
         },
     );
     builder.finish(packet_offset, None);
@@ -35,7 +39,7 @@ fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
 
 #[test]
 fn validate_success() {
-    let key = SigningKey::generate(&mut OsRng);
+    let key = SigningKey::from_bytes(&ephemeral_key());
     let payload = b"hello";
     let buf = build_packet(1, &key, payload);
     let packet = fb::root_as_aitcp_packet(&buf).unwrap();
@@ -44,7 +48,7 @@ fn validate_success() {
 
 #[test]
 fn validate_wrong_sequence() {
-    let key = SigningKey::generate(&mut OsRng);
+    let key = SigningKey::from_bytes(&ephemeral_key());
     let payload = b"hello";
     let buf = build_packet(1, &key, payload);
     let packet = fb::root_as_aitcp_packet(&buf).unwrap();
@@ -53,7 +57,7 @@ fn validate_wrong_sequence() {
 
 #[test]
 fn validate_bad_signature() {
-    let key = SigningKey::generate(&mut OsRng);
+    let key = SigningKey::from_bytes(&ephemeral_key());
     let payload = b"hello";
     let buf = build_packet(1, &key, payload);
 
@@ -73,6 +77,9 @@ fn validate_bad_signature() {
             encrypted_sequence_id: Some(seq_vec),
             encrypted_payload: Some(payload_vec),
             signature: Some(sig_vec),
+            header: None,
+            payload: None,
+            footer: None,
         },
     );
     builder.finish(packet_offset, None);

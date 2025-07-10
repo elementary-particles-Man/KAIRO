@@ -29,14 +29,13 @@ fn sha256_verify_with_wrong_signature() {
 }
 
 // --- Ed25519 Signature Test ---
-use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
-use rand_core::{OsRng, RngCore};
+use ed25519_dalek::{SigningKey, VerifyingKey};
+use rust_core::keygen::ephemeral_key;
 use crate::signature::{sign_ed25519, verify_ed25519};
 
 #[test]
 fn ed25519_signature_verification() {
-    let mut csprng = OsRng{};
-    let signing_key = SigningKey::generate(&mut csprng);
+    let signing_key = SigningKey::from_bytes(&ephemeral_key());
     let message: &[u8] = b"test";
 
     let signature = sign_ed25519(&signing_key, message);
@@ -45,8 +44,7 @@ fn ed25519_signature_verification() {
 
 #[test]
 fn ed25519_verify_with_wrong_message() {
-    let mut csprng = OsRng{};
-    let signing_key = SigningKey::generate(&mut csprng);
+    let signing_key = SigningKey::from_bytes(&ephemeral_key());
     let message: &[u8] = b"test";
     let wrong_message: &[u8] = b"wrong";
 
@@ -56,8 +54,7 @@ fn ed25519_verify_with_wrong_message() {
 
 #[test]
 fn ed25519_verify_with_wrong_signature() {
-    let mut csprng = OsRng{};
-    let signing_key = SigningKey::generate(&mut csprng);
+    let signing_key = SigningKey::from_bytes(&ephemeral_key());
     let message: &[u8] = b"test";
 
     let mut signature = sign_ed25519(&signing_key, message);
