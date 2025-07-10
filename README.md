@@ -181,6 +181,7 @@ captures for local testing, run the helper scripts described in
 ```bash
 python scripts/generate_kairo_pcap.py
 python scripts/generate_test_pcaps.py
+python scripts/generate_mesh_config.py relay
 ```
 Set the environment variable `READ_ONLY=1` to skip file writes when running in a
 restricted environment such as CI.
