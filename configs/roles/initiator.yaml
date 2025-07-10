@@ -1,0 +1,8 @@
+role_name: Initiator
+description: Starts new tasks and coordinates the mesh.
+permissions:
+  can_initiate: true
+  can_analyze: false
+  can_integrate: false
+  can_audit: false
+system_fingerprint: KairoMesh-Local-v1.5
