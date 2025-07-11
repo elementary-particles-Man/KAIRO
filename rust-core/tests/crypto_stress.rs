@@ -1,5 +1,6 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
+use rand::RngCore;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
 use rust_core::log_recorder::LogRecorder;
 use rust_core::packet_parser::PacketParser;
@@ -21,9 +22,10 @@ fn test_crypto_stress_multi_threaded() {
         let handle = thread::spawn(move || {
             let mut csprng = OsRng;
             for i in 0..iterations_per_thread {
-                // --- Key Generation (修正点) ---
-                // SigningKey::generate で鍵ペアを生成する
-                let signing_key = SigningKey::generate(&mut csprng);
+                // --- Key Generation ---
+                let mut seed = [0u8; 32];
+                csprng.fill_bytes(&mut seed);
+                let signing_key = SigningKey::from_bytes(&seed);
                 let verifying_key: VerifyingKey = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
