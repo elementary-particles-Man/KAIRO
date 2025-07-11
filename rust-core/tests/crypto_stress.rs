@@ -1,7 +1,6 @@
-use ed25519_dalek::{SigningKey, SecretKey};
+use ed25519_dalek::{SigningKey, SecretKey, VerifyingKey};
 use rust_core::keygen::ephemeral_key;
 use rand_core::OsRng;
-use rand_core::RngCore;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
 use rust_core::log_recorder::LogRecorder;
 use rust_core::packet_parser::PacketParser;
@@ -24,11 +23,9 @@ fn test_crypto_stress_multi_threaded() {
             let mut csprng = OsRng;
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let mut seed = [0u8; 32];
-                csprng.fill_bytes(&mut seed);
-                let secret = SecretKey::from_bytes(&seed).expect("Failed to create SecretKey");
-                let signing_key = SigningKey::from(&secret);
-                let verifying_key = signing_key.verifying_key();
+                let secret_bytes = SecretKey::generate(&mut csprng).to_bytes();
+                let signing_key = SigningKey::from_bytes(&secret_bytes);
+                let verifying_key = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
                 let mut builder = flatbuffers::FlatBufferBuilder::new();
