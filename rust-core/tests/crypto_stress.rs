@@ -1,4 +1,5 @@
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::SigningKey;
+use rust_core::keygen::ephemeral_key;
 use rand::rngs::OsRng;
 use rand::RngCore;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
@@ -23,17 +24,27 @@ fn test_crypto_stress_multi_threaded() {
             let mut csprng = OsRng;
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let mut seed = [0u8; 32];
-                csprng.fill_bytes(&mut seed);
-                let signing_key = SigningKey::from_bytes(&seed);
-                let verifying_key: VerifyingKey = VerifyingKey::from(&signing_key);
+                let signing_key = SigningKey::generate(&mut csprng);
+                let verifying_key = signing_key.verifying_key();
 
                 // --- Packet Building ---
                 let mut builder = flatbuffers::FlatBufferBuilder::new();
-                let payload = builder.create_vector(&[i as u8; 10]);
+                let payload_data = [i as u8; 10];
+                let payload = builder.create_vector(&payload_data);
+                let ephemeral_vec = builder.create_vector(&ephemeral_key());
+                let nonce_vec = builder.create_vector(&[0u8; 12]);
+                let seq_vec = builder.create_vector(&(i as u64).to_le_bytes());
+                let enc_payload_vec = builder.create_vector(&payload_data);
+                let sig_vec = builder.create_vector(&[0u8; 64]);
                 let packet = fb::AITcpPacket::create(
                     &mut builder,
                     &fb::AITcpPacketArgs {
+                        version: 1,
+                        ephemeral_key: Some(ephemeral_vec),
+                        nonce: Some(nonce_vec),
+                        encrypted_sequence_id: Some(seq_vec),
+                        encrypted_payload: Some(enc_payload_vec),
+                        signature: Some(sig_vec),
                         payload: Some(payload),
                         ..Default::default()
                     },
@@ -56,7 +67,9 @@ fn test_crypto_stress_multi_threaded() {
                 assert!(parsed_packet.is_ok());
 
                 // --- Logging ---
-                let mut recorder = log_recorder_clone.lock().unwrap();
+                let mut recorder = log_recorder_clone
+                    .lock()
+                    .expect("failed to lock log recorder");
                 // TODO: implement LogRecorder::log
                 // recorder.log(&format!(
                 //     "Thread {:?}, Iteration {}: OK",
@@ -71,10 +84,14 @@ fn test_crypto_stress_multi_threaded() {
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle
+            .join()
+            .expect("crypto stress thread panicked");
     }
 
-    let _final_logs = log_recorder.lock().unwrap();
+    let _final_logs = log_recorder
+        .lock()
+        .expect("failed to lock final log recorder");
     // TODO: implement LogRecorder::get_logs
     // let final_logs = log_recorder.lock().unwrap().get_logs();
     // assert_eq!(final_logs.len(), num_threads * iterations_per_thread);
