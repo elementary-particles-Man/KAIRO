@@ -5,7 +5,6 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rust_core::keygen::ephemeral_key;
 use flatbuffers::FlatBufferBuilder;
-use rand_core::OsRng;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
 use rust_core::packet_validator::validate_packet;
 use rust_core::signature::sign_ed25519;

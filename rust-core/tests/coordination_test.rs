@@ -1,5 +1,3 @@
-
-
 use rust_core::coordination::node_manager::NodeManager;
 
 #[test]

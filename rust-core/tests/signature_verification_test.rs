@@ -29,7 +29,7 @@ fn sha256_verify_with_wrong_signature() {
 }
 
 // --- Ed25519 Signature Test ---
-use ed25519_dalek::{SigningKey, VerifyingKey, Signature};
+use ed25519_dalek::{SigningKey, Signature};
 use rust_core::keygen::ephemeral_key;
 use rust_core::signature::{sign_ed25519, verify_ed25519};
 
