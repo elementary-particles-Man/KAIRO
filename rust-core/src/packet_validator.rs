@@ -45,7 +45,11 @@ pub fn validate_packet(
     let signature = Ed25519Signature::from_bytes(&sig_bytes);
 
     // Verify signature
-    let message: Vec<u8> = packet.encrypted_payload().iter().map(|x| x).collect();
+    let message: Vec<u8> = packet.encrypted_payload().iter().copied().collect();
+
+    // Delegate to the shared helper for Ed25519 verification. Using the helper
+    // keeps the logic consistent across crates and allows future changes (such
+    // as domain separation) to be applied in one place.
     verify_ed25519(verifying_key, &message, &signature)
         .map_err(|_| "Signature verification failed".into())
 }
