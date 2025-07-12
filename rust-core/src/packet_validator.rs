@@ -45,7 +45,7 @@ pub fn validate_packet(
     let signature = Ed25519Signature::from_bytes(&sig_bytes);
 
     // Verify signature
-    let message: Vec<u8> = packet.encrypted_payload().iter().copied().collect();
+    let message: Vec<u8> = packet.encrypted_payload().iter().collect();
 
     // Delegate to the shared helper for Ed25519 verification. Using the helper
     // keeps the logic consistent across crates and allows future changes (such
