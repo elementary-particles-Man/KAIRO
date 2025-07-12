@@ -7,12 +7,9 @@ FROM rust:1.77 AS builder
 WORKDIR /usr/src/kairo
 COPY . .
 
-# --- Build both binaries if needed ---
-# Build mesh-node binary
-RUN cargo build --release -p mesh-node
-
-# Build coordination node binary
-RUN cargo build --release --manifest-path AI-TCP/core/kairo_coord_node/Cargo.toml
+# Build both mesh and coordination node binaries
+RUN cargo build --release -p mesh-node \
+    && cargo build --release --manifest-path AI-TCP/core/kairo_coord_node/Cargo.toml
 
 # Runtime stage
 FROM debian:bullseye-slim
