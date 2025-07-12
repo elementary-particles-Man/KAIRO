@@ -23,11 +23,7 @@ fn test_crypto_stress_multi_threaded() {
             let mut csprng = OsRng;
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                use rand_core::RngCore; // RngCoreトレイトをインポート
-
-                let mut secret_key_bytes = [0u8; 32];
-                csprng.fill_bytes(&mut secret_key_bytes);
-                let signing_key = SigningKey::from_bytes(&secret_key_bytes);
+                let signing_key = SigningKey::generate(&mut csprng);
                 let verifying_key = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
@@ -70,7 +66,7 @@ fn test_crypto_stress_multi_threaded() {
                 assert!(parsed_packet.is_ok());
 
                 // --- Logging ---
-                let recorder = log_recorder_clone
+                let _recorder = log_recorder_clone
                     .lock()
                     .expect("failed to lock log recorder");
                 // TODO: implement LogRecorder::log
