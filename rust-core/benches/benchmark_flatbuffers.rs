@@ -31,6 +31,9 @@ fn build_sample_packet() -> Vec<u8> {
             encrypted_sequence_id: Some(seq_id_vec),
             encrypted_payload: Some(payload_vec),
             signature: Some(signature_vec),
+            header: None, // 追加
+            payload: None, // 追加
+            footer: None, // 追加
         },
     );
 
