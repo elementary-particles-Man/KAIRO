@@ -10,7 +10,7 @@ crate-type = ["lib"]
 
 [dependencies]
 # FlatBuffers: バージョン固定（メインは 25.2.10 に統一）
-flatbuffers = "25.2.10"
+flatbuffers = "24.3.25" # 最新のstableバージョンを確認して使用してください
 
 # Ed25519 署名
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
