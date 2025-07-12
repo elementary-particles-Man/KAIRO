@@ -13,7 +13,7 @@ crate-type = ["lib"]
 flatbuffers = "25.2.10"
 
 # Ed25519 署名
-ed25519-dalek = "2.1.1"
+ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 
 # ランダム値生成
 rand = "0.8.5"

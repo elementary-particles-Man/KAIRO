@@ -23,8 +23,11 @@ fn test_crypto_stress_multi_threaded() {
             let mut csprng = OsRng;
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let secret_bytes = SecretKey::generate(&mut csprng).to_bytes();
-                let signing_key = SigningKey::from_bytes(&secret_bytes);
+                use rand_core::RngCore; // RngCoreトレイトをインポート
+
+                let mut secret_key_bytes = [0u8; 32];
+                csprng.fill_bytes(&mut secret_key_bytes);
+                let signing_key = SigningKey::from_bytes(&secret_key_bytes);
                 let verifying_key = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
