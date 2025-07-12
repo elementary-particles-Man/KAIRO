@@ -1,1 +1,1 @@
-Fix: Apply cargo fix suggestions
+Docs: Add Paramount Workflow README with AI-TCP flag
