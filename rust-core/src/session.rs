@@ -1,5 +1,5 @@
 use std::time::{Duration, Instant};
-use rand::{thread_rng, RngCore};
+use rand::thread_rng;
 use x25519_dalek::{StaticSecret, PublicKey};
 
 /// Represents an ephemeral Diffie-Hellman key pair that can be reused

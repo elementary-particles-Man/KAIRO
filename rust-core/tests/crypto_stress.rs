@@ -1,4 +1,4 @@
-use ed25519_dalek::{SigningKey, SecretKey, VerifyingKey};
+use ed25519_dalek::{SigningKey, VerifyingKey};
 use rust_core::keygen::ephemeral_key;
 use rand_core::OsRng;
 use rust_core::ai_tcp_packet_generated::aitcp as fb;
@@ -70,7 +70,7 @@ fn test_crypto_stress_multi_threaded() {
                 assert!(parsed_packet.is_ok());
 
                 // --- Logging ---
-                let mut recorder = log_recorder_clone
+                let recorder = log_recorder_clone
                     .lock()
                     .expect("failed to lock log recorder");
                 // TODO: implement LogRecorder::log

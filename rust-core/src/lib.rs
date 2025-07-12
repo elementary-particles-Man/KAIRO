@@ -3,7 +3,7 @@
 // ===========================
 
 // ---------- 外部クレート ----------
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use rand::{thread_rng, RngCore};
 use sha2::Sha256;
