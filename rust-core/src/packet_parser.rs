@@ -14,7 +14,7 @@ use flatbuffers; // FlatBuffersクレートをインポート
 // ここでは、生成されたFlatBuffersのRustモジュールを直接インポートします。
 // プロジェクトの構造に応じてパスを調整してください。
 // 例: src/api_serverと同じ階層にflatbuffers/aitcp/ephemeral_session_generated.rsがある場合
-#[path = "../../flatbuffers/ephemeral_session_generated.rs"] // aitcpサブディレクトリは不要です
+#[path = "../../../flatbuffers/ephemeral_session_generated.rs"] // aitcpサブディレクトリは不要です
 #[allow(dead_code)]
 #[allow(unused_imports)]
 mod ephemeral_session_generated;
@@ -62,12 +62,12 @@ impl PacketParser {
 
     pub fn parse(&mut self, data: &Bytes) -> Result<Packet, Box<dyn std::error::Error>> {
         // ここでFlatBuffersのバイナリデータをデシリアライズ
-        let ephemeral_session = match flatbuffers::get_root_as::<fb_aitcp::EphemeralSession>(data) {
+        let ephemeral_session = match fb_aitcp::root_as_ephemeral_session(data) {
             Ok(session) => session,
             Err(e) => {
                 // パースエラーの場合はKairoErrorに変換して返す
                 eprintln!("FlatBuffers parsing error: {:?}", e); // デバッグ用
-                return Err(Box::new(KairoError::InvalidPacket(format!("FlatBuffers parsing error: {}", e))));
+                return Err(Box::new(KairoError::PacketParseFailed));
             }
         };
 
@@ -88,7 +88,7 @@ impl PacketParser {
 
         let payload = PacketPayload::FlatBuffersEphemeralSession {
             session_id: ephemeral_session.session_id().unwrap_or("").to_string(),
-            public_key: ephemeral_session.public_key().map_or(vec![], |key| key.to_vec()),
+            public_key: ephemeral_session.public_key().map_or(vec![], |key| key.bytes().to_vec()),
         };
 
         Ok(Packet { header, payload })

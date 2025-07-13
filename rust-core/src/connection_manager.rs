@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use crate::session::SessionManager;
+use kairo_core::session_reuse::SessionManager;
 
 /// Manage ephemeral sessions for active connections.
 pub struct ConnectionManager {
@@ -22,7 +22,7 @@ impl ConnectionManager {
     pub fn connect(&mut self, id: u32) {
         self.sessions
             .entry(id)
-            .or_insert_with(|| SessionManager::new(self.ttl));
+            .or_insert_with(|| SessionManager::new());
     }
 
     /// Remove the connection, returning true if it existed.

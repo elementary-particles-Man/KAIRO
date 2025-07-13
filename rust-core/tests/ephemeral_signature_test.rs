@@ -1,6 +1,6 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
-use rust_core::keygen::ephemeral_key;
-use rust_core::signature::{sign_ed25519, verify_ed25519};
+use kairo_rust_core::keygen::ephemeral_key;
+use kairo_rust_core::signature::{sign_ed25519, verify_ed25519};
 
 #[test]
 fn ephemeral_key_signature_consistency() {

@@ -3,11 +3,11 @@
 // ===========================
 
 use ed25519_dalek::{SigningKey, VerifyingKey};
-use rust_core::keygen::ephemeral_key;
+use kairo_rust_core::keygen::ephemeral_key;
 use flatbuffers::FlatBufferBuilder;
-use rust_core::ai_tcp_packet_generated::aitcp as fb;
-use rust_core::packet_validator::validate_packet;
-use rust_core::signature::sign_ed25519;
+use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
+use kairo_rust_core::packet_validator::validate_packet;
+use kairo_rust_core::signature::sign_ed25519;
 
 /// Build a valid AITcpPacket FlatBuffer for testing.
 fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {

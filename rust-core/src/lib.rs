@@ -22,6 +22,8 @@ pub mod connection_manager;   // Manage ephemeral sessions per connection
 pub mod rate_control;         // Adaptive sending rate controller
 pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
 pub mod ai_tcp_packet_generated; // FlatBuffers generated code
+#[path = "../../../flatbuffers/ephemeral_session_generated.rs"]
+pub mod ephemeral_session_generated; // FlatBuffers generated code for ephemeral session
 pub mod error;                // Custom error types
 pub mod coordination;         // Coordination Node Skeleton (Optional)
 pub mod packet_validator;     // AITcpPacket validation logic
