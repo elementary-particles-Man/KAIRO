@@ -1,10 +1,11 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
-use rust_core::keygen::ephemeral_key;
+use bytes::Bytes;
+use kairo_rust_core::keygen::ephemeral_key;
 use rand_core::OsRng;
-use rust_core::ai_tcp_packet_generated::aitcp as fb;
-use rust_core::log_recorder::LogRecorder;
-use rust_core::packet_parser::PacketParser;
-use rust_core::signature::{sign_ed25519, verify_ed25519};
+use kairo_rust_core::ephemeral_session_generated::aitcp as fb;
+use kairo_rust_core::log_recorder::LogRecorder;
+use kairo_rust_core::packet_parser::PacketParser;
+use kairo_rust_core::signature::{sign_ed25519, verify_ed25519};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -28,27 +29,18 @@ fn test_crypto_stress_multi_threaded() {
 
                 // --- Packet Building ---
                 let mut builder = flatbuffers::FlatBufferBuilder::new();
-                let payload_data = [i as u8; 10];
-                let payload = builder.create_vector(&payload_data);
-                let ephemeral_vec = builder.create_vector(&ephemeral_key());
-                let nonce_vec = builder.create_vector(&[0u8; 12]);
-                let seq_vec = builder.create_vector(&(i as u64).to_le_bytes());
-                let enc_payload_vec = builder.create_vector(&payload_data);
-                let sig_vec = builder.create_vector(&[0u8; 64]);
-                let packet = fb::AITcpPacket::create(
+                let session_id_str = format!("session-{}", i);
+                let session_id = builder.create_string(&session_id_str);
+                let public_key = builder.create_vector(&ephemeral_key());
+                let ephemeral_session_offset = fb::EphemeralSession::create(
                     &mut builder,
-                    &fb::AITcpPacketArgs {
-                        version: 1,
-                        ephemeral_key: Some(ephemeral_vec),
-                        nonce: Some(nonce_vec),
-                        encrypted_sequence_id: Some(seq_vec),
-                        encrypted_payload: Some(enc_payload_vec),
-                        signature: Some(sig_vec),
-                        payload: Some(payload),
-                        ..Default::default()
+                    &fb::EphemeralSessionArgs {
+                        session_id: Some(session_id),
+                        public_key: Some(public_key),
+                        expiration_unix: 0, // ダミーの値
                     },
                 );
-                builder.finish(packet, None);
+                builder.finish(ephemeral_session_offset, None);
                 let buf = builder.finished_data();
 
                 // --- Signing ---
@@ -62,7 +54,7 @@ fn test_crypto_stress_multi_threaded() {
 
                 // --- Parsing ---
                 let mut parser = PacketParser::new(vec![]);
-                let parsed_packet = parser.parse(buf);
+                let parsed_packet = parser.parse(&Bytes::from(buf.to_vec()));
                 assert!(parsed_packet.is_ok());
 
                 // --- Logging ---

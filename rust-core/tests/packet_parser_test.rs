@@ -1,44 +1,35 @@
 // D:\dev\KAIRO\rust-core\tests\packet_parser_test.rs
-use rust_core::packet_parser::PacketParser;
+use kairo_rust_core::packet_parser::PacketParser;
 use flatbuffers::FlatBufferBuilder;
-use rust_core::ai_tcp_packet_generated::aitcp as fb;
+use bytes::Bytes;
+use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
+use kairo_rust_core::ephemeral_session_generated::aitcp as fb_ephemeral;
 
 #[test]
 fn test_packet_parsing_success() {
     // 1. FlatBufferBuilderを初期化
     let mut builder = FlatBufferBuilder::new();
 
-    // 2. スキーマに存在するフィールドを全て指定してAITcpPacketを作成
-    let ephemeral_key_vec = builder.create_vector(&[1u8; 32]);
-    let nonce_vec = builder.create_vector(&[0u8; 12]);
-    let seq_id: u64 = 12345;
-    let seq_id_vec = builder.create_vector(&seq_id.to_le_bytes());
-    let payload_vec = builder.create_vector(&[0u8; 0]); // ダミーの空ペイロード
-    let signature_vec = builder.create_vector(&[0u8; 64]); // ダミーの署名
+    let session_id_str = "test-session-id";
+    let session_id = builder.create_string(session_id_str);
+    let public_key = builder.create_vector(&[1u8; 32]);
 
-    let packet_offset = fb::AITcpPacket::create(&mut builder, &fb::AITcpPacketArgs{
-        version: 1,
-        ephemeral_key: Some(ephemeral_key_vec),
-        nonce: Some(nonce_vec),
-        encrypted_sequence_id: Some(seq_id_vec),
-        // コンパイラの指摘に従い、必須フィールドを追加する
-        encrypted_payload: Some(payload_vec),
-        signature: Some(signature_vec),
-        header: None,
-        payload: None,
-        footer: None,
+    let packet_offset = fb_ephemeral::EphemeralSession::create(&mut builder, &fb_ephemeral::EphemeralSessionArgs{
+        session_id: Some(session_id),
+        public_key: Some(public_key),
+        expiration_unix: 0, // ダミーの値
     });
     builder.finish(packet_offset, None);
     let buf = builder.finished_data();
 
     // 3. パーサーのインスタンスを作成して、parseメソッドを呼び出す
     let mut parser = PacketParser::new(vec![]);
-    let result = parser.parse(buf);
+    let result = parser.parse(&Bytes::from(buf.to_vec()));
 
     // 4. 正しくパースできることを確認
     assert!(result.is_ok());
     let parsed_packet = result.unwrap();
 
     // 存在するフィールド 'version' を検証
-    assert_eq!(parsed_packet.version(), 1);
+    assert_eq!(parsed_packet.header.version, 1);
 }
