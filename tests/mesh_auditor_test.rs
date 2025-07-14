@@ -4,24 +4,16 @@
 #[cfg(test)]
 mod tests {
     use crate::mesh_auditor::MeshAuditor;
-    use crate::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile}; // Assuming this is now public or test-visible
+    // Note: To make this test truly effective, we need to allow the auditor to access a mutable manager.
+    // This will be addressed in the next refactoring phase.
 
     #[test]
-    fn test_audit_flow() {
+    fn test_audit_flow_instantiation() {
         let auditor = MeshAuditor::new();
-
-        // This test requires the Auditor to have access to a mutable profile manager
-        // or for the profile manager to be populated in another way.
-        // For now, we can't test the full flow without modifying the Auditor's structure,
-        // but we can confirm the module compiles.
-        assert!(true, "MeshAuditor compiles and can be instantiated.");
-
-        // A more advanced test would look like this:
-        // let mut manager = BaselineProfileManager::new();
-        // let profile = BehaviorProfile { /* ... */ };
-        // manager.update_profile(profile);
-        // let auditor = MeshAuditor { profile_manager: manager, /* ... */ };
-        // let result = auditor.perform_audit("agent_001", &vec![...]);
-        // assert_eq!(result, false);
+        // This initial test simply confirms the module compiles and can be instantiated.
+        // A full integration test showing a mock anomaly detection will follow.
+        let result = auditor.perform_audit("agent_001", &vec![1.0]);
+        // Since no profile exists, it should return false (not an anomaly).
+        assert_eq!(result, false);
     }
 }
