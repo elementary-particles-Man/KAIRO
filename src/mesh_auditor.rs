@@ -33,6 +33,8 @@ impl MeshAuditor {
 
         if is_anomaly {
             println!("AUDIT FAILED: Anomaly detected for agent {}", agent_id);
+        } else {
+            println!("AUDIT PASSED: No anomaly detected for agent {}", agent_id);
         }
 
         is_anomaly
