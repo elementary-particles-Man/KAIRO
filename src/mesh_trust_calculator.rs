@@ -1,5 +1,7 @@
 /// Simple trust score calculator skeleton.
 /// Additional trust computation logic can be implemented as needed.
+use crate::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile};
+
 pub struct TrustScoreCalculator;
 
 impl TrustScoreCalculator {
@@ -29,5 +31,24 @@ impl TrustScoreCalculator {
         }
 
         dot_product / (norm_a * norm_b)
+    }
+
+    pub fn verify_agent_behavior(
+        &self,
+        profile_manager: &BaselineProfileManager,
+        agent_id: &str,
+        current_vector: &[f64],
+        cosine_threshold: f64,
+    ) -> bool {
+        if let Some(profile) = profile_manager.get_profile(agent_id) {
+            return self.check_behavior_anomaly(
+                &current_vector,
+                &profile.baseline_vector,
+                cosine_threshold,
+            );
+        }
+        // プロファイルが存在しない場合は、異常とは判断せず、警告を出すなどの対応が考えられる
+        println!("Warning: No baseline profile found for agent {}", agent_id);
+        false
     }
 }
