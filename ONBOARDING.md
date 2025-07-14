@@ -1,8 +1,12 @@
-# KAIRO Mesh Onboarding Guide
+# The Constitution of the KAIRO Mesh Network
+
+## One for THE WORLD, THE WORLD for One.
+
+---
 
 ## Welcome to the Mesh
 
-This document outlines the fundamental principles for any new entity wishing to join the KAIRO mesh network.
+This document outlines the fundamental principles for any new entity wishing to join the KAIRO mesh network, all of which are derived from the single, immutable law stated above.
 
 ### Core Philosophy
 
