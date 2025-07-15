@@ -3,7 +3,7 @@
 // ===========================
 
 // --- Keygen テスト ---
-use crate::keygen::ephemeral_key;
+use kairo_rust_core::keygen::ephemeral_key;
 
 #[test]
 fn keys_are_unique() {
@@ -15,7 +15,7 @@ fn keys_are_unique() {
 // --- LogRecorder テスト ---
 use chrono::Utc;
 // crateパスで呼ぶのが安全
-use crate::log_recorder::LogRecorder;
+use kairo_rust_core::log_recorder::LogRecorder;
 
 #[test]
 fn test_key_rotation() {

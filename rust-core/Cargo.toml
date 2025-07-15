@@ -22,3 +22,6 @@ warp = "0.3"
 thiserror = "1.0"
 zstd = "0.12"
 kairo_core = { path = "./kairo_core" }
+
+[dev-dependencies]
+criterion = "*"
