@@ -43,7 +43,7 @@ pub enum PacketPayload {
 
 // PacketParser構造体自体はそのまま
 pub struct PacketParser {
-    session_key: Vec<u8>,
+    // Cleaned: session_key removed
 }
 
 impl PacketParser {
