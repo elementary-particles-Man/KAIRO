@@ -5,3 +5,6 @@ members = [
   "rust-core"
 ]
 resolver = "1"
+
+[workspace.dependencies]
+hex = "0.4"
