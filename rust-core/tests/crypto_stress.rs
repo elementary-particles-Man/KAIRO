@@ -1,7 +1,7 @@
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::{Keypair, VerifyingKey};
 use bytes::Bytes;
 use kairo_rust_core::keygen::ephemeral_key;
-use rand_core::OsRng;
+use rand::rngs::OsRng;
 use kairo_rust_core::ephemeral_session_generated::aitcp as fb;
 use kairo_rust_core::log_recorder::LogRecorder;
 use kairo_rust_core::packet_parser::PacketParser;
@@ -21,11 +21,11 @@ fn test_crypto_stress_multi_threaded() {
     for _ in 0..num_threads {
         let log_recorder_clone: Arc<Mutex<LogRecorder>> = Arc::clone(&log_recorder);
         let handle = thread::spawn(move || {
-            let mut csprng = OsRng;
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let signing_key = SigningKey::generate(&mut csprng);
-                let verifying_key = VerifyingKey::from(&signing_key);
+                let keypair = Keypair::generate(&mut OsRng);
+                let signing_key = keypair.secret;
+                let verifying_key = keypair.public;
 
                 // --- Packet Building ---
                 let mut builder = flatbuffers::FlatBufferBuilder::new();
