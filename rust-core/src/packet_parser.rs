@@ -4,21 +4,12 @@ use bytes::Bytes;
 use crate::error::KairoError;
 use flatbuffers; // FlatBuffersクレートをインポート
 
-// FlatBuffersによって生成されるEphemeralSessionモジュールをインポート
-// これはflatcがai-tcp/flatbuffers/ephemeral_session.fbsから生成したRustコードです。
-// 生成されたファイル名とパスに合わせて調整してください。
-// 例: `flatbuffers/ephemeral_session_generated.rs` が生成されている場合
-//     mod ephemeral_session_generated;
-//     use ephemeral_session_generated::aitcp as fb_aitcp; // aitcpはスキーマで定義したnamespace
-
 // ここでは、生成されたFlatBuffersのRustモジュールを直接インポートします。
 // プロジェクトの構造に応じてパスを調整してください。
 // 例: src/api_serverと同じ階層にflatbuffers/aitcp/ephemeral_session_generated.rsがある場合
-#[path = "../../../flatbuffers/ephemeral_session_generated.rs"] // aitcpサブディレクトリは不要です
 #[allow(dead_code)]
 #[allow(unused_imports)]
-mod ephemeral_session_generated;
-use ephemeral_session_generated::aitcp as fb_aitcp; // aitcpはephemeral_session.fbsで定義されたnamespace
+use crate::ephemeral_session_generated::aitcp as fb_aitcp; // aitcpはephemeral_session.fbsで定義されたnamespace
 
 // 既存のPacket, PacketHeader, PacketPayload構造体/enumは、
 // FlatBuffersの構造を使う場合は不要になりますが、

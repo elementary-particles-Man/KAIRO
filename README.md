@@ -144,6 +144,16 @@ cargo run
 
 ---
 
+## For Gemini CLI Developers
+
+To ensure proper project structure and avoid unintended directory creation, please adhere to the following guidelines:
+
+- **Avoid Automatic Directory Creation:** The Gemini CLI should not automatically create new top-level directories (e.g., `-p/` or similar) unless explicitly instructed and verified.
+- **Minimize Directory Nesting:** When creating new modules or components, prioritize integrating them into existing, logical directory structures (e.g., `rust-core/kairo_core/`) rather than introducing excessive new nesting. Aim for a flat and clear hierarchy.
+- **Verify Paths:** Always double-check relative and absolute paths in `Cargo.toml` and source files to ensure they correctly reflect the intended project structure.
+
+---
+
 ## Developer-facing Errors
 
 Client libraries raise structured exceptions with a `transaction_id`  

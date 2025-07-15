@@ -1,20 +1,7 @@
-# =============================
-# Top-level Cargo.toml
-# =============================
-
 [workspace]
-members = [ "kairof", "mesh-node",
-    "rust-core", "src/kairo"
+members = [
+  "kairof",
+  "mesh-node",
+  "rust-core"
 ]
 resolver = "1"
-
-# ✅ ポイント
-# - ルートに共通 dev-dependencies は定義せず
-# - 各メンバー（rust-core）側に dev-dependencies を寄せて管理
-#   （例: criterion, mockall, rstest など）
-
-# もし将来、共通 dev-dependencies を workspace でまとめるなら
-# [workspace.dependencies] で整理
-# 例:
-# [workspace.dependencies]
-# criterion = "0.5"

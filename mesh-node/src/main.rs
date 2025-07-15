@@ -14,5 +14,5 @@ fn main() {
     let cli = Cli::parse();
     println!("Starting mesh node on port {}", cli.port);
     // Call into the shared kairo_rust_core library as a sanity check
-    example_function();
+    kairo_rust_core::example_function();
 }

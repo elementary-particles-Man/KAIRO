@@ -1,11 +1,11 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use bytes::Bytes;
-use kairo_rust_core::keygen::ephemeral_key;
+use crate::keygen::ephemeral_key;
 use rand_core::OsRng;
-use kairo_rust_core::ephemeral_session_generated::aitcp as fb;
-use kairo_rust_core::log_recorder::LogRecorder;
-use kairo_rust_core::packet_parser::PacketParser;
-use kairo_rust_core::signature::{sign_ed25519, verify_ed25519};
+use crate::ephemeral_session_generated::aitcp as fb;
+use crate::log_recorder::LogRecorder;
+use crate::packet_parser::PacketParser;
+use crate::signature::{sign_ed25519, verify_ed25519};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -14,12 +14,12 @@ use std::time::Duration;
 fn test_crypto_stress_multi_threaded() {
     let num_threads = 10;
     let iterations_per_thread = 100;
-    let log_recorder = Arc::new(Mutex::new(LogRecorder::new()));
+    let log_recorder: Arc<Mutex<LogRecorder>> = Arc::new(Mutex::new(LogRecorder::new()));
 
     let mut handles = vec![];
 
     for _ in 0..num_threads {
-        let log_recorder_clone = Arc::clone(&log_recorder);
+        let log_recorder_clone: Arc<Mutex<LogRecorder>> = Arc::clone(&log_recorder);
         let handle = thread::spawn(move || {
             let mut csprng = OsRng;
             for i in 0..iterations_per_thread {

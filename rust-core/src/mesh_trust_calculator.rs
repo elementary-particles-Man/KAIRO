@@ -16,6 +16,7 @@ pub enum Scope {
     World,
 }
 
+#[derive(Debug)]
 pub struct TrustScoreCalculator {}
 
 impl TrustScoreCalculator {
