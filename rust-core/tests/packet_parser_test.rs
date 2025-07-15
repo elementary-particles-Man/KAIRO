@@ -1,8 +1,8 @@
-// D:\dev\KAIRO\rust-core\tests\packet_parser_test.rs
-use crate::packet_parser::PacketParser;
+use kairo_rust_core::packet_parser::PacketParser;
 use flatbuffers::FlatBufferBuilder;
 use bytes::Bytes;
-use crate::ephemeral_session_generated::aitcp as fb_ephemeral;
+use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
+use kairo_rust_core::ephemeral_session_generated::aitcp as fb_ephemeral;
 
 #[test]
 fn test_packet_parsing_success() {
@@ -13,7 +13,7 @@ fn test_packet_parsing_success() {
     let session_id = builder.create_string(session_id_str);
     let public_key = builder.create_vector(&[1u8; 32]);
 
-    let packet_offset = fb_ephemeral::EphemeralSession::create(&mut builder, &fb_ephemeral::EphemeralSessionArgs{
+    let packet_offset = fb_ephemeral::EphemeralSession::create(&mut builder, &fb_ephemeral::EphemeralSessionArgs {
         session_id: Some(session_id),
         public_key: Some(public_key),
         expiration_unix: 0, // ダミーの値

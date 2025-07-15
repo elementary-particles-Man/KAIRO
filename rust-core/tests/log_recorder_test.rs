@@ -1,5 +1,5 @@
-use crate::log_recorder::LogRecorder;
-use crate::ai_tcp_packet_generated::aitcp as fb;
+use kairo_rust_core::log_recorder::LogRecorder;
+use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
 use std::fs;
 
 #[test]
