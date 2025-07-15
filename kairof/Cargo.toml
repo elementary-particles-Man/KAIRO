@@ -1,7 +1,7 @@
 [package]
 name = "kairof"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"  # ← 2024 → 2021 にするのが無難
 
 [dependencies]
 flatbuffers = "25.2.10"

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use kairo_core::session_reuse::SessionManager;
+
 
 /// Manage ephemeral sessions for active connections.
 pub struct ConnectionManager {
