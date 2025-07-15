@@ -1,6 +1,6 @@
 use flatbuffers::FlatBufferBuilder;
 use rand::RngCore;
-use rust_core::ai_tcp_packet_generated::aitcp as fb;
+use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Build a single AITcpPacket with the given sequence id.

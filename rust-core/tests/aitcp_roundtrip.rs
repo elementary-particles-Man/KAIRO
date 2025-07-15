@@ -1,5 +1,5 @@
 use flatbuffers::FlatBufferBuilder;
-use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
+use crate::ai_tcp_packet_generated::aitcp as fb;
 
 #[test]
 fn aitcp_packet_binary_roundtrip() {

@@ -1,82 +1,88 @@
-// ===========================
-// 📄 rust-core/src/lib.rs
-// ===========================
+// rust-core/src/lib.rs
 
-// ---------- 外部クレート ----------
-use chrono::{DateTime, Utc};
-use hmac::{Hmac, Mac};
-use rand::{thread_rng, RngCore};
-use sha2::Sha256;
+pub mod ai_tcp_packet_generated;
+pub mod coordination;
+pub mod keygen;
+pub mod log_recorder;
+pub mod packet_parser;
+pub mod signature;
+pub mod ephemeral_session_generated;
+pub mod error;
+pub mod connection_manager;
+pub mod force_disconnect;
+pub mod fw_filter;
+pub mod mesh;
+pub mod packet_signer;
+pub mod packet_validator;
+pub mod rate_control;
+pub mod session;
+pub mod compression;
 
-// ---------- 内部モジュール ----------
-pub mod keygen;               // Ephemeral Key Generation
-pub mod signature;            // Common signature helpers
-pub mod force_disconnect;     // Force disconnect logic
-pub mod fw_filter;            // Firewall filter logic
-pub mod packet_parser;        // FlatBuffers parsing + sequence validation
-pub mod packet_signer;        // Ephemeral Key signing for packets
+pub use crate::ai_tcp_packet_generated;
+pub use crate::coordination;
+pub use crate::keygen;
+pub use crate::log_recorder;
+pub use crate::packet_parser;
+pub use crate::signature;
+pub use crate::ephemeral_session_generated;
+pub use crate::error;
+pub use crate::connection_manager;
+pub use crate::force_disconnect;
+pub use crate::fw_filter;
+pub use crate::mesh;
+pub use crate::packet_signer;
+pub use crate::packet_validator;
+pub use crate::rate_control;
+pub use crate::session;
+pub use crate::baseline_profile_manager;
+pub use crate::mesh_auditor;
 
-pub mod compression;          // LZ4/Zstd compression utilities
-pub mod session;              // Ephemeral DH session management
-pub mod connection_manager;   // Manage ephemeral sessions per connection
-pub mod rate_control;         // Adaptive sending rate controller
-pub mod log_recorder;         // VoV log recorder with HMAC & key rotation
-pub mod ai_tcp_packet_generated; // FlatBuffers generated code
-#[path = "../../../flatbuffers/ephemeral_session_generated.rs"]
-pub mod ephemeral_session_generated; // FlatBuffers generated code for ephemeral session
-pub mod error;                // Custom error types
-pub mod coordination;         // Coordination Node Skeleton (Optional)
-pub mod packet_validator;     // AITcpPacket validation logic
-
-// ---------- Go連携用エクスポート関数 ----------
-#[no_mangle]
-pub extern "C" fn force_disconnect() {
-    println!("Force disconnect triggered from Go!");
-    // 必要に応じて VoV ログ処理などを呼び出す
+// ======== 本体モジュール ========
+pub mod mesh_trust_calculator;
+pub fn example_function() {
+    println!("Hello from kairo_rust_core!");
 }
+pub mod baseline_profile_manager;
+pub mod mesh_auditor;
 
-#[no_mangle]
-pub extern "C" fn example_function() {
-    println!("Hello from rust-core cdylib! This proves that the DLL exports are working correctly.");
-}
+// ======== ユニットテスト ========
 
-#[no_mangle]
-pub extern "C" fn add_numbers(a: i32, b: i32) -> i32 {
-    a + b
-}
+#[cfg(test)]
+#[path = "../tests/aitcp_roundtrip.rs"]
+pub mod aitcp_roundtrip;
 
-#[no_mangle]
-pub extern "C" fn log_parse_error() {
-    let err = error::KairoError::PacketParseFailed;
-    eprintln!("Kairo error: {err}");
-}
+#[cfg(test)]
+#[path = "../tests/coordination_test.rs"]
+pub mod coordination_test;
 
-// ---------- LogRecorder 構造体 ----------
-pub struct LogRecorder {
-    key: [u8; 32],
-    key_start: DateTime<Utc>,
-    // 必要なら追加フィールド
-}
+#[cfg(test)]
+#[path = "../tests/crypto_stress.rs"]
+pub mod crypto_stress;
 
-// LogRecorder 実装
-impl LogRecorder {
-    pub fn new() -> Self {
-        let mut key = [0u8; 32];
-        thread_rng().fill_bytes(&mut key);
-        Self {
-            key,
-            key_start: Utc::now(),
-        }
-    }
+#[cfg(test)]
+#[path = "../tests/ephemeral_signature_test.rs"]
+pub mod ephemeral_signature_test;
 
-    pub fn sign_log(&self, data: &[u8]) -> Vec<u8> {
-        let mut mac = Hmac::<Sha256>::new_from_slice(&self.key).expect("HMAC init failed");
-        mac.update(data);
-        mac.finalize().into_bytes().to_vec()
-    }
+#[cfg(test)]
+#[path = "../tests/key_rotation_test.rs"]
+pub mod key_rotation_test;
 
-    pub fn rotate_key(&mut self) {
-        self.key_start = Utc::now();
-        thread_rng().fill_bytes(&mut self.key);
-    }
-}
+#[cfg(test)]
+#[path = "../tests/log_recorder_test.rs"]
+pub mod log_recorder_test;
+
+#[cfg(test)]
+#[path = "../tests/mesh_auditor_test.rs"]
+pub mod mesh_auditor_test;
+
+#[cfg(test)]
+#[path = "../tests/packet_parser_test.rs"]
+pub mod packet_parser_test;
+
+#[cfg(test)]
+#[path = "../tests/packet_validator_test.rs"]
+pub mod packet_validator_test;
+
+#[cfg(test)]
+#[path = "../tests/signature_verification_test.rs"]
+pub mod signature_verification_test;

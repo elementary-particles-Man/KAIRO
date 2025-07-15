@@ -21,4 +21,4 @@ uuid = { version = "1.0", features = ["v4"] }
 warp = "0.3"
 thiserror = "1.0"
 zstd = "0.12"
-kairo_core = { path = "../../src/protocols/kairo_core" }
+kairo_core = { path = "./kairo_core" }
