@@ -1,4 +1,5 @@
 use clap::Parser;
+use kairo_rust_core::example_function;
 
 /// Simple mesh node example
 #[derive(Parser, Debug)]
@@ -12,6 +13,6 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     println!("Starting mesh node on port {}", cli.port);
-    // Call into the shared rust_core library as a sanity check
+    // Call into the shared kairo_rust_core library as a sanity check
     kairo_rust_core::example_function();
 }
