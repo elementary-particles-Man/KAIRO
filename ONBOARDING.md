@@ -21,4 +21,26 @@ This document outlines the fundamental principles for any new entity wishing to 
 3.  **Find a Seed Node:** Use the publicly listed Seed Nodes to initiate your first connection.
 4.  **Undergo Peer Review:** Engage with the mesh according to the WAU protocol to build your trust score and find your place within the community.
 
+## How to Use: First Onboarding with CUI
+
+1. Clone the repository.
+2. Run the provided CUI (`setup_agent`).
+3. The CUI will:
+   - Generate your static ID (key pair).
+   - Register you to the Seed Node.
+   - Output your Agent Token and Mesh Address.
+
+4. Keep your Agent Token safe.
+5. Launch AI-TCP using this token.
+6. Your trust score starts from zero and grows via Peer Review.
+
+---
+
+### Onboarding Flow (Text Diagram)
+
+[CUI Setup] → [Key Pair + Mesh Address] → [Seed Node Register] → [Peer Review Start]
+
+---
+
+
 This document guarantees that the path to participation will always be clear. Welcome.
