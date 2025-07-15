@@ -48,7 +48,7 @@ pub struct PacketParser {
 
 impl PacketParser {
     pub fn new(session_key: Vec<u8>) -> Self {
-        PacketParser { session_key }
+        PacketParser {}
     }
 
     pub fn parse(&mut self, data: &Bytes) -> Result<Packet, Box<dyn std::error::Error>> {
