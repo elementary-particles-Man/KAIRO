@@ -2,7 +2,7 @@
 // use serde::{Deserialize, Serialize}; // FlatBuffersを使うので通常は不要になります
 use bytes::Bytes;
 use crate::error::KairoError;
-use flatbuffers; // FlatBuffersクレートをインポート
+ // FlatBuffersクレートをインポート
 
 // ここでは、生成されたFlatBuffersのRustモジュールを直接インポートします。
 // プロジェクトの構造に応じてパスを調整してください。

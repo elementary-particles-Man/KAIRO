@@ -1,5 +1,4 @@
 use clap::Parser;
-use kairo_rust_core::example_function;
 
 /// Simple mesh node example
 #[derive(Parser, Debug)]

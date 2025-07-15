@@ -2,7 +2,6 @@
 use crate::packet_parser::PacketParser;
 use flatbuffers::FlatBufferBuilder;
 use bytes::Bytes;
-use crate::ai_tcp_packet_generated::aitcp as fb;
 use crate::ephemeral_session_generated::aitcp as fb_ephemeral;
 
 #[test]

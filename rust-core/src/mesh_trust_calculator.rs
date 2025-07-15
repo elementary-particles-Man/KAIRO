@@ -2,7 +2,7 @@
 //! Implements Peer Review / Gossip based distributed trust score calculation.
 //! Handles WAU (Who Are You) authentication and Sybil attack resistance.
 
-use crate::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile};
+use crate::baseline_profile_manager::BaselineProfileManager;
 
 // Temporarily define Scope here to avoid circular dependency in initial generation
 // In actual implementation, Scope will be imported from mesh_scope_manager.rs
