@@ -2,12 +2,13 @@
 // This uses Criterion to measure performance of building a FlatBuffer
 // and parsing it via the PacketParser.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
+use criterion::{criterion_group, criterion_main, Criterion};
 use flatbuffers::FlatBufferBuilder;
 
 // Import generated FlatBuffers schema and packet parser from the crate
-use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
-use kairo_rust_core::packet_parser::PacketParser;
+use kairo_core::ai_tcp_packet_generated::aitcp as fb;
+use kairo_core::packet_parser::PacketParser;
 
 /// Helper function to build a sample AITcpPacket and return the encoded bytes
 fn build_sample_packet() -> Vec<u8> {

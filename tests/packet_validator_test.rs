@@ -1,7 +1,7 @@
-use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
-use kairo_rust_core::packet_validator::validate_packet;
-use kairo_rust_core::signature::sign_ed25519;
-use kairo_rust_core::keygen::ephemeral_key;
+use kairo_core::ai_tcp_packet_generated::aitcp as fb;
+use kairo_core::packet_validator::validate_packet;
+use kairo_core::signature::sign_ed25519;
+use kairo_core::keygen::ephemeral_key;
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use flatbuffers::FlatBufferBuilder;
 
