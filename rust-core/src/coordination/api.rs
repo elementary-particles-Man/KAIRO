@@ -1,16 +1,16 @@
 // D:\dev\KAIRO\rust-core\src\coordination\api.rs
-use warp::Filter;
 use serde::{Deserialize, Serialize};
+use warp::Filter;
 use std::sync::Arc;
 
 use super::node_manager::{NodeManager, Node};
 
-#[derive(Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct RegisterRequest {
     public_key: Vec<u8>,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct RegisterResponse {
     virtual_ip: String,
 }
@@ -31,7 +31,7 @@ pub fn peers_route(manager: Arc<NodeManager>) -> impl Filter<Extract = impl warp
         .and_then(handle_peers)
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct PeerQuery {
     id: String,
 }

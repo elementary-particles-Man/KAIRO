@@ -1,9 +1,10 @@
 // D:\dev\KAIRO\rust-core\src\coordination\node_manager.rs
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Node {
     pub id: String, // 128-bit Unique ID represented as hex string
     pub public_key: Vec<u8>,
