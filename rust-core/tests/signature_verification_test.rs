@@ -3,7 +3,7 @@
 // ===========================
 
 // --- SHA256 Signature Test ---
-use kairo_core::signature::Sha256Signature;
+use kairo_rust_core::signature::Sha256Signature;
 
 #[test]
 fn sha256_sign_and_verify() {
@@ -30,8 +30,8 @@ fn sha256_verify_with_wrong_signature() {
 
 // --- Ed25519 Signature Test ---
 use ed25519_dalek::{SigningKey, Signature};
-use kairo_core::keygen::ephemeral_key;
-use kairo_core::signature::{sign_ed25519, verify_ed25519};
+use kairo_rust_core::keygen::ephemeral_key;
+use kairo_rust_core::signature::{sign_ed25519, verify_ed25519};
 
 #[test]
 fn ed25519_signature_verification() {
