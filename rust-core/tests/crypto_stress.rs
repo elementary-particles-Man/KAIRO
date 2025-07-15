@@ -1,11 +1,11 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use bytes::Bytes;
-use crate::keygen::ephemeral_key;
+use kairo_rust_core::keygen::ephemeral_key;
 use rand_core::OsRng;
-use crate::ephemeral_session_generated::aitcp as fb;
-use crate::log_recorder::LogRecorder;
-use crate::packet_parser::PacketParser;
-use crate::signature::{sign_ed25519, verify_ed25519};
+use kairo_rust_core::ephemeral_session_generated::aitcp as fb;
+use kairo_rust_core::log_recorder::LogRecorder;
+use kairo_rust_core::packet_parser::PacketParser;
+use kairo_rust_core::signature::{sign_ed25519, verify_ed25519};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;

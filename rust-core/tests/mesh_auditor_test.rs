@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::mesh_auditor::MeshAuditor;
+    use kairo_rust_core::mesh_auditor::MeshAuditor;
 
     #[test]
     fn test_audit_flow_instantiation() {
