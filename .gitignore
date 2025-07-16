@@ -61,3 +61,5 @@ codex/
 Icon?
 ehthumbs.db
 Desktop.ini
+registry.json
+Cargo.lock
