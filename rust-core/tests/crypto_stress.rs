@@ -23,7 +23,9 @@ fn test_crypto_stress_multi_threaded() {
         let handle = thread::spawn(move || {
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let signing_key = SigningKey::generate(&mut OsRng);
+                let keypair = Keypair::generate(&mut OsRng);
+                let signing_key = keypair.secret;
+
                 let verifying_key = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
