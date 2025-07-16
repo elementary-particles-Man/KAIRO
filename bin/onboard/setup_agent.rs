@@ -1,74 +1,50 @@
-//! bin/onboard/setup_agent.rs
-//! CUI for first-time onboarding to the KAIRO Mesh.
+//! KAIRO/bin/onboard/setup_agent.rs
 
-use ed25519_dalek::{SigningKey, VerifyingKey};
-use rand::rngs::OsRng;
+use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
+use rand_core::OsRng;
+use rand_core::RngCore;
 
 fn main() {
     println!("--- KAIRO Mesh Initial Setup ---");
 
-    println!("\nStep 1: Generating Static ID (ed25519 Key Pair)...");
     let mut csprng = OsRng;
-    let keypair: SigningKey = SigningKey::generate(&mut csprng);
-    let public_key: VerifyingKey = (&keypair).into();
 
-    let private_key_hex = hex::encode(keypair.to_bytes());
-    let public_key_hex = hex::encode(public_key.as_bytes());
-    println!("-> Key Pair generated successfully.");
+    let mut secret_bytes = [0u8; SECRET_KEY_LENGTH];
+    csprng.fill_bytes(&mut secret_bytes);
+
+    let signing_key = SigningKey::from_bytes(&secret_bytes);
+    let verifying_key = signing_key.verifying_key();
+
+    let private_key_hex = hex::encode(signing_key.to_bytes());
+    let public_key_hex = hex::encode(verifying_key.to_bytes());
+
+    println!("Secret Key: {:?}", private_key_hex);
+    println!("Public Key: {:?}", public_key_hex);
 
     println!("\nStep 2: Registering with a Seed Node...");
-    register_with_seed_node(&public_key_hex).ok();
+    if let Err(e) = register_with_seed_node(&public_key_hex) {
+        println!("-> Registration failed: {}", e);
+    }
 
-    println!("\n--- Onboarding Complete ---");
-    println!("Your Mesh Address (Public Key): {}", public_key_hex);
-    println!("Your Agent Token (Secret Key): {}", private_key_hex);
-    println!("\nIMPORTANT: Keep your Agent Token secure. It will not be shown again.");
-    println!("You can now use this token to launch your AI-TCP instance.");
+    println!("--- KAIRO Mesh Onboarding Complete ---");
 }
 
-// シードノードへの登録を行う関数の雛形
+// シードノードへの登録を行う関数
 fn register_with_seed_node(public_key: &str) -> Result<(), reqwest::Error> {
     println!("-> Attempting to register public key with seed node...");
-    // TODO: The actual seed node URL will be loaded from a config file.
     let seed_node_url = "http://localhost:8080/register";
 
-    let mut a = std::collections::HashMap::new();
-    a.insert("agent_id", public_key);
+    let mut payload = std::collections::HashMap::new();
+    payload.insert("agent_id", public_key);
 
-    // reqwest非同期ランタイムのセットアップ
     let client = reqwest::blocking::Client::new();
-    let res = client.post(seed_node_url).json(&a).send();
+    let res = client.post(seed_node_url).json(&payload).send()?;
 
-    match res {
-        Ok(response) => {
-            if response.status().is_success() {
-                println!("-> Successfully registered with seed node.");
-                Ok(())
-            } else {
-                println!("-> Failed to register. Status: {}", response.status());
-                // In a real scenario, we would return a proper error.
-                Ok(())
-            }
-        },
-        Err(e) => {
-            println!("-> Error connecting to seed node: {}", e);
-            Err(e)
-        }
+    if res.status().is_success() {
+        println!("-> Successfully registered with seed node.");
+    } else {
+        println!("-> Failed to register. Status: {}", res.status());
     }
-}
 
-// 実接続テスト用: シードノード登録の E2E テストケース
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_register_with_seed_node_live() {
-        let dummy_pubkey = "test_public_key_123";
-        let result = register_with_seed_node(dummy_pubkey);
-        match result {
-            Ok(_) => println!("✅ Seed node registration attempt succeeded."),
-            Err(e) => panic!("❌ Seed node registration failed: {:?}", e),
-        }
-    }
+    Ok(())
 }
