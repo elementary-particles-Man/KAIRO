@@ -56,3 +56,19 @@ fn register_with_seed_node(public_key: &str) -> Result<(), reqwest::Error> {
         }
     }
 }
+
+// 実接続テスト用: シードノード登録の E2E テストケース
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_register_with_seed_node_live() {
+        let dummy_pubkey = "test_public_key_123";
+        let result = register_with_seed_node(dummy_pubkey);
+        match result {
+            Ok(_) => println!("✅ Seed node registration attempt succeeded."),
+            Err(e) => panic!("❌ Seed node registration failed: {:?}", e),
+        }
+    }
+}
