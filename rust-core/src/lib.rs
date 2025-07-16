@@ -7,7 +7,6 @@ pub mod keygen;
 pub mod signature;
 pub mod coordination;
 pub mod log_recorder;
-pub mod mesh_auditor;
 pub mod ai_tcp_packet_generated;
 pub mod ephemeral_session_generated;
 pub mod packet_validator;
