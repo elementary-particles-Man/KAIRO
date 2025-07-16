@@ -1,7 +1,6 @@
 use kairo_rust_core::packet_parser::PacketParser;
 use flatbuffers::FlatBufferBuilder;
 use bytes::Bytes;
-use kairo_rust_core::ai_tcp_packet_generated::aitcp as fb;
 use kairo_rust_core::ephemeral_session_generated::aitcp as fb_ephemeral;
 
 #[test]
