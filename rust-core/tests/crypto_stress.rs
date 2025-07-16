@@ -2,11 +2,11 @@ use ed25519_dalek::{SigningKey, VerifyingKey, SECRET_KEY_LENGTH};
 use rand::rngs::OsRng;
 use rand::RngCore; // ← 必須
 use bytes::Bytes;
-use kairo_rust_core::keygen::ephemeral_key;
-use kairo_rust_core::ephemeral_session_generated::aitcp as fb;
-use kairo_rust_core::log_recorder::LogRecorder;
-use kairo_rust_core::packet_parser::PacketParser;
-use kairo_rust_core::signature::{sign_ed25519, verify_ed25519};
+use kairo_core::keygen::ephemeral_key;
+use kairo_core::ephemeral_session_generated::aitcp as fb;
+use kairo_core::log_recorder::LogRecorder;
+use kairo_core::packet_parser::PacketParser;
+use kairo_core::signature::{sign_ed25519, verify_ed25519};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -53,7 +53,7 @@ fn test_crypto_stress_multi_threaded() {
                 assert!(verification_result.is_ok(), "Signature verification failed");
 
                 // --- Parsing ---
-                let mut parser = PacketParser::new(vec![]);
+                let mut parser = PacketParser::new();
                 let parsed_packet = parser.parse(&Bytes::from(buf.to_vec()));
                 assert!(parsed_packet.is_ok());
 

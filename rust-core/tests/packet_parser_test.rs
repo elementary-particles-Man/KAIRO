@@ -1,7 +1,7 @@
-use kairo_rust_core::packet_parser::PacketParser;
+use kairo_core::packet_parser::PacketParser;
 use flatbuffers::FlatBufferBuilder;
 use bytes::Bytes;
-use kairo_rust_core::ephemeral_session_generated::aitcp as fb_ephemeral;
+use kairo_core::ephemeral_session_generated::aitcp as fb_ephemeral;
 
 #[test]
 fn test_packet_parsing_success() {
@@ -21,7 +21,7 @@ fn test_packet_parsing_success() {
     let buf = builder.finished_data();
 
     // 3. パーサーのインスタンスを作成して、parseメソッドを呼び出す
-    let mut parser = PacketParser::new(vec![]);
+    let mut parser = PacketParser::new();
     let result = parser.parse(&Bytes::from(buf.to_vec()));
 
     // 4. 正しくパースできることを確認

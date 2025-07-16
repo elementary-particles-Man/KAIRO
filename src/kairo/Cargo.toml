@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-kairo_rust_core = { path = "../../rust-core" }
-flatbuffers = "24.3.25"
+kairo_core = { path = "../../rust-core" }
 rand = "0.8.5"
 chrono = "0.4.38"
 
