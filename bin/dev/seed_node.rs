@@ -4,10 +4,10 @@
 use warp::{Filter, Rejection, Reply};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
-use std::io::{BufReader, BufWriter, Write};
+use std::io::{BufReader, BufWriter};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 
 // Placeholder for the governance module
 mod governance {
@@ -109,7 +109,6 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
 
     let mut registry = read_registry().expect("Failed to read from DB");
 
-    // 1. Check if the old agent exists and is revoked
     if let Some(old_agent) = registry.iter().find(|a| a.agent_id == req.old_agent_id) {
         if old_agent.status != "revoked" {
             let res = RegisterResponse { status: "error".to_string(), message: "Old agent is not revoked".to_string() };
@@ -120,13 +119,11 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
         return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::NOT_FOUND));
     }
 
-    // 2. Check if the new agent ID already exists as active
     if registry.iter().any(|a| a.agent_id == req.new_agent_id && a.status == "active") {
         let res = RegisterResponse { status: "exists".to_string(), message: "New agent ID already exists as an active agent".to_string() };
         return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::CONFLICT));
     }
 
-    // 3. Create new agent info
     let new_agent = AgentInfo {
         agent_id: req.new_agent_id.clone(),
         registered_at: Utc::now().to_rfc3339(),
@@ -142,11 +139,8 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
 }
 
 // Handler for emergency reissuance by the governance quorum
-async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
+async fn handle_emergency_reissue(_req: OverridePackage, _db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
     println!("Received emergency reissue request.");
-    // TODO: 1. Verify the multiplicity and diversity of signatures.
-    // TODO: 2. Verify each signature against the payload.
-    // TODO: 3. If valid, execute the reissuance logic after a cooldown.
     let res = RegisterResponse {
         status: "received".to_string(),
         message: "Emergency request received and is under review.".to_string(),
@@ -164,28 +158,40 @@ async fn main() {
     let register = warp::post()
         .and(warp::path("register"))
         .and(warp::body::json())
-        .and(warp::any().map(move || Arc::clone(&register_lock)))
+        .and(warp::any().map({
+            let register_lock = Arc::clone(&register_lock);
+            move || Arc::clone(&register_lock)
+        }))
         .and_then(handle_registration);
 
-    println!("Listening on http://127.0.0.1:8080/register");
-    println!("Registrations will be saved to registry.json");
     let revoke_lock = Arc::clone(&db_lock);
     let revoke = warp::post()
         .and(warp::path("revoke"))
         .and(warp::body::json())
-        .and(warp::any().map(move || Arc::clone(&revoke_lock)))
+        .and(warp::any().map({
+            let revoke_lock = Arc::clone(&revoke_lock);
+            move || Arc::clone(&revoke_lock)
+        }))
         .and_then(handle_revocation);
 
+    let reissue_lock = Arc::clone(&db_lock);
     let reissue = warp::post()
         .and(warp::path("reissue"))
         .and(warp::body::json())
-        .and(warp::any().map(move || Arc::clone(&db_lock)))
+        .and(warp::any().map({
+            let reissue_lock = Arc::clone(&reissue_lock);
+            move || Arc::clone(&reissue_lock)
+        }))
         .and_then(handle_reissue);
 
+    let emergency_lock = Arc::clone(&db_lock);
     let emergency_reissue = warp::post()
         .and(warp::path("emergency_reissue"))
         .and(warp::body::json())
-        .and(warp::any().map(move || Arc::clone(&db_lock)))
+        .and(warp::any().map({
+            let emergency_lock = Arc::clone(&emergency_lock);
+            move || Arc::clone(&emergency_lock)
+        }))
         .and_then(handle_emergency_reissue);
 
     let routes = register.or(revoke).or(reissue).or(emergency_reissue);

@@ -1,5 +1,5 @@
-//! src/governance.rs
-//! Defines the structures and protocols for identity sovereignty.
+/// src/governance.rs
+/// Defines the structures and protocols for identity sovereignty.
 
 use serde::{Deserialize, Serialize};
 
