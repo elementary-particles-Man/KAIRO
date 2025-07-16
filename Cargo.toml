@@ -7,8 +7,7 @@ edition = "2021"
 members = [
   "kairof",
   "mesh-node",
-  "rust-core",
-  "kairo"
+  "rust-core"
 ]
 resolver = "1"
 

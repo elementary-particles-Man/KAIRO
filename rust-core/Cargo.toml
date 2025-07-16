@@ -1,5 +1,5 @@
 [package]
-name = "kairo_rust_core"
+name = "kairo_core"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name <you@example.com>"]
@@ -8,7 +8,7 @@ description = "Core library for the KAIRO mesh system."
 repository = "https://github.com/elementary-particles-Man/KAIRO"
 
 [lib]
-name = "kairo_rust_core"
+name = "kairo_core"
 path = "src/lib.rs"
 
 [dependencies]

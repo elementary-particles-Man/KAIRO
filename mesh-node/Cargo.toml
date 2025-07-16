@@ -5,4 +5,4 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-kairo_rust_core = { path = "../rust-core" }
+kairo_core = { path = "../rust-core" }
