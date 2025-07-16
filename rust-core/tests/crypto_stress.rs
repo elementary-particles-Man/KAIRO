@@ -1,7 +1,8 @@
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::{SigningKey, VerifyingKey, SECRET_KEY_LENGTH};
+use rand::rngs::OsRng;
+use rand::RngCore; // ← 必須
 use bytes::Bytes;
 use kairo_rust_core::keygen::ephemeral_key;
-use rand::rngs::OsRng;
 use kairo_rust_core::ephemeral_session_generated::aitcp as fb;
 use kairo_rust_core::log_recorder::LogRecorder;
 use kairo_rust_core::packet_parser::PacketParser;
@@ -23,9 +24,9 @@ fn test_crypto_stress_multi_threaded() {
         let handle = thread::spawn(move || {
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let keypair = Keypair::generate(&mut OsRng);
-                let signing_key = keypair.secret;
-
+                let mut secret_bytes = [0u8; SECRET_KEY_LENGTH];
+                OsRng.fill_bytes(&mut secret_bytes);
+                let signing_key = SigningKey::from_bytes(&secret_bytes);
                 let verifying_key = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
@@ -38,7 +39,7 @@ fn test_crypto_stress_multi_threaded() {
                     &fb::EphemeralSessionArgs {
                         session_id: Some(session_id),
                         public_key: Some(public_key),
-                        expiration_unix: 0, // ダミーの値
+                        expiration_unix: 0,
                     },
                 );
                 builder.finish(ephemeral_session_offset, None);
@@ -60,12 +61,6 @@ fn test_crypto_stress_multi_threaded() {
                 let _recorder = log_recorder_clone
                     .lock()
                     .expect("failed to lock log recorder");
-                // TODO: implement LogRecorder::log
-                // recorder.log(&format!(
-                //     "Thread {:?}, Iteration {}: OK",
-                //     thread::current().id(),
-                //     i
-                // ));
                 thread::sleep(Duration::from_millis(1));
             }
         });
@@ -81,8 +76,5 @@ fn test_crypto_stress_multi_threaded() {
     let _final_logs = log_recorder
         .lock()
         .expect("failed to lock final log recorder");
-    // TODO: implement LogRecorder::get_logs
-    // let final_logs = log_recorder.lock().unwrap().get_logs();
-    // assert_eq!(final_logs.len(), num_threads * iterations_per_thread);
     println!("Crypto stress test completed successfully.");
 }
