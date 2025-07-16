@@ -40,8 +40,8 @@ fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
 fn validate_success() {
     let key = SigningKey::from_bytes(&ephemeral_key());
     let payload = b"hello";
-    let buf = build_packet(1, &key, payload);
-    let packet = fb::root_as_aitcp_packet(&buf).unwrap();
+    let _buf = build_packet(1, &key, payload);
+    let packet = fb::root_as_aitcp_packet(&_buf).unwrap();
     assert!(validate_packet(&packet, &VerifyingKey::from(&key), 1).is_ok());
 }
 
@@ -49,8 +49,8 @@ fn validate_success() {
 fn validate_wrong_sequence() {
     let key = SigningKey::from_bytes(&ephemeral_key());
     let payload = b"hello";
-    let buf = build_packet(1, &key, payload);
-    let packet = fb::root_as_aitcp_packet(&buf).unwrap();
+    let _buf = build_packet(1, &key, payload);
+    let packet = fb::root_as_aitcp_packet(&_buf).unwrap();
     assert!(validate_packet(&packet, &VerifyingKey::from(&key), 2).is_err());
 }
 
@@ -58,7 +58,7 @@ fn validate_wrong_sequence() {
 fn validate_bad_signature() {
     let key = SigningKey::from_bytes(&ephemeral_key());
     let payload = b"hello";
-    let buf = build_packet(1, &key, payload);
+    let _buf = build_packet(1, &key, payload);
 
     // Tamper signature: build new buffer with zeroed signature
     let mut builder = FlatBufferBuilder::new();
