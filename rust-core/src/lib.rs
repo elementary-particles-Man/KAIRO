@@ -1,5 +1,6 @@
 //! KAIRO Core Library
-
+pub mod mesh_auditor;
+pub mod packet_parser;
 pub mod baseline_profile_manager;
 pub mod mesh_trust_calculator;
 pub mod packet_parser;

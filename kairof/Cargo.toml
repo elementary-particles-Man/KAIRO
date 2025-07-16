@@ -7,4 +7,4 @@ edition = "2021"  # ← 2024 → 2021 にするのが無難
 flatbuffers = "25.2.10"
 rand = "0.8"
 rand_core = "0.6"
-kairo_rust_core = { path = "../rust-core" }
+kairo_core = { path = "../kairo_rust_core" }
