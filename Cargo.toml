@@ -1,3 +1,8 @@
+[package]
+name = "kairo"
+version = "0.1.0"
+edition = "2021"
+
 [workspace]
 members = [
   "kairof",
@@ -10,3 +15,22 @@ resolver = "1"
 hex = "0.4"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 tokio = { version = "1", features = ["full"] }
+
+[dependencies]
+hex = "0.4"
+rand = "0.8"  # 例: `OsRng` が必要
+ed25519-dalek = "2.2.0"
+rand_core = "0.6"
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[bin]]
+name = "setup_agent"
+path = "bin/onboard/setup_agent.rs"
+
+[[bin]]
+name = "seed_node_mock"
+path = "bin/dev/seed_node_mock.rs"
