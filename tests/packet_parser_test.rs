@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::packet_parser::PacketParser; // Updated path
+    use kairo::packet_parser::PacketParser; // Updated path
 
     #[test]
     fn test_parser_instantiation() {

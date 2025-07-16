@@ -3,8 +3,8 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::mesh_trust_calculator::TrustScoreCalculator;
-    use crate::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile};
+    use kairo::mesh_trust_calculator::TrustScoreCalculator;
+    use kairo::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile};
 
     #[test]
     fn test_behavior_verification_with_profile() {
