@@ -1,4 +1,4 @@
-use ed25519_dalek::{Keypair, VerifyingKey};
+use ed25519_dalek::{SigningKey, VerifyingKey};
 use bytes::Bytes;
 use kairo_rust_core::keygen::ephemeral_key;
 use rand::rngs::OsRng;
@@ -23,9 +23,8 @@ fn test_crypto_stress_multi_threaded() {
         let handle = thread::spawn(move || {
             for i in 0..iterations_per_thread {
                 // --- Key Generation ---
-                let signing_key = Keypair::generate(&mut OsRng);
-                let verifying_key: VerifyingKey = signing_key.public;
-                // signing_key and verifying_key generated above
+                let signing_key = SigningKey::generate(&mut OsRng);
+                let verifying_key = VerifyingKey::from(&signing_key);
 
                 // --- Packet Building ---
                 let mut builder = flatbuffers::FlatBufferBuilder::new();
@@ -44,11 +43,9 @@ fn test_crypto_stress_multi_threaded() {
                 let buf = builder.finished_data();
 
                 // --- Signing ---
-                // 生成したkeypairをそのまま署名に使用します。
-                let signature = sign_ed25519(&signing_key.secret, buf);
+                let signature = sign_ed25519(&signing_key, buf);
 
                 // --- Verification ---
-                // keypairから公開鍵(.public)を取り出して検証に使用します。
                 let verification_result = verify_ed25519(&verifying_key, buf, &signature);
                 assert!(verification_result.is_ok(), "Signature verification failed");
 
@@ -67,7 +64,6 @@ fn test_crypto_stress_multi_threaded() {
                 //     thread::current().id(),
                 //     i
                 // ));
-                // Simulate some work
                 thread::sleep(Duration::from_millis(1));
             }
         });
