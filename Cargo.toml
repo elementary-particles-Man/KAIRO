@@ -34,3 +34,7 @@ path = "bin/onboard/setup_agent.rs"
 [[bin]]
 name = "seed_node_mock"
 path = "bin/dev/seed_node_mock.rs"
+
+[[bin]]
+name = "seed_node"
+path = "src/bin/seed_node.rs"
