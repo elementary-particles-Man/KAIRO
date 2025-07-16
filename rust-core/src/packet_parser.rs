@@ -47,7 +47,8 @@ pub struct PacketParser {
 }
 
 impl PacketParser {
-    pub fn new(session_key: Vec<u8>) -> Self {
+// Removed unused session_key
+    pub fn new() -> Self {
         PacketParser {}
     }
 
