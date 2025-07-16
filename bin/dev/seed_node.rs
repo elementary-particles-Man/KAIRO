@@ -14,6 +14,12 @@ struct RegisterRequest {
     agent_id: String,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct ReissueRequest {
+    old_agent_id: String,
+    new_agent_id: String,
+}
+
 #[derive(Debug, Serialize)]
 struct RegisterResponse {
     status: String,
@@ -25,6 +31,7 @@ struct AgentInfo {
     agent_id: String,
     registered_at: String,
     status: String, // e.g., "active", "revoked"
+    replaces: Option<String>,
 }
 
 const DB_FILE: &str = "registry.json";
@@ -58,6 +65,7 @@ async fn handle_registration(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> R
             agent_id: req.agent_id.clone(),
             registered_at: Utc::now().to_rfc3339(),
             status: "active".to_string(),
+            replaces: None,
         };
         registry.push(new_agent);
         write_registry(&registry).expect("Failed to write to DB");
@@ -87,6 +95,45 @@ async fn handle_revocation(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> Res
     }
 }
 
+// Handler for reissuing an agent's ID
+async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
+    let _lock = db_lock.lock().await;
+    println!("Received reissue request for old_agent_id: {}", req.old_agent_id);
+
+    let mut registry = read_registry().expect("Failed to read from DB");
+
+    // 1. Check if the old agent exists and is revoked
+    if let Some(old_agent) = registry.iter().find(|a| a.agent_id == req.old_agent_id) {
+        if old_agent.status != "revoked" {
+            let res = RegisterResponse { status: "error".to_string(), message: "Old agent is not revoked".to_string() };
+            return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::BAD_REQUEST));
+        }
+    } else {
+        let res = RegisterResponse { status: "not_found".to_string(), message: "Old agent not found".to_string() };
+        return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::NOT_FOUND));
+    }
+
+    // 2. Check if the new agent ID already exists as active
+    if registry.iter().any(|a| a.agent_id == req.new_agent_id && a.status == "active") {
+        let res = RegisterResponse { status: "exists".to_string(), message: "New agent ID already exists as an active agent".to_string() };
+        return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::CONFLICT));
+    }
+
+    // 3. Create new agent info
+    let new_agent = AgentInfo {
+        agent_id: req.new_agent_id.clone(),
+        registered_at: Utc::now().to_rfc3339(),
+        status: "active".to_string(),
+        replaces: Some(req.old_agent_id.clone()),
+    };
+    registry.push(new_agent);
+    write_registry(&registry).expect("Failed to write to DB");
+
+    println!("Successfully reissued agent ID {} to {}", req.old_agent_id, req.new_agent_id);
+    let res = RegisterResponse { status: "success".to_string(), message: "Agent ID successfully reissued".to_string() };
+    Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::OK))
+}
+
 #[tokio::main]
 async fn main() {
     println!("KAIRO Seed Node [v2: Structured Registry] starting...");
@@ -109,7 +156,13 @@ async fn main() {
         .and(warp::any().map(move || Arc::clone(&revoke_lock)))
         .and_then(handle_revocation);
 
-    let routes = register.or(revoke);
+    let reissue = warp::post()
+        .and(warp::path("reissue"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || Arc::clone(&db_lock)))
+        .and_then(handle_reissue);
+
+    let routes = register.or(revoke).or(reissue);
 
     warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }
