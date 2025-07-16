@@ -10,7 +10,10 @@ pub mod log_recorder;
 pub mod ai_tcp_packet_generated;
 pub mod ephemeral_session_generated;
 pub mod packet_validator;
+pub mod resolvers;
 
 // NEW
 pub mod error;
 // 他に必要なら pub mod session_reuse; など
+
+

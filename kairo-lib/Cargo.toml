@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-kairo_core = { path = "../../rust-core" }
+kairo_core = { path = "../rust-core" }
 rand = "0.8.5"
 chrono = "0.4.38"
+
+[lib]
+name = "kairo"
+path = "src/lib.rs"
 
 [dev-dependencies]
 # Add any dev-dependencies specific to kairo here if needed

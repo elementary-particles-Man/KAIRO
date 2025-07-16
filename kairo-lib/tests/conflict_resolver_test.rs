@@ -1,5 +1,6 @@
 // tests/conflict_resolver_test.rs
 
+extern crate kairo;
 use kairo::resolvers::conflict_resolver::{ConflictReport, LogicalConflictType, DefaultResolver, Resolution, ConflictResolver};
 
 #[test]

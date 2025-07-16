@@ -3,6 +3,6 @@ members = [
   "kairof",
   "mesh-node",
   "rust-core",
-  "src/kairo"
+  "kairo-lib"
 ]
 resolver = "2"
