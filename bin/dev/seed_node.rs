@@ -9,6 +9,13 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use chrono::{DateTime, Utc};
 
+// Placeholder for the governance module
+mod governance {
+    include!("../../src/governance.rs");
+}
+
+use governance::OverridePackage;
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct RegisterRequest {
     agent_id: String,
@@ -134,6 +141,19 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
     Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::OK))
 }
 
+// Handler for emergency reissuance by the governance quorum
+async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
+    println!("Received emergency reissue request.");
+    // TODO: 1. Verify the multiplicity and diversity of signatures.
+    // TODO: 2. Verify each signature against the payload.
+    // TODO: 3. If valid, execute the reissuance logic after a cooldown.
+    let res = RegisterResponse {
+        status: "received".to_string(),
+        message: "Emergency request received and is under review.".to_string(),
+    };
+    Ok(warp::reply::json(&res))
+}
+
 #[tokio::main]
 async fn main() {
     println!("KAIRO Seed Node [v2: Structured Registry] starting...");
@@ -162,7 +182,13 @@ async fn main() {
         .and(warp::any().map(move || Arc::clone(&db_lock)))
         .and_then(handle_reissue);
 
-    let routes = register.or(revoke).or(reissue);
+    let emergency_reissue = warp::post()
+        .and(warp::path("emergency_reissue"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || Arc::clone(&db_lock)))
+        .and_then(handle_emergency_reissue);
+
+    let routes = register.or(revoke).or(reissue).or(emergency_reissue);
 
     warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }
