@@ -1,5 +1,5 @@
 [package]
-name = "kairo_rust_core"         # ← 呼び出し側と一致させる
+name = "kairo_rust_core"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name <you@example.com>"]
@@ -8,19 +8,16 @@ description = "Core library for the KAIRO mesh system."
 repository = "https://github.com/elementary-particles-Man/KAIRO"
 
 [lib]
-name = "kairo_rust_core"         # ← ここも一致でOK
+name = "kairo_rust_core"
 path = "src/lib.rs"
 
 [dependencies]
-# 必要な外部クレートをここに追加
 bytes = "1.0"
 flatbuffers = "25.2.10"
 tokio = { version = "1.46", features = ["full"] }
 ed25519-dalek = "2.2"
-
-# 必要に応じて crypto, warp, zstd など
 warp = "0.3.7"
-zstd = "0.12"
+zstd = { version = "0.12", default-features = false }
 rand = "0.8"
 rand_core = "0.6"
 hmac = "0.12"
@@ -30,6 +27,5 @@ uuid = { version = "1", features = ["v4"] }
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "2.0.12"
 
-# dev用
 [dev-dependencies]
 criterion = "0.6"
