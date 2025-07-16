@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::mesh_auditor::MeshAuditor;
+    use kairo::mesh_auditor::MeshAuditor;
     // Note: To make this test truly effective, we need to allow the auditor to access a mutable manager.
     // This will be addressed in the next refactoring phase.
 
