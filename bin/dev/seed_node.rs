@@ -9,12 +9,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use chrono::Utc;
 
-// Placeholder for the governance module
-mod governance {
-    include!("../../src/governance.rs");
-}
-
-use governance::OverridePackage;
+use kairo_lib::governance::OverridePackage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct RegisterRequest {
@@ -139,13 +134,12 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
 }
 
 // Handler for emergency reissuance by the governance quorum
-async fn handle_emergency_reissue(_req: OverridePackage, _db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
+async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Reply, warp::Rejection> {
     println!("Received emergency reissue request.");
-    let res = RegisterResponse {
-        status: "received".to_string(),
-        message: "Emergency request received and is under review.".to_string(),
-    };
-    Ok(warp::reply::json(&res))
+    // TODO: 1. Verify the multiplicity and diversity of signatures.
+    // TODO: 2. Verify each signature against the payload.
+    // TODO: 3. If valid, execute the reissuance logic after a cooldown.
+    Ok(warp::reply::json(&"received"))
 }
 
 #[tokio::main]
@@ -184,14 +178,9 @@ async fn main() {
         }))
         .and_then(handle_reissue);
 
-    let emergency_lock = Arc::clone(&db_lock);
     let emergency_reissue = warp::post()
         .and(warp::path("emergency_reissue"))
         .and(warp::body::json())
-        .and(warp::any().map({
-            let emergency_lock = Arc::clone(&emergency_lock);
-            move || Arc::clone(&emergency_lock)
-        }))
         .and_then(handle_emergency_reissue);
 
     let routes = register.or(revoke).or(reissue).or(emergency_reissue);
