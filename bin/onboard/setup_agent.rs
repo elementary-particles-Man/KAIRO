@@ -4,7 +4,18 @@ use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
 use rand_core::OsRng;
 use rand_core::RngCore;
 
+pub mod config;
+use config::{load_config, save_config, AgentConfig};
+
 fn main() {
+    if let Some(config) = load_config() {
+        println!("\n--- Welcome Back ---");
+        println!("Restored identity from agent_config.json");
+        println!("Your KAIRO-P Address: {}", config.p_address);
+        println!("Your Public Key: {}", config.public_key);
+        // In a real app, you would now proceed with this identity.
+        return;
+    }
     println!("--- KAIRO Mesh Initial Setup ---");
 
     let mut csprng = OsRng;
@@ -27,6 +38,12 @@ fn main() {
     }
 
     let p_address = request_p_address();
+    let config = AgentConfig {
+        p_address: p_address.clone(),
+        public_key: public_key_hex,
+        secret_key: private_key_hex,
+    };
+    save_config(&config).expect("Failed to save agent configuration.");
     println!("\n--- Onboarding Complete ---");
     println!("Your assigned KAIRO-P Address: {}", p_address);
 }
