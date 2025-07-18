@@ -10,8 +10,8 @@ use config::{load_config, save_config, AgentConfig};
 fn main() {
     if let Some(config) = load_config() {
         // If config was loaded, attempt registration with the existing public key
-        if let Some(config) = &config {
-            register_with_seed_node(&config.public_key);
+        if let Some(agent_config) = &config {
+            register_with_seed_node(&agent_config.public_key);
         }
         // If config was loaded, attempt registration with the existing public key
         register_with_seed_node(&config.public_key);
