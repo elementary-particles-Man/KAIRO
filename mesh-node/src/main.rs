@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use chrono::Utc;
 
-use kairo_lib::governance::OverridePackage;
+use kairo::governance::OverridePackage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct RegisterRequest {

@@ -7,6 +7,7 @@ edition = "2021"
 kairo_core = { path = "../rust-core" }
 rand = "0.8.5"
 chrono = "0.4.38"
+serde = { version = "1.0", features = ["derive"] }
 
 [lib]
 name = "kairo"

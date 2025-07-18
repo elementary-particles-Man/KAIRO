@@ -3,6 +3,11 @@ members = [
   "kairof",
   "mesh-node",
   "rust-core",
-  "kairo-lib"
+  "kairo-lib",
+  "kairo-daemon"
 ]
 resolver = "2"
+
+[[bin]]
+name = "kairo_p_daemon"
+path = "bin/daemon/kairo_p_daemon.rs"
