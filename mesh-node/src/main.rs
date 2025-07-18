@@ -7,6 +7,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use once_cell::sync::Lazy;
 use chrono::Utc;
 
 use kairo::governance::OverridePackage;
@@ -34,6 +35,12 @@ struct AgentInfo {
     registered_at: String,
     status: String, // e.g., "active", "revoked"
     replaces: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct SendRequest {
+    to_p_address: String,
+    payload: String,
 }
 
 const DB_FILE: &str = "registry.json";
@@ -175,6 +182,34 @@ async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Rep
     ))
 }
 
+// --- AI-TCP Communication Handlers ---
+
+// In-memory message queue for this PoC
+// Key: P-Address, Value: Vec of messages
+static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<String, Vec<String>>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(std::collections::HashMap::new())));
+
+// Handler for sending a message to another P-Address
+async fn handle_send(req: SendRequest) -> Result<impl warp::Reply, warp::Rejection> {
+    println!("Received send request to: {}, payload: {}", req.to_p_address, req.payload);
+    let mut queue = MESSAGE_QUEUE.lock().await;
+    let inbox = queue.entry(req.to_p_address).or_insert_with(Vec::new);
+    inbox.push(req.payload);
+    Ok(warp::reply::json(&"message_sent"))
+}
+
+// Handler for receiving messages from the inbox
+async fn handle_receive(p_address: String) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut queue = MESSAGE_QUEUE.lock().await;
+    if let Some(inbox) = queue.get_mut(&p_address) {
+        let messages = inbox.clone();
+        inbox.clear();
+        println!("Delivered {} messages to {}", messages.len(), p_address);
+        Ok(warp::reply::json(&messages))
+    } else {
+        Ok(warp::reply::json(&Vec::<String>::new()))
+    }
+}
+
 #[tokio::main]
 async fn main() {
     println!("KAIRO Seed Node [v2: Structured Registry] starting...");
@@ -216,7 +251,16 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handle_emergency_reissue);
 
-    let routes = register.or(revoke).or(reissue).or(emergency_reissue);
+    let send = warp::post()
+        .and(warp::path("send"))
+        .and(warp::body::json())
+        .and_then(handle_send);
+
+    let receive = warp::get()
+        .and(warp::path("receive"))
+        .and(warp::path::param())
+        .and_then(handle_receive);
+    let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive);
 
     warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }
