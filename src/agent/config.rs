@@ -1,4 +1,4 @@
-//! bin/onboard/config.rs
+//! src/agent/config.rs
 //! Handles loading and saving of agent identities.
 
 use serde::{Deserialize, Serialize};
@@ -25,8 +25,8 @@ pub fn save_config(config: &AgentConfig) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-// Loads the first available agent config for this simple CLI use case.
-// A real application would manage multiple identities.
+/// Loads the first available agent config.
+/// In a real application multiple identities would be handled.
 pub fn load_first_config() -> Option<AgentConfig> {
     if let Ok(entries) = fs::read_dir(CONFIG_DIR) {
         for entry in entries.flatten() {

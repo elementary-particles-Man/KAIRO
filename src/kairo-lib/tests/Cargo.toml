@@ -1,0 +1,11 @@
+[package]
+name = "kairo_tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kairo_core = { path = "../../rust-core" }
+
+[[bin]]
+name = "tests"
+path = "conflict_resolver_test.rs"
