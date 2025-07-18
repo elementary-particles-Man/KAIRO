@@ -1,4 +1,4 @@
-//! bin/onboard/config.rs
+//! src/agent/config.rs
 //! Handles loading and saving of agent identities.
 
 use serde::{Deserialize, Serialize};
@@ -18,15 +18,19 @@ const CONFIG_DIR: &str = "agent_configs";
 pub fn save_config(config: &AgentConfig) -> Result<(), std::io::Error> {
     fs::create_dir_all(CONFIG_DIR)?;
     let config_path = Path::new(CONFIG_DIR).join(format!("{}.json", config.p_address));
-    let file = OpenOptions::new().write(true).create(true).truncate(true).open(config_path)?;
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(config_path)?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, config)?;
     println!("-> Agent configuration saved.");
     Ok(())
 }
 
-// Loads the first available agent config for this simple CLI use case.
-// A real application would manage multiple identities.
+/// Loads the first available agent config.
+/// In a real application multiple identities would be handled.
 pub fn load_first_config() -> Option<AgentConfig> {
     if let Ok(entries) = fs::read_dir(CONFIG_DIR) {
         for entry in entries.flatten() {

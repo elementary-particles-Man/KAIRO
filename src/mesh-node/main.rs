@@ -11,6 +11,41 @@ use chrono::{Utc};
 
 // (Existing structs like AgentInfo, RegisterRequest, etc.)
 
+// --- Signature Verification Logic ---
+use ed25519_dalek::{VerifyingKey, Signature, Verifier};
+
+fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
+    let source_agent = match registry.iter().find(|a| a.p_address == packet.source_p_address) {
+        Some(agent) => agent,
+        None => {
+            println!("Signature Fail: Source agent {} not found in registry.", packet.source_p_address);
+            return false;
+        }
+    };
+
+    let public_key_bytes = match hex::decode(&source_agent.public_key) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
+
+    let public_key = match VerifyingKey::try_from(public_key_bytes.as_slice()) {
+        Ok(key) => key,
+        Err(_) => return false,
+    };
+
+    let signature_bytes = match hex::decode(&packet.signature) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
+
+    let signature = match Signature::try_from(signature_bytes.as_slice()) {
+        Ok(sig) => sig,
+        Err(_) => return false,
+    };
+
+    public_key.verify(packet.payload.as_bytes(), &signature).is_ok()
+}
+
 // In-memory message queue, now stores full packets
 static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<String, Vec<AiTcpPacket>>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(std::collections::HashMap::new())));
 
@@ -20,8 +55,15 @@ static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<
 async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
     println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_p_address);
     let mut queue = MESSAGE_QUEUE.lock().await;
-    let inbox = queue.entry(packet.destination_p_address.clone()).or_insert_with(Vec::new);
-    inbox.push(packet);
+    let registry = read_registry().expect("DB read error during send");
+    if verify_packet_signature(&packet, &registry) {
+        println!("Signature VERIFIED for packet from {}", packet.source_p_address);
+        let inbox = queue.entry(packet.destination_p_address.clone()).or_insert_with(Vec::new);
+        inbox.push(packet);
+    } else {
+        println!("Signature FAILED for packet from {}", packet.source_p_address);
+        // Do not queue the packet if signature is invalid
+    }
     Ok(warp::reply::json(&"packet_queued"))
 }
 
@@ -55,3 +97,5 @@ async fn main() {
 
     warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
 }
+
+// ここに実際のWarpエンドポイントのテストコードを追加する（内容省略）

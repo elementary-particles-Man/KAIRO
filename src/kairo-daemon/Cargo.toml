@@ -9,7 +9,7 @@ tokio = { version = "1", features = ["full"] }
 once_cell = "1.19"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-uuid = { version = "1", features = ["v4"] }   # ← 使わなければ省略可
+kairo_lib = { path = "../kairo-lib" }
 
 [[bin]]
 name = "kairo_p_daemon"
