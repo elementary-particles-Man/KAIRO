@@ -13,7 +13,8 @@ pub struct ReissueRequestPayload {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SignaturePackage {
-    pub signatory_id: String, // ID of the entity signing (Peer AI, Seed Node, Human Auditor)
+    pub signatory_id: String, // ID of the entity signing
+    pub signatory_role: String, // Role of the entity: e.g., "PeerAI", "SeedNode", "HumanAuditor"
     pub signature: String,    // Digital signature of the payload
 }
 

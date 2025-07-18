@@ -138,12 +138,19 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
 // NOTE: This is a placeholder. Real implementation requires a cryptographic library and access to public keys.
 fn verify_signatures(req: &OverridePackage) -> bool {
     println!("Verifying signatures...");
+    use std::collections::HashSet;
+
     if req.signatures.len() < 3 { // Principle of Multiplicity
         println!("Verification failed: Not enough signatures.");
         return false;
     }
 
-    // TODO: Principle of Diversity check (e.g., ensure one signature is from a Seed Node, one from a Peer AI, etc.)
+    // Principle of Diversity Check
+    let roles: HashSet<_> = req.signatures.iter().map(|s| s.signatory_role.clone()).collect();
+    if !roles.contains("PeerAI") || !roles.contains("SeedNode") || !roles.contains("HumanAuditor") {
+        println!("Verification failed: Quorum diversity requirement not met.");
+        return false;
+    }
 
     for sig_package in &req.signatures {
         // TODO: Implement actual cryptographic verification of sig_package.signature against req.payload
