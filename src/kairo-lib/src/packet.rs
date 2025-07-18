@@ -10,6 +10,7 @@ pub struct AiTcpPacket {
     pub destination_p_address: String,
     pub sequence: u64,
     pub timestamp: i64,
-    pub payload_type: String, // e.g., "text/plain", "application/json"
+    pub payload_type: String,
     pub payload: String,
+    pub signature: String, // Hex-encoded signature of the payload
 }
