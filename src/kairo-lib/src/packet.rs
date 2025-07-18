@@ -12,4 +12,5 @@ pub struct AiTcpPacket {
     pub timestamp: i64,
     pub payload_type: String, // e.g., "text/plain", "application/json"
     pub payload: String,
+    pub signature: String,
 }

@@ -55,3 +55,5 @@ async fn main() {
 
     warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
 }
+
+// ここに実際のWarpエンドポイントのテストコードを追加する（内容省略）

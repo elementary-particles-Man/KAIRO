@@ -14,3 +14,7 @@ hex = "0.4"
 [[bin]]
 name = "setup_agent"
 path = "setup_agent.rs"
+
+[[bin]]
+name = "signed_sender"
+path = "signed_sender.rs"
