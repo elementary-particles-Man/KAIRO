@@ -4,7 +4,7 @@ use rand_core::{OsRng, RngCore};
 use serde::Deserialize;
 
 mod config;
-use config::{load_first_config, save_config, AgentConfig};
+use config::{load_first_config, save_config, AgentConfig, create_signature};
 
 #[derive(Parser)]
 #[command(name = "setup_agent", about = "KAIRO Agent Setup Utility")]
@@ -92,10 +92,13 @@ fn main() {
     println!("\nStep 2: Registering with a Seed Node...");
 
     let p_address = request_p_address();
+    let signature = create_signature(&p_address, &public_key_hex, &signing_key);
+
     let config = AgentConfig {
         p_address: p_address.clone(),
         public_key: public_key_hex,
         secret_key: private_key_hex,
+        signature,
     };
 
     let _ = register_with_seed_node(&config.public_key);
