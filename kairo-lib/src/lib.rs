@@ -14,3 +14,4 @@ pub use kairo_core::coordination;
 // lib.rs
 pub mod resolvers;
 pub use resolvers::conflict_resolver::*;
+pub mod governance;
