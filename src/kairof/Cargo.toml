@@ -1,0 +1,13 @@
+[package]
+name = "kairof"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "kairof"
+path = "lib.rs"
+
+[dependencies]
+flatbuffers = "25.2.10"
+rand = "0.8.5"
+kairo_core = { path = "../../rust-core" }

@@ -1,4 +1,5 @@
 pub mod resolvers;
+pub mod governance;
 
 // Expose internal modules for integration testing
 pub use kairo_core::mesh_auditor;

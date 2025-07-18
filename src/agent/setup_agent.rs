@@ -24,3 +24,7 @@ fn request_p_address() -> String {
         }
     }
 }
+
+fn main() {
+    let _ = request_p_address();
+}

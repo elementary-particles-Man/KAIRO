@@ -1,8 +1,11 @@
 [workspace]
 members = [
     "rust-core",
+    "src/server",
+    "src/agent",
+    "src/kairo-daemon",
     "src/kairof",
-    "src/mesh-node",
-    "src/kairo-daemon"
+    "src/kairo-lib",
+    "src/mesh-node"
 ]
 resolver = "2"
