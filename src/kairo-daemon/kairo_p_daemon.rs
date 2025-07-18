@@ -3,6 +3,12 @@
 
 use warp::Filter;
 use std::sync::{Arc, Mutex};
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct AddressResponse {
+    p_address: String,
+}
 
 // A very simple in-memory address pool for now.
 struct AddressPool {
@@ -22,8 +28,15 @@ async fn main() {
             let mut pool = pool.lock().unwrap();
             let addr = pool.next_address;
             pool.next_address += 1;
-            println!("Assigned P-Address: 10.0.0.{}", addr);
-            warp::reply::json(&format!("10.0.0.{}", addr))
+
+            let assigned = format!("10.0.0.{}", addr);
+            println!("Assigned P-Address: {}", assigned);
+
+            let response = AddressResponse {
+                p_address: assigned,
+            };
+
+            warp::reply::json(&response)
         });
 
     println!("Listening for address requests on http://127.0.0.1:3030");

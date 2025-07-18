@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "server",
+    "agent",
+    "kairo-daemon",
+    "kairof",
+    "kairo-lib",
+    "mesh-node",
+    "tests"
+]
+resolver = "2"

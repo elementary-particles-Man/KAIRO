@@ -1,11 +1,8 @@
-# D:\Dev\KAIRO\Cargo.toml
-
 [workspace]
 members = [
-  "kairof",
-  "mesh-node",
-  "rust-core",
-  "kairo-lib",
-  "kairo-daemon"
+    "rust-core",
+    "src/kairof",
+    "src/mesh-node",
+    "src/kairo-daemon"
 ]
 resolver = "2"

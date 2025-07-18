@@ -16,4 +16,10 @@ pub mod resolvers;
 pub mod error;
 // 他に必要なら pub mod session_reuse; など
 
+// Placeholder for kairo_core
+pub fn placeholder() {
+    println!("kairo_core placeholder active");
+}
+
+pub mod session_reuse;
 

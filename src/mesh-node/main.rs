@@ -7,7 +7,6 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use once_cell::sync::Lazy;
 use chrono::Utc;
 
 use kairo::governance::OverridePackage;
