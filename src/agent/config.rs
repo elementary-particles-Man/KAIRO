@@ -1,33 +1,42 @@
 //! bin/onboard/config.rs
-//! Handles loading and saving of the agent's identity.
+//! Handles loading and saving of agent identities.
 
 use serde::{Deserialize, Serialize};
-use std::fs::{File, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{BufReader, BufWriter};
+use std::path::Path;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentConfig {
     pub p_address: String,
     pub public_key: String,
     pub secret_key: String,
 }
 
-const CONFIG_FILE: &str = "agent_config.json";
+const CONFIG_DIR: &str = "agent_configs";
 
 pub fn save_config(config: &AgentConfig) -> Result<(), std::io::Error> {
-    let file = OpenOptions::new().write(true).create(true).truncate(true).open(CONFIG_FILE)?;
+    fs::create_dir_all(CONFIG_DIR)?;
+    let config_path = Path::new(CONFIG_DIR).join(format!("{}.json", config.p_address));
+    let file = OpenOptions::new().write(true).create(true).truncate(true).open(config_path)?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, config)?;
-    println!("-> Agent configuration saved to {}", CONFIG_FILE);
+    println!("-> Agent configuration saved.");
     Ok(())
 }
 
-pub fn load_config() -> Option<AgentConfig> {
-    if let Ok(file) = File::open(CONFIG_FILE) {
-        let reader = BufReader::new(file);
-        if let Ok(config) = serde_json::from_reader(reader) {
-            println!("-> Agent configuration loaded from {}", CONFIG_FILE);
-            return Some(config);
+// Loads the first available agent config for this simple CLI use case.
+// A real application would manage multiple identities.
+pub fn load_first_config() -> Option<AgentConfig> {
+    if let Ok(entries) = fs::read_dir(CONFIG_DIR) {
+        for entry in entries.flatten() {
+            if let Ok(file) = File::open(entry.path()) {
+                let reader = BufReader::new(file);
+                if let Ok(config) = serde_json::from_reader(reader) {
+                    println!("-> Loaded first available agent configuration.");
+                    return Some(config);
+                }
+            }
         }
     }
     None
