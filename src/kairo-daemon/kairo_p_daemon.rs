@@ -7,7 +7,10 @@ use std::io::BufReader;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
+<<<<<<< HEAD
+=======
 use serde_json::{self, json};
+>>>>>>> f587878cc7605bc52c53a50da38bc25f674948e9
 use warp::Filter;
 
 use kairo_lib::packet::AiTcpPacket;
@@ -91,7 +94,17 @@ async fn main() {
         .and(with_message_queues(message_queues.clone()))
         .and_then(handle_receive);
 
+<<<<<<< HEAD
+    let send_message = warp::path("send")
+        .and(warp::post())
+        .and(warp::body::json())
+        .and(with_message_buffer(message_buffer.clone()))
+        .and_then(handle_send);
+
+    let routes = get_address.or(receive_message).or(send_message);
+=======
     let routes = get_address.or(send_message).or(receive_message);
+>>>>>>> f587878cc7605bc52c53a50da38bc25f674948e9
 
     let addr: SocketAddr = ([127, 0, 0, 1], 3030).into();
     warp::serve(routes).run(addr).await;
@@ -128,7 +141,6 @@ async fn assign_p_address(
 
     agents.insert(p_address.clone(), agent.clone());
 
-    // Initialize message buffer
     let mut buffers = buffer.lock().unwrap();
     buffers.entry(p_address.clone()).or_insert_with(VecDeque::new);
 
@@ -169,5 +181,25 @@ async fn handle_receive(
 
     Ok(warp::reply::json(&serde_json::json!({
         "status": "no_message"
+    })))
+}
+
+async fn handle_send(
+    message: Message,
+    buffer: MessageBuffer,
+) -> Result<impl warp::Reply, Infallible> {
+    let mut buffers = buffer.lock().unwrap();
+    buffers
+        .entry(message.to_p_address.clone())
+        .or_insert_with(VecDeque::new)
+        .push_back(message.clone());
+
+    println!(
+        "Stored message from {} to {}",
+        message.from_p_address, message.to_p_address
+    );
+
+    Ok(warp::reply::json(&serde_json::json!({
+        "status": "message_sent"
     })))
 }

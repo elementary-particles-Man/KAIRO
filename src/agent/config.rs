@@ -49,7 +49,11 @@ pub fn verify_signature(config: &AgentConfig) -> bool {
 pub fn save_config(config: &AgentConfig) -> Result<(), std::io::Error> {
     fs::create_dir_all(CONFIG_DIR)?;
     let config_path = Path::new(CONFIG_DIR).join(format!("{}.json", config.p_address));
-    let file = OpenOptions::new().write(true).create(true).truncate(true).open(config_path)?;
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(config_path)?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, config)?;
     println!("-> Agent configuration saved.");

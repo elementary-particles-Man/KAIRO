@@ -1,13 +1,13 @@
-// 署名付きパケット送信クライアント
+//! 署名付きパケット送信クライアント
+
 use kairo_lib::packet::AiTcpPacket;
 use ed25519_dalek::{SigningKey, Signature, Signer};
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 use chrono::Utc;
 use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
-use std::path::Path;
 use hex;
 
 #[derive(Serialize, Deserialize)]
@@ -18,7 +18,7 @@ struct AgentConfig {
 }
 
 fn main() {
-    // agent_config.jsonの読み込み
+    // agent_config.json の読み込み
     let path = Path::new("agent_configs/agent_config_1.json");
     let mut file = File::open(path).expect("Failed to open config");
     let mut contents = String::new();
@@ -28,6 +28,7 @@ fn main() {
     let payload = "signed hello";
     let payload_bytes = payload.as_bytes();
 
+    // 秘密鍵を用いてペイロードに署名
     let secret_bytes = hex::decode(&config.secret_key).unwrap();
     let signing_key = SigningKey::from_bytes(&secret_bytes.try_into().unwrap());
     let signature: Signature = signing_key.sign(payload_bytes);
@@ -45,7 +46,8 @@ fn main() {
     };
 
     let client = Client::new();
-    let res = client.post("http://127.0.0.1:3030/send")
+    let res = client
+        .post("http://127.0.0.1:3030/send")
         .json(&packet)
         .send()
         .expect("Request failed");
