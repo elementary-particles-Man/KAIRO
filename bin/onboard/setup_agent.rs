@@ -26,7 +26,9 @@ fn main() {
         println!("-> Registration failed: {}", e);
     }
 
-    println!("--- KAIRO Mesh Onboarding Complete ---");
+    let p_address = request_p_address();
+    println!("\n--- Onboarding Complete ---");
+    println!("Your assigned KAIRO-P Address: {}", p_address);
 }
 
 // シードノードへの登録を行う関数
@@ -47,4 +49,20 @@ fn register_with_seed_node(public_key: &str) -> Result<(), reqwest::Error> {
     }
 
     Ok(())
+}
+
+fn request_p_address() -> String {
+    println!("\nRequesting KAIRO-P address from local daemon...");
+    let client = reqwest::blocking::Client::new();
+    match client.post("http://localhost:3030/request_address").send() {
+        Ok(res) => {
+            let addr = res.json::<String>().unwrap_or_else(|_| "error".to_string());
+            println!("-> KAIRO-P Address assigned: {}", addr);
+            addr
+        },
+        Err(e) => {
+            println!("-> Failed to connect to KAIRO-P daemon: {}. Is it running?", e);
+            "failed_to_connect".to_string()
+        }
+    }
 }
