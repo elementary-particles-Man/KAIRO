@@ -133,11 +133,41 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
     Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::OK))
 }
 
+// --- Signature Verification Logic ---
+// Verifies the signatures in an OverridePackage.
+// NOTE: This is a placeholder. Real implementation requires a cryptographic library and access to public keys.
+fn verify_signatures(req: &OverridePackage) -> bool {
+    println!("Verifying signatures...");
+    use std::collections::HashSet;
+
+    if req.signatures.len() < 3 { // Principle of Multiplicity
+        println!("Verification failed: Not enough signatures.");
+        return false;
+    }
+
+    // Principle of Diversity Check
+    let roles: HashSet<_> = req.signatures.iter().map(|s| s.signatory_role.clone()).collect();
+    if !roles.contains("PeerAI") || !roles.contains("SeedNode") || !roles.contains("HumanAuditor") {
+        println!("Verification failed: Quorum diversity requirement not met.");
+        return false;
+    }
+
+    for sig_package in &req.signatures {
+        // TODO: Implement actual cryptographic verification of sig_package.signature against req.payload
+        println!("Verifying signature from: {}", sig_package.signatory_id);
+    }
+    
+    println!("All signatures passed verification (simulated).");
+    true
+}
+
 // Handler for emergency reissuance by the governance quorum
 async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Reply, warp::Rejection> {
     println!("Received emergency reissue request.");
-    // TODO: 1. Verify the multiplicity and diversity of signatures.
-    // TODO: 2. Verify each signature against the payload.
+    if !verify_signatures(&req) {
+        let res = RegisterResponse { status: "error".to_string(), message: "Signature verification failed.".to_string() };
+        return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::UNAUTHORIZED));
+    }
     // TODO: 3. If valid, execute the reissuance logic after a cooldown.
     Ok(warp::reply::json(&"received"))
 }
