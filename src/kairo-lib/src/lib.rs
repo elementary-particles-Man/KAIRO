@@ -15,3 +15,4 @@ pub use kairo_core::coordination;
 pub mod resolvers;
 pub use resolvers::conflict_resolver::*;
 pub mod governance;
+pub mod packet;
