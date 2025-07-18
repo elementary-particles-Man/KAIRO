@@ -1,31 +1,25 @@
 //! KAIRO/bin/onboard/setup_agent.rs
 
 use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
-use rand_core::OsRng;
-use rand_core::RngCore;
+use rand_core::{OsRng, RngCore};
 
 pub mod config;
 use config::{load_config, save_config, AgentConfig};
 
 fn main() {
-    if let Some(config) = load_config() {
-        // If config was loaded, attempt registration with the existing public key
-        if let Some(config) = &config {
-            register_with_seed_node(&config.public_key);
-        }
-        // If config was loaded, attempt registration with the existing public key
-        register_with_seed_node(&config.public_key);
+    if let Some(agent_config) = load_config() {
+        // Restored agent configuration
+        register_with_seed_node(&agent_config.public_key).ok();
         println!("\n--- Welcome Back ---");
         println!("Restored identity from agent_config.json");
-        println!("Your KAIRO-P Address: {}", config.p_address);
-        println!("Your Public Key: {}", config.public_key);
-        // In a real app, you would now proceed with this identity.
+        println!("Your KAIRO-P Address: {}", agent_config.p_address);
+        println!("Your Public Key: {}", agent_config.public_key);
         return;
     }
+
     println!("--- KAIRO Mesh Initial Setup ---");
 
     let mut csprng = OsRng;
-
     let mut secret_bytes = [0u8; SECRET_KEY_LENGTH];
     csprng.fill_bytes(&mut secret_bytes);
 
@@ -40,16 +34,16 @@ fn main() {
 
     println!("\nStep 2: Registering with a Seed Node...");
 
-    // This section is now only for new agents
     let p_address = request_p_address();
-    let config = AgentConfig {
+    let new_config = AgentConfig {
         p_address: p_address.clone(),
         public_key: public_key_hex,
         secret_key: private_key_hex,
     };
-    // Always attempt to register the persistent ID with the seed node
-    register_with_seed_node(&config.public_key);
-    save_config(&config).expect("Failed to save agent configuration.");
+
+    register_with_seed_node(&new_config.public_key).ok();
+    save_config(&new_config).expect("Failed to save agent configuration.");
+
     println!("\n--- Onboarding Complete ---");
     println!("Your assigned KAIRO-P Address: {}", p_address);
 }
@@ -74,15 +68,17 @@ fn register_with_seed_node(public_key: &str) -> Result<(), reqwest::Error> {
     Ok(())
 }
 
+// Pアドレスの要求を行う関数
 fn request_p_address() -> String {
     println!("\nRequesting KAIRO-P address from local daemon...");
     let client = reqwest::blocking::Client::new();
+
     match client.post("http://localhost:3030/request_address").send() {
         Ok(res) => {
             let addr = res.json::<String>().unwrap_or_else(|_| "error".to_string());
             println!("-> KAIRO-P Address assigned: {}", addr);
             addr
-        },
+        }
         Err(e) => {
             println!("-> Failed to connect to KAIRO-P daemon: {}. Is it running?", e);
             "failed_to_connect".to_string()
