@@ -9,6 +9,8 @@ use config::{load_config, save_config, AgentConfig};
 
 fn main() {
     if let Some(config) = load_config() {
+        // If config was loaded, attempt registration with the existing public key
+        register_with_seed_node(&config.public_key);
         println!("\n--- Welcome Back ---");
         println!("Restored identity from agent_config.json");
         println!("Your KAIRO-P Address: {}", config.p_address);
@@ -33,16 +35,16 @@ fn main() {
     println!("Public Key: {:?}", public_key_hex);
 
     println!("\nStep 2: Registering with a Seed Node...");
-    if let Err(e) = register_with_seed_node(&public_key_hex) {
-        println!("-> Registration failed: {}", e);
-    }
 
+    // This section is now only for new agents
     let p_address = request_p_address();
     let config = AgentConfig {
         p_address: p_address.clone(),
         public_key: public_key_hex,
         secret_key: private_key_hex,
     };
+    // Always attempt to register the persistent ID with the seed node
+    register_with_seed_node(&config.public_key);
     save_config(&config).expect("Failed to save agent configuration.");
     println!("\n--- Onboarding Complete ---");
     println!("Your assigned KAIRO-P Address: {}", p_address);
