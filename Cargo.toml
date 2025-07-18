@@ -8,6 +8,5 @@ members = [
 ]
 resolver = "2"
 
-[[bin]]
 name = "kairo_p_daemon"
-path = "bin/daemon/kairo_p_daemon.rs"
+path = "kairo-daemon/src/main.rs"

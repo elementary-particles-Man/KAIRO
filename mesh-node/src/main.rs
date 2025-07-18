@@ -169,7 +169,10 @@ async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Rep
         return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::UNAUTHORIZED));
     }
     // TODO: 3. If valid, execute the reissuance logic after a cooldown.
-    Ok(warp::reply::json(&"received"))
+    Ok(warp::reply::with_status(
+    warp::reply::json(&"received"),
+    warp::http::StatusCode::OK,
+    ))
 }
 
 #[tokio::main]
