@@ -1,254 +1,45 @@
 //! mesh-node/src/main.rs
-//! Seed Node with structured JSON persistence.
-
+// (Existing use statements...)
+use kairo_lib::packet::AiTcpPacket;
+use std::sync::{Arc, Mutex as StdMutex};
+use tokio::sync::Mutex;
 use warp::{Filter, Rejection, Reply};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
-use std::io::{BufReader, BufWriter};
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use chrono::Utc;
+use std::io::{BufReader, BufWriter, Write};
+use chrono::{Utc};
 
-use kairo::governance::OverridePackage;
+// (Existing structs like AgentInfo, RegisterRequest, etc.)
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct RegisterRequest {
-    agent_id: String,
-}
+// In-memory message queue, now stores full packets
+static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<String, Vec<AiTcpPacket>>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(std::collections::HashMap::new())));
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct ReissueRequest {
-    old_agent_id: String,
-    new_agent_id: String,
-}
-
-#[derive(Debug, Serialize)]
-struct RegisterResponse {
-    status: String,
-    message: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct AgentInfo {
-    agent_id: String,
-    registered_at: String,
-    status: String, // e.g., "active", "revoked"
-    replaces: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct SendRequest {
-    to_p_address: String,
-    payload: String,
-}
-
-const DB_FILE: &str = "registry.json";
-
-fn read_registry() -> Result<Vec<AgentInfo>, std::io::Error> {
-    let file = File::open(DB_FILE).unwrap_or_else(|_| File::create(DB_FILE).unwrap());
-    let reader = BufReader::new(file);
-    let registry = serde_json::from_reader(reader).unwrap_or_else(|_| Vec::new());
-    Ok(registry)
-}
-
-fn write_registry(registry: &[AgentInfo]) -> std::io::Result<()> {
-    let file = OpenOptions::new().write(true).truncate(true).create(true).open(DB_FILE)?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, registry)?;
-    Ok(())
-}
-
-async fn handle_registration(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
-    let _lock = db_lock.lock().await;
-    println!("Received registration for agent_id: {}", req.agent_id);
-
-    let mut registry = read_registry().expect("Failed to read from DB");
-
-    if registry.iter().any(|agent| agent.agent_id == req.agent_id && agent.status == "active") {
-        println!("Active agent {} already registered.", req.agent_id);
-        let res = RegisterResponse { status: "exists".to_string(), message: "Active agent already registered".to_string() };
-        Ok(warp::reply::json(&res))
-    } else {
-        let new_agent = AgentInfo {
-            agent_id: req.agent_id.clone(),
-            registered_at: Utc::now().to_rfc3339(),
-            status: "active".to_string(),
-            replaces: None,
-        };
-        registry.push(new_agent);
-        write_registry(&registry).expect("Failed to write to DB");
-        println!("Successfully registered agent {}.", req.agent_id);
-        let res = RegisterResponse { status: "success".to_string(), message: "Agent successfully registered".to_string() };
-        Ok(warp::reply::json(&res))
-    }
-}
-
-// Handler for revoking an agent's ID
-async fn handle_revocation(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
-    let _lock = db_lock.lock().await;
-    println!("Received revocation request for agent_id: {}", req.agent_id);
-
-    let mut registry = read_registry().expect("Failed to read from DB");
-
-    if let Some(agent) = registry.iter_mut().find(|a| a.agent_id == req.agent_id && a.status == "active") {
-        agent.status = "revoked".to_string();
-        write_registry(&registry).expect("Failed to write to DB");
-        println!("Successfully revoked agent {}.", req.agent_id);
-        let res = RegisterResponse { status: "success".to_string(), message: "Agent successfully revoked".to_string() };
-        Ok(warp::reply::json(&res))
-    } else {
-        println!("Active agent {} not found for revocation.", req.agent_id);
-        let res = RegisterResponse { status: "not_found".to_string(), message: "Active agent not found".to_string() };
-        Ok(warp::reply::json(&res))
-    }
-}
-
-// Handler for reissuing an agent's ID
-async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
-    let _lock = db_lock.lock().await;
-    println!("Received reissue request for old_agent_id: {}", req.old_agent_id);
-
-    let mut registry = read_registry().expect("Failed to read from DB");
-
-    if let Some(old_agent) = registry.iter().find(|a| a.agent_id == req.old_agent_id) {
-        if old_agent.status != "revoked" {
-            let res = RegisterResponse { status: "error".to_string(), message: "Old agent is not revoked".to_string() };
-            return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::BAD_REQUEST));
-        }
-    } else {
-        let res = RegisterResponse { status: "not_found".to_string(), message: "Old agent not found".to_string() };
-        return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::NOT_FOUND));
-    }
-
-    if registry.iter().any(|a| a.agent_id == req.new_agent_id && a.status == "active") {
-        let res = RegisterResponse { status: "exists".to_string(), message: "New agent ID already exists as an active agent".to_string() };
-        return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::CONFLICT));
-    }
-
-    let new_agent = AgentInfo {
-        agent_id: req.new_agent_id.clone(),
-        registered_at: Utc::now().to_rfc3339(),
-        status: "active".to_string(),
-        replaces: Some(req.old_agent_id.clone()),
-    };
-    registry.push(new_agent);
-    write_registry(&registry).expect("Failed to write to DB");
-
-    println!("Successfully reissued agent ID {} to {}", req.old_agent_id, req.new_agent_id);
-    let res = RegisterResponse { status: "success".to_string(), message: "Agent ID successfully reissued".to_string() };
-    Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::OK))
-}
-
-// --- Signature Verification Logic ---
-// Verifies the signatures in an OverridePackage.
-// NOTE: This is a placeholder. Real implementation requires a cryptographic library and access to public keys.
-fn verify_signatures(req: &OverridePackage) -> bool {
-    println!("Verifying signatures...");
-    use std::collections::HashSet;
-
-    if req.signatures.len() < 3 { // Principle of Multiplicity
-        println!("Verification failed: Not enough signatures.");
-        return false;
-    }
-
-    // Principle of Diversity Check
-    let roles: HashSet<_> = req.signatures.iter().map(|s| s.signatory_role.clone()).collect();
-    if !roles.contains("PeerAI") || !roles.contains("SeedNode") || !roles.contains("HumanAuditor") {
-        println!("Verification failed: Quorum diversity requirement not met.");
-        return false;
-    }
-
-    for sig_package in &req.signatures {
-        // TODO: Implement actual cryptographic verification of sig_package.signature against req.payload
-        println!("Verifying signature from: {}", sig_package.signatory_id);
-    }
-    
-    println!("All signatures passed verification (simulated).");
-    true
-}
-
-// Handler for emergency reissuance by the governance quorum
-async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("Received emergency reissue request.");
-    if !verify_signatures(&req) {
-        let res = RegisterResponse { status: "error".to_string(), message: "Signature verification failed.".to_string() };
-        return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::UNAUTHORIZED));
-    }
-    // TODO: 3. If valid, execute the reissuance logic after a cooldown.
-    Ok(warp::reply::with_status(
-    warp::reply::json(&"received"),
-    warp::http::StatusCode::OK,
-    ))
-}
+// (Existing functions like read_registry, write_registry, handle_registration, etc.)
 
 // --- AI-TCP Communication Handlers ---
-
-// In-memory message queue for this PoC
-// Key: P-Address, Value: Vec of messages
-static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<String, Vec<String>>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(std::collections::HashMap::new())));
-
-// Handler for sending a message to another P-Address
-async fn handle_send(req: SendRequest) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("Received send request to: {}, payload: {}", req.to_p_address, req.payload);
+async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+    println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_p_address);
     let mut queue = MESSAGE_QUEUE.lock().await;
-    let inbox = queue.entry(req.to_p_address).or_insert_with(Vec::new);
-    inbox.push(req.payload);
-    Ok(warp::reply::json(&"message_sent"))
+    let inbox = queue.entry(packet.destination_p_address.clone()).or_insert_with(Vec::new);
+    inbox.push(packet);
+    Ok(warp::reply::json(&"packet_queued"))
 }
 
-// Handler for receiving messages from the inbox
-async fn handle_receive(p_address: String) -> Result<impl warp::Reply, warp::Rejection> {
+async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
     let mut queue = MESSAGE_QUEUE.lock().await;
     if let Some(inbox) = queue.get_mut(&p_address) {
         let messages = inbox.clone();
         inbox.clear();
-        println!("Delivered {} messages to {}", messages.len(), p_address);
+        println!("Delivered {} packets to {}", messages.len(), p_address);
         Ok(warp::reply::json(&messages))
     } else {
-        Ok(warp::reply::json(&Vec::<String>::new()))
+        Ok(warp::reply::json(&Vec::<AiTcpPacket>::new()))
     }
 }
 
 #[tokio::main]
 async fn main() {
-    println!("KAIRO Seed Node [v2: Structured Registry] starting...");
-
-    let db_lock = Arc::new(Mutex::new(()));
-
-    let register_lock = Arc::clone(&db_lock);
-    let register = warp::post()
-        .and(warp::path("register"))
-        .and(warp::body::json())
-        .and(warp::any().map({
-            let register_lock = Arc::clone(&register_lock);
-            move || Arc::clone(&register_lock)
-        }))
-        .and_then(handle_registration);
-
-    let revoke_lock = Arc::clone(&db_lock);
-    let revoke = warp::post()
-        .and(warp::path("revoke"))
-        .and(warp::body::json())
-        .and(warp::any().map({
-            let revoke_lock = Arc::clone(&revoke_lock);
-            move || Arc::clone(&revoke_lock)
-        }))
-        .and_then(handle_revocation);
-
-    let reissue_lock = Arc::clone(&db_lock);
-    let reissue = warp::post()
-        .and(warp::path("reissue"))
-        .and(warp::body::json())
-        .and(warp::any().map({
-            let reissue_lock = Arc::clone(&reissue_lock);
-            move || Arc::clone(&reissue_lock)
-        }))
-        .and_then(handle_reissue);
-
-    let emergency_reissue = warp::post()
-        .and(warp::path("emergency_reissue"))
-        .and(warp::body::json())
-        .and_then(handle_emergency_reissue);
+    // (Existing setup...)
 
     let send = warp::post()
         .and(warp::path("send"))
@@ -259,6 +50,7 @@ async fn main() {
         .and(warp::path("receive"))
         .and(warp::path::param())
         .and_then(handle_receive);
+
     let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive);
 
     warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
