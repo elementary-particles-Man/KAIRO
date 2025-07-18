@@ -1,1 +1,1 @@
-Docs: Add Paramount Workflow README with AI-TCP flag
+feat(onboard): support multi-agent configuration
