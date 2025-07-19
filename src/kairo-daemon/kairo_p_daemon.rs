@@ -15,15 +15,16 @@ use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use clap::Parser;
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct DaemonConfig {
-    #[clap(long, default_value = "127.0.0.1")]
-    listen_address: String,
+pub mod config;
+use config::load_daemon_config;
 
-    #[clap(long, default_value_t = 3030)]
-    listen_port: u16,
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value = "daemon_config.json")]
+    config: String,
 }
+
 
 /// Simple pool for issuing incremental P-addresses.
 struct AddressPool {
@@ -214,7 +215,11 @@ async fn assign_p_address_handler(req: AssignPAddressRequest, pool: Arc<StdMutex
 
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
     println!("KAIRO-P Daemon starting...");
+    println!("Loading configuration from: {}", args.config);
+
+    let config = load_daemon_config(&args.config).expect("Failed to load daemon_config.json");
     let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
 
     let assign_p_address = warp::post()
