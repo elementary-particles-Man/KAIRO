@@ -25,3 +25,7 @@ path = "setup_agent.rs"
 [[bin]]
 name = "signed_sender"
 path = "signed_sender.rs"
+
+[[bin]]
+name = "send_message"
+path = "send_message.rs"
