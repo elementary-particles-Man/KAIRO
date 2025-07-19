@@ -1,56 +1,80 @@
-//! 署名付きパケット送信クライアント
+// signed_sender.rs（署名付きパケット送信＋改ざんテスト用）
 
-use kairo_lib::packet::AiTcpPacket;
+use kairo_lib::config::load_agent_config;
 use ed25519_dalek::{SigningKey, Signature, Signer};
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-use chrono::Utc;
-use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize};
+use std::fs;
+use std::path::PathBuf;
+use std::str::FromStr;
+use clap::Parser;
+use reqwest::blocking::Client;
 use hex;
 
-#[derive(Serialize, Deserialize)]
-struct AgentConfig {
-    pub p_address: String,
-    pub secret_key: String,
-    pub public_key: String,
+#[derive(Parser)]
+#[command(author, version, about)]
+struct Args {
+    #[arg(long)]
+    to: String,
+
+    #[arg(long)]
+    message: String,
+
+    #[arg(long, default_value_t = false)]
+    fake: bool,
 }
 
-fn main() {
-    // agent_config.json の読み込み
-    let path = Path::new("agent_configs/agent_config_1.json");
-    let mut file = File::open(path).expect("Failed to open config");
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    let config: AgentConfig = serde_json::from_str(&contents).unwrap();
+#[derive(Serialize, Deserialize, Debug)]
+struct AgentConfig {
+    p_address: String,
+    public_key: String,
+    secret_key: String,
+    signature: String,
+}
 
-    let payload = "signed hello";
-    let payload_bytes = payload.as_bytes();
+#[derive(Serialize, Debug)]
+struct AiTcpPacket {
+    source_p_address: String,
+    destination_p_address: String,
+    payload: String,
+    signature: String,
+}
 
-    // 秘密鍵を用いてペイロードに署名
-    let secret_bytes = hex::decode(&config.secret_key).unwrap();
-    let signing_key = SigningKey::from_bytes(&secret_bytes.try_into().unwrap());
-    let signature: Signature = signing_key.sign(payload_bytes);
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = Args::parse();
+
+    let config_path = PathBuf::from("agent_config.json");
+    let config_data = fs::read_to_string(config_path)?;
+    let config: AgentConfig = serde_json::from_str(&config_data)?;
+
+    let signing_key_bytes = hex::decode(&config.secret_key)?;
+    let signing_key = SigningKey::from_bytes(&signing_key_bytes.try_into()?);
+
+    let actual_payload = if args.fake {
+        format!("{}-tampered", args.message) // 故意に改ざん
+    } else {
+        args.message.clone()
+    };
+
+    let signature: Signature = signing_key.sign(actual_payload.as_bytes());
     let signature_hex = hex::encode(signature.to_bytes());
 
     let packet = AiTcpPacket {
-        version: 1,
-        source_p_address: config.p_address.clone(),
-        destination_p_address: "10.0.0.2".to_string(),
-        sequence: 1,
-        timestamp: Utc::now().timestamp(),
-        payload_type: "text".to_string(),
-        payload: payload.to_string(),
+        source_p_address: config.p_address,
+        destination_p_address: args.to,
+        payload: args.message, // 表示上は正規メッセージ
         signature: signature_hex,
     };
 
     let client = Client::new();
-    let res = client
-        .post("http://127.0.0.1:3030/send")
+    let res = client.post("http://127.0.0.1:3030/send")
         .json(&packet)
-        .send()
-        .expect("Request failed");
+        .send()?;
 
-    println!("Send result: {}", res.status());
+    if res.status().is_success() {
+        println!("✅ Packet sent successfully.");
+    } else {
+        println!("❌ Failed to send packet: {}", res.status());
+    }
+
+    Ok(())
 }

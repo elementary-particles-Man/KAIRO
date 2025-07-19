@@ -185,5 +185,5 @@ async fn main() {
 
     let routes = register.or(revoke).or(reissue).or(emergency_reissue);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
+    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
 }

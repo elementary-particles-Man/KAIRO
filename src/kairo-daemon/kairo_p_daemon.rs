@@ -1,70 +1,55 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use warp::Filter;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct AgentMapping {
-    agent_id: String,
-    p_address: String,
+struct Message {
+    from: String,
+    to: String,
+    message: String,
+    signature: String,
 }
 
-type Db = Arc<Mutex<HashMap<String, String>>>;
+type PAddress = String;
+type MessageQueue = Arc<Mutex<HashMap<PAddress, Vec<Message>>>>;
 
 #[tokio::main]
 async fn main() {
     println!("KAIRO-P Daemon starting...");
 
-    let db: Db = Arc::new(Mutex::new(HashMap::new()));
+    let message_queues: MessageQueue = Arc::new(Mutex::new(HashMap::new()));
+    let queues_filter = warp::any().map(move || message_queues.clone());
 
-    let assign_route = warp::path!("assign_address" / String)
-        .and(with_db(db.clone()))
-        .and_then(handle_assign_address);
+    let send = warp::path("send")
+        .and(warp::post())
+        .and(warp::body::json())
+        .and(queues_filter.clone())
+        .map(|message: Message, queues: MessageQueue| {
+            println!("\n🔵 [SEND] Received POST: from={}, to={}, message={}\n", message.from, message.to, message.message);
 
-    let receive_route = warp::path("receive")
+            let mut queues = queues.lock().unwrap();
+            println!("🟢 [SEND] Queuing message for {}", message.to);
+
+            queues.entry(message.to.clone()).or_insert_with(Vec::new).push(message);
+            warp::reply::json(&serde_json::json!({ "status": "Message queued" }))
+        });
+
+    let receive = warp::path("receive")
         .and(warp::get())
-        .and(with_db(db.clone()))
-        .and_then(handle_receive_messages);
+        .and(warp::query::<HashMap<String, String>>())
+        .and(queues_filter.clone())
+        .map(|params: HashMap<String, String>, queues: MessageQueue| {
+            let p_address = params.get("for").cloned().unwrap_or_default();
+            println!("\n🟡 [RECEIVE] Request for {}\n", p_address);
 
-    let routes = assign_route.or(receive_route);
+            let mut queues = queues.lock().unwrap();
+            let messages = queues.remove(&p_address).unwrap_or_default();
+            warp::reply::json(&messages)
+        });
 
-    println!("Listening on http://127.0.0.1:3030");
+    let routes = send.or(receive);
+
+    println!("Listening on http://127.0.0.1:3030\n");
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
-}
-
-fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = std::convert::Infallible> + Clone {
-    warp::any().map(move || db.clone())
-}
-
-async fn handle_assign_address(agent_id: String, db: Db) -> Result<impl warp::Reply, warp::Rejection> {
-    let mut db_lock = db.lock().unwrap();
-
-    // 既に登録されていればそのアドレスを返す
-    if let Some(addr) = db_lock.get(&agent_id) {
-        return Ok(warp::reply::json(&AgentMapping {
-            agent_id,
-            p_address: addr.clone(),
-        }));
-    }
-
-    // 新規生成
-    let new_address = format!("p-{}", Uuid::new_v4().simple().to_string());
-    db_lock.insert(agent_id.clone(), new_address.clone());
-
-    Ok(warp::reply::json(&AgentMapping {
-        agent_id,
-        p_address: new_address,
-    }))
-}
-
-async fn handle_receive_messages(db: Db) -> Result<impl warp::Reply, warp::Rejection> {
-    let db_lock = db.lock().unwrap();
-    let messages: Vec<(String, String)> = db_lock
-        .iter()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
-
-    Ok(warp::reply::json(&messages))
 }
