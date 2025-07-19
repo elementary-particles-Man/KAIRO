@@ -29,3 +29,7 @@ path = "signed_sender.rs"
 [[bin]]
 name = "send_message"
 path = "send_message.rs"
+
+[[bin]]
+name = "receive_signed"
+path = "src/bin/receive_signed.rs"
