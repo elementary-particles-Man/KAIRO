@@ -64,7 +64,7 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
         inbox.push(packet);
     } else {
         println!("Signature FAILED for packet from {}", packet.source_p_address);
-        // Do not queue the packet if signature is invalid
+        // Drop silently or log
     }
     Ok(warp::reply::json(&"packet_queued"))
 }
