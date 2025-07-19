@@ -1,196 +1,88 @@
+//! src/kairo-daemon/kairo_p_daemon.rs
+
 use std::collections::{HashMap, VecDeque};
-use std::convert::Infallible;
+use std::fs;
+use std::io::Write;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
-use std::fs::{self, File, OpenOptions};
-use std::io::BufReader;
-use std::path::Path;
-
-use serde::{Deserialize, Serialize};
-<<<<<<< HEAD
-=======
-use serde_json::{self, json};
->>>>>>> f587878cc7605bc52c53a50da38bc25f674948e9
 use warp::Filter;
 
-use kairo_lib::packet::AiTcpPacket;
+use serde::{Deserialize, Serialize};
+use serde_json::{self, json};
+use rand::Rng;
+use std::fs::OpenOptions;
+use std::path::Path;
 
-const STORE_DIR: &str = "message_store";
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct Agent {
-    p_address: String,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct Message {
+    from_p_address: String,
+    to_p_address: String,
+    payload: String,
 }
 
-type AgentList = Arc<Mutex<HashMap<String, Agent>>>;
-type MessageQueues = Arc<Mutex<HashMap<String, VecDeque<AiTcpPacket>>>>;
-
-fn load_persistent_messages(queues: &MessageQueues) {
-    if !Path::new(STORE_DIR).exists() {
-        if let Err(e) = fs::create_dir_all(STORE_DIR) {
-            eprintln!("Failed to create message store directory: {}", e);
-            return;
-        }
-    }
-
-    if let Ok(entries) = fs::read_dir(STORE_DIR) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                    if let Ok(file) = File::open(&path) {
-                        let reader = BufReader::new(file);
-                        if let Ok(messages) = serde_json::from_reader::<_, Vec<AiTcpPacket>>(reader) {
-                            let mut lock = queues.lock().unwrap();
-                            lock.insert(stem.to_string(), VecDeque::from(messages));
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn persist_queue(p_address: &str, queue: &VecDeque<AiTcpPacket>) {
-    if !Path::new(STORE_DIR).exists() {
-        if let Err(e) = fs::create_dir_all(STORE_DIR) {
-            eprintln!("Failed to create message store directory: {}", e);
-            return;
-        }
-    }
-
-    let path = format!("{}/{}.json", STORE_DIR, p_address);
-    if let Ok(file) = OpenOptions::new().write(true).truncate(true).create(true).open(&path) {
-        if let Err(e) = serde_json::to_writer_pretty(&file, &queue.iter().cloned().collect::<Vec<_>>()) {
-            eprintln!("Failed to write message store for {}: {}", p_address, e);
-        }
-    } else {
-        eprintln!("Failed to open message store file for {}", p_address);
-    }
-}
+type MessageQueue = Arc<Mutex<HashMap<String, VecDeque<Message>>>>;
+type AssignedAddresses = Arc<Mutex<Vec<String>>>;
 
 #[tokio::main]
 async fn main() {
     println!("KAIRO-P Daemon starting...");
 
-    let agent_list: AgentList = Arc::new(Mutex::new(HashMap::new()));
-    let message_queues: MessageQueues = Arc::new(Mutex::new(HashMap::new()));
-    load_persistent_messages(&message_queues);
+    let message_queue: MessageQueue = Arc::new(Mutex::new(HashMap::new()));
+    let assigned_addresses: AssignedAddresses = Arc::new(Mutex::new(Vec::new()));
 
-    let get_address = warp::path("request_address")
-        .and(warp::get())
-        .and(with_agent_list(agent_list.clone()))
-        .and(with_message_queues(message_queues.clone()))
-        .and_then(assign_p_address);
+    let request_address = warp::post()
+        .and(warp::path("request_address"))
+        .and(with_addresses(assigned_addresses.clone()))
+        .map(assign_address);
 
-    let send_message = warp::path("send")
-        .and(warp::post())
+    let send = warp::post()
+        .and(warp::path("send"))
         .and(warp::body::json())
-        .and(with_message_queues(message_queues.clone()))
-        .and_then(handle_send);
+        .and(with_queue(message_queue.clone()))
+        .map(handle_send);
 
-    let receive_message = warp::path("receive")
-        .and(warp::post())
+    let receive = warp::post()
+        .and(warp::path("receive"))
         .and(warp::body::json())
-        .and(with_message_queues(message_queues.clone()))
-        .and_then(handle_receive);
+        .and(with_queue(message_queue.clone()))
+        .map(handle_receive);
 
-<<<<<<< HEAD
-    let send_message = warp::path("send")
-        .and(warp::post())
-        .and(warp::body::json())
-        .and(with_message_buffer(message_buffer.clone()))
-        .and_then(handle_send);
+    let routes = request_address.or(send).or(receive);
 
-    let routes = get_address.or(receive_message).or(send_message);
-=======
-    let routes = get_address.or(send_message).or(receive_message);
->>>>>>> f587878cc7605bc52c53a50da38bc25f674948e9
-
-    let addr: SocketAddr = ([127, 0, 0, 1], 3030).into();
-    warp::serve(routes).run(addr).await;
+    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
-fn with_agent_list(
-    agent_list: AgentList,
-) -> impl Filter<Extract = (AgentList,), Error = Infallible> + Clone {
-    warp::any().map(move || agent_list.clone())
+fn with_queue(
+    queue: MessageQueue,
+) -> impl Filter<Extract = (MessageQueue,), Error = std::convert::Infallible> + Clone {
+    warp::any().map(move || queue.clone())
 }
 
-fn with_message_queues(
-    buffer: MessageQueues,
-) -> impl Filter<Extract = (MessageQueues,), Error = Infallible> + Clone {
-    warp::any().map(move || buffer.clone())
+fn with_addresses(
+    addresses: AssignedAddresses,
+) -> impl Filter<Extract = (AssignedAddresses,), Error = std::convert::Infallible> + Clone {
+    warp::any().map(move || addresses.clone())
 }
 
-async fn assign_p_address(
-    agent_list: AgentList,
-    buffer: MessageQueues,
-) -> Result<impl warp::Reply, Infallible> {
-    let mut agents = agent_list.lock().unwrap();
-    let mut counter = 1;
-    while agents.contains_key(&format!("10.0.0.{}", counter)) {
-        counter += 1;
-    }
-
-    let p_address = format!("10.0.0.{}", counter);
-    println!("Assigned P-Address: {}", p_address);
-
-    let agent = Agent {
-        p_address: p_address.clone(),
-    };
-
-    agents.insert(p_address.clone(), agent.clone());
-
-    let mut buffers = buffer.lock().unwrap();
-    buffers.entry(p_address.clone()).or_insert_with(VecDeque::new);
-
-    Ok(warp::reply::json(&agent))
-}
-
-async fn handle_send(
-    packet: AiTcpPacket,
-    buffer: MessageQueues,
-) -> Result<impl warp::Reply, Infallible> {
-    {
-        let mut buffers = buffer.lock().unwrap();
-        let queue = buffers
-            .entry(packet.destination_p_address.clone())
-            .or_insert_with(VecDeque::new);
-        queue.push_back(packet.clone());
-        persist_queue(&packet.destination_p_address, queue);
-    }
-    Ok(warp::reply::json(&serde_json::json!({ "status": "queued" })))
-}
-
-#[derive(Debug, Deserialize)]
-struct ReceiveRequest {
-    p_address: String,
-}
-
-async fn handle_receive(
-    req: ReceiveRequest,
-    buffer: MessageQueues,
-) -> Result<impl warp::Reply, Infallible> {
-    let mut buffers = buffer.lock().unwrap();
-    if let Some(queue) = buffers.get_mut(&req.p_address) {
-        if let Some(message) = queue.pop_front() {
-            persist_queue(&req.p_address, queue);
-            return Ok(warp::reply::json(&message));
+fn assign_address(addresses: AssignedAddresses) -> impl warp::Reply {
+    let mut addr_list = addresses.lock().unwrap();
+    let mut rng = rand::thread_rng();
+    let mut new_addr;
+    loop {
+        let last_byte: u8 = rng.gen_range(1..=254);
+        new_addr = format!("10.0.0.{}", last_byte);
+        if !addr_list.contains(&new_addr) {
+            addr_list.push(new_addr.clone());
+            break;
         }
     }
-
-    Ok(warp::reply::json(&serde_json::json!({
-        "status": "no_message"
-    })))
+    println!("Assigned P-Address: {}", new_addr);
+    warp::reply::json(&new_addr)
 }
 
-async fn handle_send(
-    message: Message,
-    buffer: MessageBuffer,
-) -> Result<impl warp::Reply, Infallible> {
-    let mut buffers = buffer.lock().unwrap();
-    buffers
-        .entry(message.to_p_address.clone())
+fn handle_send(message: Message, queue: MessageQueue) -> impl warp::Reply {
+    let mut q = queue.lock().unwrap();
+    q.entry(message.to_p_address.clone())
         .or_insert_with(VecDeque::new)
         .push_back(message.clone());
 
@@ -199,7 +91,60 @@ async fn handle_send(
         message.from_p_address, message.to_p_address
     );
 
-    Ok(warp::reply::json(&serde_json::json!({
-        "status": "message_sent"
-    })))
+    save_message_to_disk(&message);
+
+    warp::reply::json(&json!({"status": "message_sent"}))
+}
+
+fn handle_receive(body: serde_json::Value, queue: MessageQueue) -> impl warp::Reply {
+    let p_address = match body.get("p_address").and_then(|v| v.as_str()) {
+        Some(addr) => addr.to_string(),
+        None => return warp::reply::json(&json!({"error": "Invalid request"})),
+    };
+
+    let mut q = queue.lock().unwrap();
+    if let Some(messages) = q.get_mut(&p_address) {
+        if let Some(message) = messages.pop_front() {
+            return warp::reply::json(&message);
+        }
+    }
+    warp::reply::json(&json!({"status": "no_message"}))
+}
+
+fn save_message_to_disk(message: &Message) {
+    let log_dir = Path::new("message_logs");
+    if !log_dir.exists() {
+        if let Err(e) = fs::create_dir_all(log_dir) {
+            eprintln!("Failed to create log directory: {}", e);
+            return;
+        }
+    }
+
+    let file_path = log_dir.join("message_log.json");
+    let mut log = if file_path.exists() {
+        match fs::read_to_string(&file_path) {
+            Ok(content) => serde_json::from_str::<Vec<Message>>(&content).unwrap_or_else(|_| Vec::new()),
+            Err(_) => Vec::new(),
+        }
+    } else {
+        Vec::new()
+    };
+
+    log.push(message.clone());
+
+    match OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(&file_path)
+    {
+        Ok(mut file) => {
+            if let Err(e) = writeln!(file, "{}", serde_json::to_string_pretty(&log).unwrap_or_default()) {
+                eprintln!("Failed to write message log: {}", e);
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to open message log file: {}", e);
+        }
+    }
 }
