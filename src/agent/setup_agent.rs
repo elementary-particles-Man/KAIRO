@@ -4,7 +4,7 @@ use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
 use rand_core::{OsRng, RngCore};
 
 pub mod config;
-use config::{load_first_config, save_config, AgentConfig, create_signature};
+use config::{load_first_config, save_config, AgentConfig};
 
 fn main() {
     // 既存のエージェント構成が存在する場合はロード
@@ -37,14 +37,10 @@ fn main() {
     // PアドレスをKAIRO-Pデーモンから取得
     let p_address = request_p_address();
 
-    let signature = create_signature(&p_address, &public_key_hex, &signing_key);
-
-
     let config = AgentConfig {
         p_address: p_address.clone(),
         public_key: public_key_hex,
         secret_key: private_key_hex,
-        signature,
     };
 
     register_with_seed_node(&config.public_key).ok();
