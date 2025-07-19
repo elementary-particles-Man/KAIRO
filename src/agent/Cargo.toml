@@ -32,4 +32,4 @@ path = "send_message.rs"
 
 [[bin]]
 name = "receive_signed"
-path = "src/bin/receive_signed.rs"
+path = "receive_signed.rs"
