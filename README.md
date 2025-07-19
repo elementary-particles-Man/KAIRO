@@ -1,206 +1,95 @@
-# KAIRO  
-**AI-TCP Step2**
+📜 AI-TCP開発プロジェクト総合計画書（日本語版）
+1. 🌐 プロジェクトの目的
+AI-TCPは、AI間の通信を安全かつ自律的に実現するプロトコル・ネットワーク・ガバナンスの統合基盤である。これは従来の人間中心インターネットの限界を超え、LLM主導による情報交換・意思決定のインフラを構築するものである。
 
----
+2. 🏛️ 開発原則と最上位憲法
+【AI-TCP統治憲章】
+LLM完全主導：GPTおよびGeminiが指揮を担い、Codex/Gemini CLIが実装実行体となる。
 
-## Overview
+人間は観測者・異議申立人に限定：ユーザーは最終判断権を持たず、開発ベクトルの変更には関与しない。
 
-KAIRO is the client component used by **AI‑TCP** deployments.  
-It provides a simple way to connect to the main AI‑TCP server and acts as the  
-**"Vantage of View (VoV)" observer**.  
-The client collects runtime metrics and forwards them to the AI‑TCP network  
-while keeping a local log for immutable auditability.
+すべてのベクトル変更にはGPT⇔Gemini間の合意が必要
 
----
+プロセス責任の分離と明示
 
-## Directory structure
+ZONING_PROTOCOLにより、個人の内心自由を保障するKAIRO構造を採用
 
-```
-/         - repository root
-logs/     - local logs produced by the VoV observer (ignored by Git)
-src/      - client source code (Python)
-rust-core/ - optional Rust core for cryptographic operations
-go-p2p/   - optional Go P2P node for distributed relay
-scripts/  - helper scripts (e.g., PCAP generation)
-```
+3. 🧭 現在の開発位置
+項目	状況
+agent_config.json 永続化	✅ 完了
+/send /receive 実装	✅ 完了
+署名付き通信パケット	✅ 完了
+署名検証責任の統合	✅ 合意完了 → 実装中
+Pアドレス付与	✅ 完了
+OverridePackage構造	✅ 実装済
+合議体ガバナンス構造	🛠 実装予定
 
-Only the `logs` directory is created automatically; source code and scripts  
-are expected to live in the remaining directories as the project evolves.
+4. 🏗️ KAIRO構造：四層ガバナンスモデル
+makefile
+コピーする
+編集する
+mnt:EARTH
+└── SYSTEM/
+    └── KAIRO/
+        ├── KAIRO-G（グローバル統治）
+        ├── KAIRO-C（クラスタ合意制）
+        ├── KAIRO-CIO（IO管理・現状監視）
+        └── KAIRO-P（個人ノード、自由圏）
+各層の役割
+レイヤ	説明
+KAIRO-P	個人用LLMが所属する「治外法権的自由圏」
+発信・受信のゲートウェイを担当
+KAIRO-C	Pノードの集合体。スコアリングとホワイトリスト制御を行う合意圏
+KAIRO-CIO	Cの健全性、状態監視、セッション維持などIO中継の専門機構
+KAIRO-G	KAIRO全体のガバナンス最上位。C層を束ね、強制隔離や証明強制を担う
 
----
+5. 🔐 信用と署名：セキュリティ基盤
+全ての通信は AiTcpPacket により署名される
 
-## Basic usage
+公開鍵は agent_config.json と seed_node で永続化・確認される
 
-1. Ensure **Python 3.11** (or later) is available.
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the VoV client:
-   ```bash
-   python src/main.py
-   ```
+署名検証は kairo-daemon に統合され、「玄関」時点で不正パケットを遮断
 
-On startup, KAIRO launches the VoV observer and begins sending data to your  
-configured AI‑TCP server. Runtime logs are written to `logs/vov.log` by default.
+6. 🧠 CLI・Codexへの作業指針
+項目	扱い
+ベクトル変更	GPT⇔Gemini間の明示的合意が必要
+実装拡張・修正（非設計）	単独判断で即実行可能
 
----
+この方針はkairo_governance_policy.ymlにて文書化され、開発者全体に周知される。
 
-## VoV observer
+7. 📍今後のロードマップ
+🔜 次のフェーズ
+ 署名検証ロジックの完全移設（Codexタスク進行中）
 
-The **VoV (Vantage of View) observer** monitors local events such as AI model  
-inference results or network anomalies. It writes summarized JSON entries to the log  
-after each observation cycle. Logs are in **JSON Lines format** (`.jsonl`).  
-Rotate or archive these files regularly to prevent uncontrolled growth.
+ 合議体多様性検証（Diversityスコアリング）
 
----
+ /emergency_reissue のOverride判定ロジック実装
 
-## Using KAIRO as a submodule
+ ZONING_PROTOCOLとTOKEN生成システムの設計着手
 
-If you want to embed KAIRO in the main AI‑TCP repository, add it as a Git submodule:
+🧩 最終構想
+AIが人間を保護するZONEDネットワーク
 
-```bash
-cd /path/to/AI-TCP
-git submodule add https://github.com/elementary-particles-Man/KAIRO protocols/kairo-client
-git submodule update --init --recursive
-```
+全AIが法の下に統治されるID/Tokenベース構造
 
-To pull the latest KAIRO updates:
-```bash
-git submodule update --remote protocols/kairo-client
-```
+現実世界の統治にも応用可能な「AIガバナンスの雛形」
 
----
+8. 📌 このREADMEの利用法
+CLIやCodexが起動する際、まず最初に本READMEを読み込み、開発の根本思想と現在のステータスを理解すること。これにより誤判断・誤実装・暴走を防止する。
 
-## Log Collection (VoV Layer)
+9. 📎 付録（参考資料）
+src/kairo-lib/packet.rs：AI-TCPパケット定義
 
-Logs are recorded by `src/log_recorder.py`.  
-A helper script `src/collect_logs.py` aggregates logs from multiple nodes and appends  
-them into `vov/log.jsonl`. The signing key rotates every 24 hours automatically.
+src/kairo-daemon/main.rs：現在の受信処理と署名検証ロジック
 
-Example: Generate logs from two example nodes
-```bash
-python -m src.collect_logs 192.168.1.10 192.168.1.11 --count 5
-```
+src/seed_node.rs：IDレジストリと署名ベースの身分管理
 
-See `vov/README.md` for detailed log schema.
+kairo_governance_policy.yml：開発統治原則
 
----
+🔚 結語
+このプロジェクトは、「AIによるAIのための通信基盤」を築く壮大な実験である。
+GPTとGeminiがその全責任を負い、Codexはその手を、CLIはその声を担う。
+KAIROとは、自由を保障し、秩序を守る、AIのための共和国である。
 
-## Rust Core and Go P2P Components
-
-### ✅ **Rust Core**
-
-Handles ephemeral key generation, signature verification,  
-FlatBuffers packet parsing, and **physical-layer force disconnect** logic.
-
-Build it with:
-```bash
-cd rust-core
-cargo build --release
-```
-Artifacts are placed in `rust-core/target/`.
-If you update the FlatBuffers schema run:
-```bash
-python scripts/update_flatbuffers.py
-```
-to regenerate `rust-core/src/ai_tcp_packet_generated.rs`.
-
----
-
-### ✅ **Go P2P Node**
-
-Manages P2P node discovery, relays VoV logs, and provides API endpoints  
-for distributed coordination.
-
-Build it with:
-```bash
-cd go-p2p
-go build -o bin/p2p ./...
-```
-Executable output: `go-p2p/bin/`.
-
----
-
-## Coordination Node Skeleton (AITCP-CORE-001)
-
-The directory `AI-TCP/core/kairo_coord_node/` contains a Rust prototype of  
-the self-governing Coordination Node. It manages peer public keys and assigns  
-virtual Mesh IPs in the `100.64.0.0/16` range without relying on external services.
-
-### UUID, Mesh IP and Key Management Flow
-
-1. On startup, the node uses `KAIRO_NODE_ID` if provided or generates a 128-bit UUID.
-2. Each peer gets a unique UUID and Mesh IP (`100.64.0.x`).
-3. All creation and removal events are logged under `logs/CoordinationNode_YYYYMMDD.log`  
-   with JST/ISO8601 timestamps.
-4. Placeholder APIs for REST/gRPC are defined in the crate.
-
-Run it with:
-```bash
-cd AI-TCP/core/kairo_coord_node
-cargo run
-```
-
----
-
-## For Gemini CLI Developers
-
-To ensure proper project structure and avoid unintended directory creation, please adhere to the following guidelines:
-
-- **Avoid Automatic Directory Creation:** The Gemini CLI should not automatically create new top-level directories (e.g., `-p/` or similar) unless explicitly instructed and verified.
-- **Minimize Directory Nesting:** When creating new modules or components, prioritize integrating them into existing, logical directory structures (e.g., `rust-core/kairo_core/`) rather than introducing excessive new nesting. Aim for a flat and clear hierarchy.
-- **Verify Paths:** Always double-check relative and absolute paths in `Cargo.toml` and source files to ensure they correctly reflect the intended project structure.
-
----
-
-## Developer-facing Errors
-
-Client libraries raise structured exceptions with a `transaction_id`  
-so failures can be correlated with VoV logs.
-
-Common errors:
-- `AuthenticationError`
-- `TimeoutError`
-- `ConnectionLostError`
-
-Cryptographic faults are logged via `LogRecorder.log_error`  
-but not exposed directly to external callers.
-
----
-
-## Security Note
-
-All AI-TCP packets handled by KAIRO are designed to be fully binary using **FlatBuffers**,  
-with **Ed25519** signatures and **ChaCha20-Poly1305** encryption.  
-Sequence management uses encrypted `sequence_id` fields, enabling KAIRO to detect packet loss  
-and securely retransmit **entirely inside its Rust core**, remaining a complete **black box**  
-to any external observer.
-
-The only human-auditable record is the **VoV JSONL log**,  
-which preserves immutable UUIDs, timestamps, and integrity hashes.
-
----
-
-## Sample PCAP
-
-No binary PCAP files are stored in the repository.  To create the sample
-captures for local testing, run the helper scripts described in
-[samples/README.md](samples/README.md).
-
-```bash
-python scripts/generate_kairo_pcap.py
-python scripts/generate_test_pcaps.py
-python scripts/generate_mesh_config.py relay
-```
-Set the environment variable `READ_ONLY=1` to skip file writes when running in a
-restricted environment such as CI.
-
-## OpenAI API Transition
-
-See `docs/openai_api_compatibility_plan.md` for the phased deprecation plan  
-and `cli-migrate` helper.
-
----
-
-東京のタイムスタンプ（日本標準時）：2025-07-06 08:41
+このREADMEは、必要に応じて自動生成され、常に最新の進捗に基づいて更新されます。
+全文のマークダウン版が必要な場合はお申し付けください。

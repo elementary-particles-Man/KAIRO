@@ -75,7 +75,10 @@ fn read_configs() -> Result<Vec<AgentConfig>, std::io::Error> {
 }
 
 fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bool {
-    let source_agent = match registry.iter().find(|a| a.p_address == packet.source_p_address) {
+    let source_agent = match registry.iter().find(|a| {
+        let verifying_key_hex = hex::encode(a.verifying_key_bytes);
+        verifying_key_hex == packet.source_p_address
+    }) {
         Some(agent) => agent,
         None => {
             println!("Signature Fail: Source agent {} not found in registry.", packet.source_p_address);
@@ -83,12 +86,9 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bo
         }
     };
 
-    let public_key_bytes = match hex::decode(&source_agent.public_key) {
-        Ok(bytes) => bytes,
-        Err(_) => return false,
-    };
+    let public_key_bytes = source_agent.verifying_key_bytes;
 
-    let public_key = match VerifyingKey::try_from(public_key_bytes.as_slice()) {
+    let public_key = match VerifyingKey::try_from(&public_key_bytes[..]) {
         Ok(key) => key,
         Err(_) => return false,
     };
