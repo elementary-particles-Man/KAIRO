@@ -12,5 +12,5 @@ pub struct AiTcpPacket {
     pub timestamp: i64,
     pub payload_type: String,
     pub payload: String,
-    pub signature: String
+    pub signature: String,
 }
