@@ -23,7 +23,12 @@ async fn main() {
         .and(with_db(db.clone()))
         .and_then(handle_assign_address);
 
-    let routes = assign_route;
+    let receive_route = warp::path("receive")
+        .and(warp::get())
+        .and(with_db(db.clone()))
+        .and_then(handle_receive_messages);
+
+    let routes = assign_route.or(receive_route);
 
     println!("Listening on http://127.0.0.1:3030");
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
@@ -52,4 +57,14 @@ async fn handle_assign_address(agent_id: String, db: Db) -> Result<impl warp::Re
         agent_id,
         p_address: new_address,
     }))
+}
+
+async fn handle_receive_messages(db: Db) -> Result<impl warp::Reply, warp::Rejection> {
+    let db_lock = db.lock().unwrap();
+    let messages: Vec<(String, String)> = db_lock
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+
+    Ok(warp::reply::json(&messages))
 }
