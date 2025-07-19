@@ -1,0 +1,6 @@
+{
+  "p_address": "10.0.0.3",
+  "public_key": "041b00ae13f39833040f80d7b98cc5b9844af571fcfa8adde73b8a7cbaa9a3d73c98e4d4c4b8b6ab07ab18967e49e8f75b0d18e7af34b464e0daccd28165f9abab",
+  "secret_key": "aff402432aaf7331f4f4e2cb5ba8e194c560169045039ea8f81a756691e5d21f",
+  "signature": "signed(041b00ae13f39833040f80d7b98cc5b9844af571fcfa8adde73b8a7cbaa9a3d73c98e4d4c4b8b6ab07ab18967e49e8f75b0d18e7af34b464e0daccd28165f9abab)"
+}

@@ -197,9 +197,82 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
     Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::OK))
 }
 
-async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Reply, warp::Rejection> {
+async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>) -> Result<impl warp::Reply, warp::Rejection> {
+    let _lock = db_lock.lock().await;
     println!("Received emergency reissue request.");
-    Ok(warp::reply::json(&"received"))
+
+    let mut registry = read_registry().expect("Failed to read from DB");
+    let agent_configs = read_configs().expect("Failed to read agent configs");
+
+    // 1. JSONで受け取ったOverridePackageをパース (warp::body::json() で既にパース済み)
+    let payload_bytes = serde_json::to_vec(&req.payload)
+        .map_err(|_| warp::reject::custom(BadRequest("Failed to serialize payload".to_string())))?;
+
+    // 2. 各署名に対応する公開鍵で署名妥当性を検証
+    for sig_package in &req.signatures {
+        let signatory_id = &sig_package.signatory_id;
+        let signature_hex = &sig_package.signature;
+
+        // 署名者IDが実在し、`agent_registry` に登録済であること
+        let signatory_agent = agent_configs.iter().find(|a| {
+            let verifying_key_hex = hex::encode(a.verifying_key_bytes);
+            verifying_key_hex == *signatory_id
+        }).ok_or_else(|| warp::reject::custom(BadRequest(format!("Signatory ID not found: {}", signatory_id))))?;
+
+        let public_key_bytes = signatory_agent.verifying_key_bytes;
+        let public_key = VerifyingKey::try_from(&public_key_bytes[..])
+            .map_err(|_| warp::reject::custom(BadRequest("Invalid public key format".to_string())))?;
+
+        let signature_bytes = hex::decode(signature_hex)
+            .map_err(|_| warp::reject::custom(BadRequest("Invalid signature format".to_string())))?;
+        let signature = Signature::try_from(signature_bytes.as_slice()) // ここを修正
+            .map_err(|_| warp::reject::custom(BadRequest("Invalid signature format".to_string())))?;
+
+        if public_key.verify(&payload_bytes, &signature).is_err() {
+            return Err(warp::reject::custom(BadRequest(format!("Invalid signature for signatory: {}", signatory_id))));
+        }
+    }
+
+    // 3. 新旧IDに整合性があるか（reissue元の失効ID→新IDへの正しい変遷か）
+    let old_agent_id = &req.payload.old_agent_id;
+    let new_agent_id = &req.payload.new_agent_id;
+
+    // old_agent_id が `agent_registry` に存在し、`revoked` 状態であること
+    let old_agent_exists_and_revoked = registry.iter().any(|a| a.agent_id == *old_agent_id && a.status == "revoked");
+    if !old_agent_exists_and_revoked {
+        return Err(warp::reject::custom(BadRequest(format!("Old agent ID '{}' not found or not revoked.", old_agent_id))));
+    }
+
+    // new_agent_id が `agent_registry` に存在しない、または `active` 状態でないこと
+    let new_agent_exists_and_active = registry.iter().any(|a| a.agent_id == *new_agent_id && a.status == "active");
+    if new_agent_exists_and_active {
+        return Err(warp::reject::custom(BadRequest(format!("New agent ID '{}' already exists and is active.", new_agent_id))));
+    }
+
+    // 正常受理時: 200 OK + {"status": "override_package accepted"}
+    Ok(warp::reply::with_status(
+        warp::reply::json(&serde_json::json!({ "status": "override_package accepted" })),
+        warp::http::StatusCode::OK,
+    ))
+}
+
+// Custom Rejection for Bad Request
+#[derive(Debug)]
+struct BadRequest(String);
+
+impl warp::reject::Reject for BadRequest {}
+
+// Rejection handler
+async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
+    if let Some(e) = err.find::<BadRequest>() {
+        Ok(warp::reply::with_status(
+            warp::reply::json(&serde_json::json!({ "status": "error", "message": e.0 })),
+            warp::http::StatusCode::BAD_REQUEST,
+        ))
+    } else {
+        // Fallback to default error handling
+        Err(err)
+    }
 }
 
 #[tokio::main]
@@ -238,6 +311,10 @@ async fn main() {
     let emergency_reissue = warp::post()
         .and(warp::path("emergency_reissue"))
         .and(warp::body::json())
+        .and(warp::any().map({
+            let emergency_reissue_lock = Arc::clone(&db_lock);
+            move || Arc::clone(&emergency_reissue_lock)
+        }))
         .and_then(handle_emergency_reissue);
 
     let send = warp::post()
@@ -250,7 +327,7 @@ async fn main() {
         .and(warp::path::param())
         .and_then(handle_receive);
 
-    let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive);
+    let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive).recover(handle_rejection);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
+    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
 }

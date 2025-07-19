@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 #[derive(Deserialize)]
 struct AgentMapping {
-    agent_id: String,
+    public_key: String,
     p_address: String,
 }
 
@@ -39,13 +39,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Try to request P address from local daemon
         let mut p_address = String::from("invalid_address");
-        println!("\nRequesting KAIRO-P address from local daemon...");
+        println!("
+Requesting KAIRO-P address from local daemon...");
 
-        match reqwest::get(&format!(
-            "http://127.0.0.1:3030/assign_address/{}",
-            public_key_hex
-        ))
-        .await
+        // Change reqwest::get to reqwest::Client::new().post
+        match reqwest::Client::new()
+            .post("http://127.0.0.1:3030/assign_p_address") // Changed endpoint
+            .json(&serde_json::json!({ "public_key": public_key_hex })) // Changed to public_key
+            .send()
+            .await
         {
             Ok(response) => {
                 if response.status().is_success() {

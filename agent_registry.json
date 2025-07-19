@@ -1,0 +1,20 @@
+[
+  {
+    "public_key": "04ea69c43ba1e19d796280d92a4a353dfb5d30e7ada68cba4bfbd7f3956fd4fe46fb4e98f4fbdfb212f646b1b94fe49317d5d4d3f01e4391574c7aed956beb09f5",
+    "p_address": "10.0.0.1",
+    "registered_at": "2025-07-19T23:12:24.504300400+00:00",
+    "status": "active"
+  },
+  {
+    "public_key": "04bf291046b58df2bd1b30d439e3702ff92a9bc4ac644d2b9e489d3d707db3e355986b62f63959c8eadbf1c744eecad9964a7739f095feb9cb1aa9bdf595efa207",
+    "p_address": "10.0.0.2",
+    "registered_at": "2025-07-19T23:12:38.008280300+00:00",
+    "status": "active"
+  },
+  {
+    "public_key": "041b00ae13f39833040f80d7b98cc5b9844af571fcfa8adde73b8a7cbaa9a3d73c98e4d4c4b8b6ab07ab18967e49e8f75b0d18e7af34b464e0daccd28165f9abab",
+    "p_address": "10.0.0.3",
+    "registered_at": "2025-07-19T23:12:50.642536700+00:00",
+    "status": "active"
+  }
+]
