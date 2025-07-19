@@ -1,6 +1,8 @@
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, BufWriter};
 use std::sync::{Arc, Mutex as StdMutex};
+use chrono::Utc;
 
 use ed25519_dalek::{Signature, VerifyingKey, Verifier};
 use once_cell::sync::Lazy;
@@ -9,6 +11,7 @@ use warp::{http::StatusCode, Filter, Rejection, Reply};
 
 use kairo_lib::packet::AiTcpPacket;
 use kairo_lib::AgentConfig;
+use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 
 /// Simple pool for issuing incremental P-addresses.
@@ -19,6 +22,35 @@ struct AddressPool {
 /// Global in-memory message queue indexed by destination P-address.
 static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> =
     Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct AssignPAddressRequest {
+    public_key: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct AgentInfo {
+    public_key: String,
+    p_address: String,
+    registered_at: String,
+    status: String,
+}
+
+const AGENT_REGISTRY_FILE: &str = "agent_registry.json";
+
+fn read_agent_registry() -> Result<Vec<AgentInfo>, std::io::Error> {
+    let file = File::open(AGENT_REGISTRY_FILE).unwrap_or_else(|_| File::create(AGENT_REGISTRY_FILE).unwrap());
+    let reader = BufReader::new(file);
+    let registry = serde_json::from_reader(reader).unwrap_or_else(|_| Vec::new());
+    Ok(registry)
+}
+
+fn write_agent_registry(registry: &[AgentInfo]) -> std::io::Result<()> {
+    let file = OpenOptions::new().write(true).truncate(true).create(true).open(AGENT_REGISTRY_FILE)?;
+    let writer = BufWriter::new(file);
+    serde_json::to_writer_pretty(writer, registry)?;
+    Ok(())
+}
 
 /// Load all agent configuration files from `agent_configs/` directory.
 fn read_configs() -> Result<Vec<AgentConfig>, std::io::Error> {
@@ -45,7 +77,7 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bo
     {
         Some(agent) => agent,
         None => {
-            println!("\u{1f534} Signature Fail: Source agent not found.");
+            println!("🔴 Signature Fail: Source agent not found.");
             return false;
         }
     };
@@ -53,15 +85,15 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bo
     let public_key_bytes = match hex::decode(&source_agent.public_key) {
         Ok(bytes) => bytes,
         Err(_) => {
-            println!("\u{1f534} Signature Fail: Invalid public key.");
+            println!("🔴 Signature Fail: Invalid public key.");
             return false;
         }
     };
 
-    let public_key = match VerifyingKey::from_bytes(&public_key_bytes) {
+    let public_key = match VerifyingKey::from_bytes(public_key_bytes.as_slice().try_into().unwrap()) {
         Ok(key) => key,
         Err(_) => {
-            println!("\u{1f534} Signature Fail: Invalid public key bytes.");
+            println!("🔴 Signature Fail: Invalid public key bytes.");
             return false;
         }
     };
@@ -69,18 +101,20 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bo
     let signature_bytes = match hex::decode(&packet.signature) {
         Ok(bytes) => bytes,
         Err(_) => {
-            println!("\u{1f534} Signature Fail: Invalid signature format.");
+            println!("🔴 Signature Fail: Invalid signature format.");
             return false;
         }
     };
 
-    let signature = match Signature::from_bytes(&signature_bytes) {
-        Ok(sig) => sig,
+    let signature_array: [u8; 64] = match signature_bytes.as_slice().try_into() {
+        Ok(arr) => arr,
         Err(_) => {
-            println!("\u{1f534} Signature Fail: Invalid signature bytes.");
+            println!("🔴 Signature Fail: Invalid signature byte length.");
             return false;
         }
     };
+
+    let signature = Signature::from_bytes(&signature_array);
 
     public_key
         .verify(packet.payload.as_bytes(), &signature)
@@ -90,13 +124,13 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bo
 /// Handle an incoming packet POST request.
 async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
     println!(
-        "\u{1f539} [SEND] Received POST: from={}, to={}",
+        "🔵 [SEND] Received POST: from={}, to={}",
         packet.source_p_address, packet.destination_p_address
     );
     let registry = read_configs().unwrap_or_default();
 
     if verify_packet_signature(&packet, &registry) {
-        println!("\u{1f7e2} [SIGNATURE VERIFIED]");
+        println!("🟢 [SIGNATURE VERIFIED]");
         let mut queue = MESSAGE_QUEUE.lock().await;
         let inbox = queue
             .entry(packet.destination_p_address.clone())
@@ -107,7 +141,7 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
             StatusCode::OK,
         ))
     } else {
-        println!("\u{1f534} [SIGNATURE INVALID] Packet REJECTED");
+        println!("🔴 [SIGNATURE INVALID] Packet REJECTED");
         Ok(warp::reply::with_status(
             warp::reply::json(&"invalid_signature"),
             StatusCode::UNAUTHORIZED,
@@ -122,7 +156,7 @@ async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
         let packets = inbox.clone();
         inbox.clear();
         println!(
-            "\u{1f7e1} [RECEIVE] Delivered {} packets to {}",
+            "🟡 [RECEIVE] Delivered {} packets to {}",
             packets.len(),
             p_address
         );
@@ -133,13 +167,38 @@ async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
 }
 
 /// Assign a new P-address from the pool.
-async fn handle_request_address(pool: Arc<StdMutex<AddressPool>>) -> Result<impl Reply, Rejection> {
-    let mut pool = pool.lock().unwrap();
-    let addr = pool.next_address;
-    pool.next_address += 1;
+async fn assign_p_address_handler(req: AssignPAddressRequest, pool: Arc<StdMutex<AddressPool>>) -> Result<impl Reply, Rejection> {
+    let mut registry = read_agent_registry().unwrap_or_default();
+
+    // Check for duplicate public_key
+    if registry.iter().any(|agent| agent.public_key == req.public_key) {
+        println!("🔴 [DAEMON] Public Key already exists: {}", req.public_key);
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&serde_json::json!({ "status": "error", "message": "Public Key already exists" })),
+            StatusCode::CONFLICT,
+        ));
+    }
+
+    let mut pool_guard = pool.lock().unwrap();
+    let addr = pool_guard.next_address;
+    pool_guard.next_address += 1;
     let p_address = format!("10.0.0.{}", addr);
-    println!("\u{1f6f8}  [DAEMON] Assigned P-Address: {}", p_address);
-    Ok(warp::reply::json(&p_address))
+
+    let new_agent_info = AgentInfo {
+        public_key: req.public_key.clone(),
+        p_address: p_address.clone(),
+        registered_at: Utc::now().to_rfc3339(),
+        status: "active".to_string(),
+    };
+
+    registry.push(new_agent_info);
+    write_agent_registry(&registry).expect("Failed to write agent registry");
+
+    println!("🟢 [DAEMON] Assigned P-Address: {} for public_key: {}", p_address, req.public_key);
+    Ok(warp::reply::with_status(
+        warp::reply::json(&serde_json::json!({ "public_key": req.public_key, "p_address": p_address })),
+        StatusCode::OK,
+    ))
 }
 
 #[tokio::main]
@@ -147,10 +206,11 @@ async fn main() {
     println!("KAIRO-P Daemon starting...");
     let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
 
-    let get_address = warp::post()
-        .and(warp::path("request_address"))
+    let assign_p_address = warp::post()
+        .and(warp::path("assign_p_address"))
+        .and(warp::body::json())
         .and(warp::any().map(move || Arc::clone(&pool)))
-        .and_then(handle_request_address);
+        .and_then(assign_p_address_handler);
 
     let send = warp::post()
         .and(warp::path("send"))
@@ -162,8 +222,8 @@ async fn main() {
         .and(warp::path::param())
         .and_then(handle_receive);
 
-    let routes = get_address.or(send).or(receive);
+    let routes = assign_p_address.or(send).or(receive);
 
-    println!("Listening on http://127.0.0.1:8082");
-    warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
+    println!("Listening on http://127.0.0.1:3030");
+    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
