@@ -214,6 +214,7 @@ async fn assign_p_address_handler(req: AssignPAddressRequest, pool: Arc<StdMutex
 
 #[tokio::main]
 async fn main() {
+    let config = DaemonConfig::parse();
     println!("KAIRO-P Daemon starting...");
     let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
 

@@ -34,8 +34,12 @@ struct AgentConfig {
 
 #[derive(Serialize, Debug)]
 struct AiTcpPacket {
+    version: u32,
     source_p_address: String,
     destination_p_address: String,
+    sequence: u64,
+    timestamp: i64,
+    payload_type: String,
     payload: String,
     signature: String,
 }
@@ -47,6 +51,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config_data = fs::read_to_string(config_path)?;
     let config: AgentConfig = serde_json::from_str(&config_data)?;
 
+    println!("Loaded AgentConfig: {:?}", config);
+
     let signing_key_bytes = hex::decode(&config.secret_key)?;
     let key_bytes: [u8; 32] = signing_key_bytes
         .try_into()
@@ -57,8 +63,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let signature_hex = hex::encode(signature.to_bytes());
 
     let packet = AiTcpPacket {
+        version: 1,
         source_p_address: args.from,
         destination_p_address: args.to,
+        sequence: 1, // 仮の値
+        timestamp: chrono::Utc::now().timestamp(),
+        payload_type: "text/plain".to_string(),
         payload: args.message,
         signature: signature_hex,
     };
