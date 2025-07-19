@@ -32,24 +32,18 @@ fn verify_signature(config: &AgentConfig) -> bool {
         Ok(bytes) => bytes,
         Err(_) => return false,
     };
-    let public_key = match public_key_bytes.as_slice().try_into() {
-        Ok(bytes_32) => match VerifyingKey::from_bytes(&bytes_32) {
-            Ok(pk) => pk,
-            Err(_) => return false,
-        },
-        Err(_) => return false,
+    let public_key = match public_key_bytes.as_slice().try_into().ok().and_then(|b: &[u8; 32]| VerifyingKey::from_bytes(b).ok()) {
+        Some(pk) => pk,
+        None => return false,
     };
 
     let signature_bytes = match hex::decode(&config.signature) {
         Ok(bytes) => bytes,
         Err(_) => return false,
     };
-    let signature = match signature_bytes.as_slice().try_into() {
-        Ok(bytes_64) => match Signature::from_bytes(&bytes_64) {
-            Ok(sig) => sig,
-            Err(_) => return false,
-        },
-        Err(_) => return false,
+    let signature = match signature_bytes.as_slice().try_into().ok().and_then(|b: &[u8; 64]| Signature::from_bytes(b).ok()) {
+        Some(sig) => sig,
+        None => return false,
     };
 
     let message = format!("{}:{}", config.p_address, config.public_key);
