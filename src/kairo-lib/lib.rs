@@ -1,29 +1,26 @@
-// src/kairo-lib/lib.rs
+use serde::{Serialize, Deserialize};
+use std::fs::File;
+use std::io::{self, Write};
+use std::path::Path;
 
-// 外部クレート
-pub use serde::{Deserialize, Serialize};
+/// Agentの鍵・アドレス情報
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentConfig {
+    pub p_address: String,
+    pub public_key: String,
+    pub secret_key: String,
+    pub signature: String,
+}
 
-// 内部モジュール
-pub mod config;
-pub mod packet;
-pub mod governance;
+/// AgentConfig を JSON ファイルとして保存
+pub fn save_agent_config(config: &AgentConfig) -> io::Result<()> {
+    let file = File::create("agent_config.json")?;
+    serde_json::to_writer_pretty(file, config)?;
+    Ok(())
+}
 
-// 必要な型を公開
-pub use config::{AgentConfig, save_config};
-pub use packet::AiTcpPacket;
-pub use governance::OverridePackage;
-
-// kairo_core の各種ユーティリティ
-// ※ kairo_core をこのプロジェクトで使うなら、Cargo.toml の [dependencies] に kairo_core を追加してください。
-//     path = "../../kairo-core" のようにローカル指定も可
-pub use kairo_core::mesh_auditor;
-pub use kairo_core::mesh_trust_calculator;
-pub use kairo_core::packet_parser;
-pub use kairo_core::baseline_profile_manager;
-pub use kairo_core::signature;
-pub use kairo_core::keygen;
-pub use kairo_core::packet_validator;
-pub use kairo_core::ai_tcp_packet_generated;
-pub use kairo_core::ephemeral_session_generated;
-pub use kairo_core::log_recorder;
-pub use kairo_core::coordination;
+/// AgentConfig に署名を追加（現在はダミー）
+pub fn sign_config(config: &mut AgentConfig) {
+    // 仮実装：将来的には秘密鍵とConfigのハッシュに基づく署名へ
+    config.signature = format!("signed({})", config.public_key);
+}
