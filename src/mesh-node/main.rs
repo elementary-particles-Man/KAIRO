@@ -11,6 +11,7 @@ use std::sync::Arc;
 // (Existing structs like AgentInfo, RegisterRequest, etc.)
 
 // --- Signature Verification Logic ---
+// Validate packet authenticity by checking the sender's ed25519 signature.
 use ed25519_dalek::{VerifyingKey, Signature, Verifier};
 
 fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
