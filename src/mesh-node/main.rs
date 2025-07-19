@@ -42,6 +42,7 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
         Err(_) => return false,
     };
 
+    // The signature is created over the payload only for this implementation
     public_key.verify(packet.payload.as_bytes(), &signature).is_ok()
 }
 
@@ -61,7 +62,7 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
         inbox.push(packet);
     } else {
         println!("Signature FAILED for packet from {}", packet.source_p_address);
-        // Drop silently or log
+        // Do not queue the packet if signature is invalid
     }
     Ok(warp::reply::json(&"packet_queued"))
 }
