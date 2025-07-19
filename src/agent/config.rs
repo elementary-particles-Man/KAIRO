@@ -49,7 +49,8 @@ pub fn load_first_config() -> Option<AgentConfig> {
 /// Returns `Some(signature)` if successful, or `None` on error.
 pub fn create_signature(secret_key_hex: &str, payload: &[u8]) -> Option<String> {
     let secret_bytes = hex::decode(secret_key_hex).ok()?;
-    let signing_key = SigningKey::from_bytes(&secret_bytes.try_into().ok()?).ok()?;
+    let secret_array: [u8; 32] = secret_bytes.try_into().ok()?;
+    let signing_key = SigningKey::from_bytes(&secret_array);
     let signature: Signature = signing_key.sign(payload);
     Some(hex::encode(signature.to_bytes()))
 }
