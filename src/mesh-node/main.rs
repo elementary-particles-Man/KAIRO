@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter, Write};
 use chrono::{Utc};
+use crate::seed_node::read_registry;
+use crate::seed_node::AgentInfo;
 
 // (Existing structs like AgentInfo, RegisterRequest, etc.)
 
