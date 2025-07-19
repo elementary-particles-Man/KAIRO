@@ -7,6 +7,17 @@ use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 use warp::{http::StatusCode, Filter, Rejection, Reply};
 
+pub mod config;
+use clap::Parser;
+use config::load_daemon_config;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value = "daemon_config.json")]
+    config: String,
+}
+
 use kairo_lib::packet::AiTcpPacket;
 use kairo_lib::AgentConfig;
 use serde_json::from_reader;
@@ -144,7 +155,11 @@ async fn handle_request_address(pool: Arc<StdMutex<AddressPool>>) -> Result<impl
 
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
     println!("KAIRO-P Daemon starting...");
+    println!("Loading configuration from: {}", args.config);
+
+    let config = load_daemon_config(&args.config).expect("Failed to load daemon_config.json");
     let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
 
     let get_address = warp::post()
@@ -164,6 +179,8 @@ async fn main() {
 
     let routes = get_address.or(send).or(receive);
 
-    println!("Listening on http://127.0.0.1:8082");
-    warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
+    let listen_addr: std::net::IpAddr = config.listen_address.parse().expect("Invalid listen address");
+
+    println!("Listening for address requests on http://{}:{}", config.listen_address, config.listen_port);
+    warp::serve(routes).run((listen_addr, config.listen_port)).await;
 }
