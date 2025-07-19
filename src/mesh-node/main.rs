@@ -1,15 +1,12 @@
 //! mesh-node/src/main.rs
-// (Existing use statements...)
+
+mod seed_node;
+
 use kairo_lib::packet::AiTcpPacket;
-use std::sync::{Arc, Mutex as StdMutex};
 use tokio::sync::Mutex;
 use warp::{Filter, Rejection, Reply};
-use serde::{Deserialize, Serialize};
-use std::fs::{File, OpenOptions};
-use std::io::{BufReader, BufWriter, Write};
-use chrono::{Utc};
-use crate::seed_node::read_registry;
-use crate::seed_node::AgentInfo;
+use crate::seed_node::{read_registry, AgentInfo};
+use std::sync::Arc;
 
 // (Existing structs like AgentInfo, RegisterRequest, etc.)
 
@@ -95,7 +92,8 @@ async fn main() {
         .and(warp::path::param())
         .and_then(handle_receive);
 
-    let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive);
+    let seed_routes = seed_node::routes();
+    let routes = seed_routes.or(send).or(receive);
 
     warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
 }

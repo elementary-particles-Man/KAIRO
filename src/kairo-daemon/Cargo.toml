@@ -10,6 +10,7 @@ once_cell = "1.19"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 kairo_lib = { path = "../kairo-lib" }
+rand = "0.8"
 
 [[bin]]
 name = "kairo_p_daemon"

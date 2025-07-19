@@ -3,7 +3,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::fs;
 use std::io::Write;
-use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use warp::Filter;
 
