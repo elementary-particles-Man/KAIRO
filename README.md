@@ -83,6 +83,17 @@ cargo run --package kairo_agent --bin signed_sender -- --to $agent2_p_address --
 
 -   **期待されるサーバーログ:** `kairo_p_daemon`のログに `Signature FAILED` および `Packet REJECTED` と表示され、メッセージがキューイングされないことを確認します。
 
+#### 3.3. Pアドレス偽装テスト
+
+`forged_sender` を使うと、`agent_config.json` の鍵で署名しつつ任意のPアドレスを送信元として指定できます。
+
+```powershell
+# PowerShellでの実行例
+cargo run --package kairo_agent --bin forged_sender -- --to $agent2_p_address --from "p-fakeaddress" --message "spoof test"
+```
+
+-   **期待されるサーバーログ:** 送信元Pアドレスが登録済みでないため `Signature Fail: Source agent not found.` が表示されます。
+
 ---
 
 ### 🏗️ 4. 現在の開発ステータス
