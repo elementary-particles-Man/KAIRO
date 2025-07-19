@@ -1,8 +1,15 @@
-use kairo_lib::resolvers::resolve_conflict;
+use kairo_lib::resolvers::{ConflictReport, ConflictResolver, DefaultResolver, LogicalConflictType, Resolution};
 
 #[test]
 fn test_conflict_resolution() {
-    // 仮の入力値に応じて適切に記述
-    let result = resolve_conflict(/* 入力データ */);
-    assert!(result.is_ok());
+    let resolver = DefaultResolver;
+    let report = ConflictReport {
+        timestamp: 1234567890,
+        conflict_type: LogicalConflictType::Contradiction {
+            node_ids: vec!["node1".to_string(), "node2".to_string()],
+            conflicting_conclusions: vec!["conclusionA".to_string(), "conclusionB".to_string()],
+        },
+    };
+    let resolution = resolver.resolve(report);
+    assert_eq!(resolution, Resolution::EscalateToHuman);
 }

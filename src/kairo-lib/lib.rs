@@ -4,6 +4,7 @@
 pub mod config;
 pub mod governance;
 pub mod packet;
+pub mod resolvers;
 
 // --- 構造体・型の再エクスポート ---
 pub use governance::OverridePackage;

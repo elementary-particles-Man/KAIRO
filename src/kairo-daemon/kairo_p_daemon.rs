@@ -4,15 +4,15 @@ use warp::Filter;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Message {
-    from: String,
-    to: String,
-    message: String,
+struct AiTcpPacket {
+    source_p_address: String,
+    destination_p_address: String,
+    payload: String,
     signature: String,
 }
 
 type PAddress = String;
-type MessageQueue = Arc<Mutex<HashMap<PAddress, Vec<Message>>>>;
+type MessageQueue = Arc<Mutex<HashMap<PAddress, Vec<AiTcpPacket>>>>;
 
 #[tokio::main]
 async fn main() {
@@ -25,13 +25,19 @@ async fn main() {
         .and(warp::post())
         .and(warp::body::json())
         .and(queues_filter.clone())
-        .map(|message: Message, queues: MessageQueue| {
-            println!("\n🔵 [SEND] Received POST: from={}, to={}, message={}\n", message.from, message.to, message.message);
+        .map(|packet: AiTcpPacket, queues: MessageQueue| {
+            println!(
+                "\n🔵 [SEND] Received POST: from={}, to={}, payload={}\n",
+                packet.source_p_address, packet.destination_p_address, packet.payload
+            );
 
             let mut queues = queues.lock().unwrap();
-            println!("🟢 [SEND] Queuing message for {}", message.to);
+            println!("🟢 [SEND] Queuing message for {}", packet.destination_p_address);
 
-            queues.entry(message.to.clone()).or_insert_with(Vec::new).push(message);
+            queues.entry(packet.destination_p_address.clone())
+                .or_insert_with(Vec::new)
+                .push(packet);
+
             warp::reply::json(&serde_json::json!({ "status": "Message queued" }))
         });
 

@@ -1,11 +1,9 @@
 // signed_sender.rs（署名付きパケット送信＋改ざんテスト用）
 
-use kairo_lib::config::load_agent_config;
 use ed25519_dalek::{SigningKey, Signature, Signer};
 use serde::{Serialize, Deserialize};
 use std::fs;
 use std::path::PathBuf;
-use std::str::FromStr;
 use clap::Parser;
 use reqwest::blocking::Client;
 use hex;
@@ -47,7 +45,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config: AgentConfig = serde_json::from_str(&config_data)?;
 
     let signing_key_bytes = hex::decode(&config.secret_key)?;
-    let signing_key = SigningKey::from_bytes(&signing_key_bytes.try_into()?);
+    let key_bytes: [u8; 32] = signing_key_bytes.try_into()
+        .map_err(|_| "Invalid key length")?;
+    let signing_key = SigningKey::from_bytes(&key_bytes);
 
     let actual_payload = if args.fake {
         format!("{}-tampered", args.message) // 故意に改ざん
@@ -64,6 +64,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         payload: args.message, // 表示上は正規メッセージ
         signature: signature_hex,
     };
+
+    println!("{:#?}", serde_json::to_string(&packet)?);
 
     let client = Client::new();
     let res = client.post("http://127.0.0.1:3030/send")

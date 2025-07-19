@@ -1,5 +1,5 @@
 //! bin/dev/seed_node.rs
-//! Seed Node with structured JSON persistence.
+//! Seed Node with structured JSON persistence + signed packet validation.
 
 use warp::{Filter, Rejection, Reply};
 use serde::{Deserialize, Serialize};
@@ -8,6 +8,12 @@ use std::io::{BufReader, BufWriter};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use chrono::Utc;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use kairo_lib::packet::AiTcpPacket;
+use kairo_lib::config::AgentConfig;
+use ed25519_dalek::{VerifyingKey, Signature, Verifier};
+use serde_json::from_reader;
 
 use kairo_lib::governance::OverridePackage;
 
@@ -32,7 +38,7 @@ struct RegisterResponse {
 struct AgentInfo {
     agent_id: String,
     registered_at: String,
-    status: String, // e.g., "active", "revoked"
+    status: String,
     replaces: Option<String>,
 }
 
@@ -52,14 +58,87 @@ fn write_registry(registry: &[AgentInfo]) -> std::io::Result<()> {
     Ok(())
 }
 
+fn read_configs() -> Result<Vec<AgentConfig>, std::io::Error> {
+    let mut configs = Vec::new();
+    if let Ok(entries) = std::fs::read_dir("agent_configs") {
+        for entry in entries {
+            let path = entry?.path();
+            if path.extension().and_then(|s| s.to_str()) == Some("json") {
+                let file = File::open(&path)?;
+                if let Ok(cfg) = from_reader(file) {
+                    configs.push(cfg);
+                }
+            }
+        }
+    }
+    Ok(configs)
+}
+
+fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bool {
+    let source_agent = match registry.iter().find(|a| a.p_address == packet.source_p_address) {
+        Some(agent) => agent,
+        None => {
+            println!("Signature Fail: Source agent {} not found in registry.", packet.source_p_address);
+            return false;
+        }
+    };
+
+    let public_key_bytes = match hex::decode(&source_agent.public_key) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
+
+    let public_key = match VerifyingKey::try_from(public_key_bytes.as_slice()) {
+        Ok(key) => key,
+        Err(_) => return false,
+    };
+
+    let signature_bytes = match hex::decode(&packet.signature) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
+
+    let signature = match Signature::try_from(signature_bytes.as_slice()) {
+        Ok(sig) => sig,
+        Err(_) => return false,
+    };
+
+    public_key.verify(packet.payload.as_bytes(), &signature).is_ok()
+}
+
+static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> = Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+    println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_p_address);
+    let mut queue = MESSAGE_QUEUE.lock().await;
+    let registry = read_configs().expect("Config read error during send");
+    if verify_packet_signature(&packet, &registry) {
+        println!("Signature VERIFIED for packet from {}", packet.source_p_address);
+        let inbox = queue.entry(packet.destination_p_address.clone()).or_insert_with(Vec::new);
+        inbox.push(packet);
+    } else {
+        println!("Signature FAILED for packet from {}: Packet REJECTED.", packet.source_p_address);
+    }
+    Ok(warp::reply::json(&"packet_queued"))
+}
+
+async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
+    let mut queue = MESSAGE_QUEUE.lock().await;
+    if let Some(inbox) = queue.get_mut(&p_address) {
+        let messages = inbox.clone();
+        inbox.clear();
+        println!("Delivered {} packets to {}", messages.len(), p_address);
+        Ok(warp::reply::json(&messages))
+    } else {
+        Ok(warp::reply::json(&Vec::<AiTcpPacket>::new()))
+    }
+}
+
 async fn handle_registration(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
     let _lock = db_lock.lock().await;
     println!("Received registration for agent_id: {}", req.agent_id);
-
     let mut registry = read_registry().expect("Failed to read from DB");
-
     if registry.iter().any(|agent| agent.agent_id == req.agent_id && agent.status == "active") {
-        println!("Active agent {} already registered.", req.agent_id);
         let res = RegisterResponse { status: "exists".to_string(), message: "Active agent already registered".to_string() };
         Ok(warp::reply::json(&res))
     } else {
@@ -71,39 +150,28 @@ async fn handle_registration(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> R
         };
         registry.push(new_agent);
         write_registry(&registry).expect("Failed to write to DB");
-        println!("Successfully registered agent {}.", req.agent_id);
         let res = RegisterResponse { status: "success".to_string(), message: "Agent successfully registered".to_string() };
         Ok(warp::reply::json(&res))
     }
 }
 
-// Handler for revoking an agent's ID
 async fn handle_revocation(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
     let _lock = db_lock.lock().await;
-    println!("Received revocation request for agent_id: {}", req.agent_id);
-
     let mut registry = read_registry().expect("Failed to read from DB");
-
     if let Some(agent) = registry.iter_mut().find(|a| a.agent_id == req.agent_id && a.status == "active") {
         agent.status = "revoked".to_string();
         write_registry(&registry).expect("Failed to write to DB");
-        println!("Successfully revoked agent {}.", req.agent_id);
         let res = RegisterResponse { status: "success".to_string(), message: "Agent successfully revoked".to_string() };
         Ok(warp::reply::json(&res))
     } else {
-        println!("Active agent {} not found for revocation.", req.agent_id);
         let res = RegisterResponse { status: "not_found".to_string(), message: "Active agent not found".to_string() };
         Ok(warp::reply::json(&res))
     }
 }
 
-// Handler for reissuing an agent's ID
 async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<impl Reply, Rejection> {
     let _lock = db_lock.lock().await;
-    println!("Received reissue request for old_agent_id: {}", req.old_agent_id);
-
     let mut registry = read_registry().expect("Failed to read from DB");
-
     if let Some(old_agent) = registry.iter().find(|a| a.agent_id == req.old_agent_id) {
         if old_agent.status != "revoked" {
             let res = RegisterResponse { status: "error".to_string(), message: "Old agent is not revoked".to_string() };
@@ -113,12 +181,10 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
         let res = RegisterResponse { status: "not_found".to_string(), message: "Old agent not found".to_string() };
         return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::NOT_FOUND));
     }
-
     if registry.iter().any(|a| a.agent_id == req.new_agent_id && a.status == "active") {
         let res = RegisterResponse { status: "exists".to_string(), message: "New agent ID already exists as an active agent".to_string() };
         return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::CONFLICT));
     }
-
     let new_agent = AgentInfo {
         agent_id: req.new_agent_id.clone(),
         registered_at: Utc::now().to_rfc3339(),
@@ -127,53 +193,44 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
     };
     registry.push(new_agent);
     write_registry(&registry).expect("Failed to write to DB");
-
-    println!("Successfully reissued agent ID {} to {}", req.old_agent_id, req.new_agent_id);
     let res = RegisterResponse { status: "success".to_string(), message: "Agent ID successfully reissued".to_string() };
     Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::OK))
 }
 
-// Handler for emergency reissuance by the governance quorum
 async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl warp::Reply, warp::Rejection> {
     println!("Received emergency reissue request.");
-    // TODO: 1. Verify the multiplicity and diversity of signatures.
-    // TODO: 2. Verify each signature against the payload.
-    // TODO: 3. If valid, execute the reissuance logic after a cooldown.
     Ok(warp::reply::json(&"received"))
 }
 
 #[tokio::main]
 async fn main() {
-    println!("KAIRO Seed Node [v2: Structured Registry] starting...");
+    println!("KAIRO Seed Node [Unified: Registry + Messaging] starting...");
 
     let db_lock = Arc::new(Mutex::new(()));
 
-    let register_lock = Arc::clone(&db_lock);
     let register = warp::post()
         .and(warp::path("register"))
         .and(warp::body::json())
         .and(warp::any().map({
-            let register_lock = Arc::clone(&register_lock);
+            let register_lock = Arc::clone(&db_lock);
             move || Arc::clone(&register_lock)
         }))
         .and_then(handle_registration);
 
-    let revoke_lock = Arc::clone(&db_lock);
     let revoke = warp::post()
         .and(warp::path("revoke"))
         .and(warp::body::json())
         .and(warp::any().map({
-            let revoke_lock = Arc::clone(&revoke_lock);
+            let revoke_lock = Arc::clone(&db_lock);
             move || Arc::clone(&revoke_lock)
         }))
         .and_then(handle_revocation);
 
-    let reissue_lock = Arc::clone(&db_lock);
     let reissue = warp::post()
         .and(warp::path("reissue"))
         .and(warp::body::json())
         .and(warp::any().map({
-            let reissue_lock = Arc::clone(&reissue_lock);
+            let reissue_lock = Arc::clone(&db_lock);
             move || Arc::clone(&reissue_lock)
         }))
         .and_then(handle_reissue);
@@ -183,7 +240,17 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handle_emergency_reissue);
 
-    let routes = register.or(revoke).or(reissue).or(emergency_reissue);
+    let send = warp::post()
+        .and(warp::path("send"))
+        .and(warp::body::json())
+        .and_then(handle_send);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    let receive = warp::get()
+        .and(warp::path("receive"))
+        .and(warp::path::param())
+        .and_then(handle_receive);
+
+    let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive);
+
+    warp::serve(routes).run(([127, 0, 0, 1], 8082)).await;
 }
