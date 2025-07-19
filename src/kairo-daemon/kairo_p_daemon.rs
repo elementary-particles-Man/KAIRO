@@ -1,59 +1,55 @@
-use std::convert::Infallible;
-use warp::Filter;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use uuid::Uuid;
+use warp::Filter;
 
-#[derive(Debug, Deserialize)]
-struct RegistrationRequest {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct AgentMapping {
     agent_id: String,
-    public_key: String,
-}
-
-#[derive(Debug, Serialize)]
-struct RegistrationResponse {
     p_address: String,
 }
+
+type Db = Arc<Mutex<HashMap<String, String>>>;
 
 #[tokio::main]
 async fn main() {
     println!("KAIRO-P Daemon starting...");
 
-    // /status ルート
-    let status_route = warp::path("status")
-        .and(warp::get())
-        .and_then(handle_status);
+    let db: Db = Arc::new(Mutex::new(HashMap::new()));
 
-    // /register ルート
-    let register_route = warp::path("register")
-        .and(warp::post())
-        .and(warp::body::json())
-        .and_then(handle_register);
+    let assign_route = warp::path!("assign_address" / String)
+        .and(with_db(db.clone()))
+        .and_then(handle_assign_address);
 
-    let routes = status_route.or(register_route);
+    let routes = assign_route;
 
     println!("Listening on http://127.0.0.1:3030");
-    warp::serve(routes)
-        .run(([127, 0, 0, 1], 3030))
-        .await;
+    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
 
-async fn handle_status() -> Result<impl warp::Reply, Infallible> {
-    Ok(warp::reply::json(&json!({
-        "status": "ok"
-    })))
+fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = std::convert::Infallible> + Clone {
+    warp::any().map(move || db.clone())
 }
 
-async fn handle_register(req: RegistrationRequest) -> Result<impl warp::Reply, Infallible> {
-    let generated_address = format!("p-{}", Uuid::new_v4().to_simple());
-    println!(
-        "Registered agent: {} => KAIRO-P address assigned: {}",
-        req.agent_id, generated_address
-    );
+async fn handle_assign_address(agent_id: String, db: Db) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut db_lock = db.lock().unwrap();
 
-    let response = RegistrationResponse {
-        p_address: generated_address,
-    };
+    // 既に登録されていればそのアドレスを返す
+    if let Some(addr) = db_lock.get(&agent_id) {
+        return Ok(warp::reply::json(&AgentMapping {
+            agent_id,
+            p_address: addr.clone(),
+        }));
+    }
 
-    Ok(warp::reply::json(&response))
+    // 新規生成
+    let new_address = format!("p-{}", Uuid::new_v4().simple().to_string());
+    db_lock.insert(agent_id.clone(), new_address.clone());
+
+    Ok(warp::reply::json(&AgentMapping {
+        agent_id,
+        p_address: new_address,
+    }))
 }

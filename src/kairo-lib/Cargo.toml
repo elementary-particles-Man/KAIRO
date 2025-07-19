@@ -3,10 +3,10 @@ name = "kairo_lib"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-name = "kairo_lib"
-path = "lib.rs"
-
 [dependencies]
-kairo_core = { path = "../../rust-core" }
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+kairo_core = { path = "../../kairo-core" } # 存在しない場合は削除 or 修正
+
+[lib]
+path = "lib.rs"

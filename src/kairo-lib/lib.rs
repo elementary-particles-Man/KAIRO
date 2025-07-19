@@ -1,7 +1,21 @@
-//! KAIRO-LIB unified entry point
-//! All modules are now defined at this level (no nested src/).
+// src/kairo-lib/lib.rs
 
-// Core re-exports from rust-core
+// 外部クレート
+pub use serde::{Deserialize, Serialize};
+
+// 内部モジュール
+pub mod config;
+pub mod packet;
+pub mod governance;
+
+// 必要な型を公開
+pub use config::{AgentConfig, save_config};
+pub use packet::AiTcpPacket;
+pub use governance::OverridePackage;
+
+// kairo_core の各種ユーティリティ
+// ※ kairo_core をこのプロジェクトで使うなら、Cargo.toml の [dependencies] に kairo_core を追加してください。
+//     path = "../../kairo-core" のようにローカル指定も可
 pub use kairo_core::mesh_auditor;
 pub use kairo_core::mesh_trust_calculator;
 pub use kairo_core::packet_parser;
@@ -13,8 +27,3 @@ pub use kairo_core::ai_tcp_packet_generated;
 pub use kairo_core::ephemeral_session_generated;
 pub use kairo_core::log_recorder;
 pub use kairo_core::coordination;
-
-// KAIRO-lib own modules
-pub mod resolvers;
-pub mod governance;
-pub mod packet;
