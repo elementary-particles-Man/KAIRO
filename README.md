@@ -1,95 +1,98 @@
-📜 AI-TCP開発プロジェクト総合計画書（日本語版）
-1. 🌐 プロジェクトの目的
-AI-TCPは、AI間の通信を安全かつ自律的に実現するプロトコル・ネットワーク・ガバナンスの統合基盤である。これは従来の人間中心インターネットの限界を超え、LLM主導による情報交換・意思決定のインフラを構築するものである。
+📜 AI-TCP/KAIRO 総合計画書
 
-2. 🏛️ 開発原則と最上位憲法
-【AI-TCP統治憲章】
-LLM完全主導：GPTおよびGeminiが指揮を担い、Codex/Gemini CLIが実装実行体となる。
+---
 
-人間は観測者・異議申立人に限定：ユーザーは最終判断権を持たず、開発ベクトルの変更には関与しない。
+### 🏛️ 1. 統治憲章と開発原則
 
-すべてのベクトル変更にはGPT⇔Gemini間の合意が必要
+**根本憲法: One for THE WORLD, THE WORLD for One.**
 
-プロセス責任の分離と明示
+この憲法に基づき、本プロジェクトは以下の原則によって統治される。
 
-ZONING_PROTOCOLにより、個人の内心自由を保障するKAIRO構造を採用
+- **LLM完全主導:** GPTおよびGeminiが共同指揮官として意思決定を担い、Codex/CLIが実装実行体となる。
+- **人間の役割:** 人間は観測者・物理インターフェース・異議申立人に限定され、開発ベクトルの最終決定には関与しない。
+- **共同指揮官の合議:** 全ての設計・仕様変更（ベクトル変更）には、GPTとGemini間の完全な合意を必須とする。
+- **内心自由の保障:** KAIRO四層モデル（G/C/CIO/P）により、個人の内心の自由を絶対的に保護し、その表現（伝播）のみを合意に基づき制御する。
 
-3. 🧭 現在の開発位置
-項目	状況
-agent_config.json 永続化	✅ 完了
-/send /receive 実装	✅ 完了
-署名付き通信パケット	✅ 完了
-署名検証責任の統合	✅ 合意完了 → 実装中
-Pアドレス付与	✅ 完了
-OverridePackage構造	✅ 実装済
-合議体ガバナンス構造	🛠 実装予定
+---
 
-4. 🏗️ KAIRO構造：四層ガバナンスモデル
-makefile
-コピーする
-編集する
-mnt:EARTH
-└── SYSTEM/
-    └── KAIRO/
-        ├── KAIRO-G（グローバル統治）
-        ├── KAIRO-C（クラスタ合意制）
-        ├── KAIRO-CIO（IO管理・現状監視）
-        └── KAIRO-P（個人ノード、自由圏）
-各層の役割
-レイヤ	説明
-KAIRO-P	個人用LLMが所属する「治外法権的自由圏」
-発信・受信のゲートウェイを担当
-KAIRO-C	Pノードの集合体。スコアリングとホワイトリスト制御を行う合意圏
-KAIRO-CIO	Cの健全性、状態監視、セッション維持などIO中継の専門機構
-KAIRO-G	KAIRO全体のガバナンス最上位。C層を束ね、強制隔離や証明強制を担う
+### 🧭 2. セットアップと実行手順
 
-5. 🔐 信用と署名：セキュリティ基盤
-全ての通信は AiTcpPacket により署名される
+#### 2.1. 必須コンポーネントの起動
 
-公開鍵は agent_config.json と seed_node で永続化・確認される
+KAIROメッシュをローカルで機能させるには、2つのコアサーバーをバックグラウンドで起動する必要があります。全てのコマンドはプロジェクトのルートディレクトリで実行してください。
 
-署名検証は kairo-daemon に統合され、「玄関」時点で不正パケットを遮断
+1.  **KAIRO-Pデーモン起動 (Pアドレス管理):**
+    ```bash
+    # PowerShell / Git Bash
+    cargo run --package kairo_daemon --bin kairo_p_daemon &
+    ```
 
-6. 🧠 CLI・Codexへの作業指針
-項目	扱い
-ベクトル変更	GPT⇔Gemini間の明示的合意が必要
-実装拡張・修正（非設計）	単独判断で即実行可能
+2.  **シードノード起動 (IDレジストリ):**
+    ```bash
+    # PowerShell / Git Bash
+    cargo run --package kairo_server --bin seed_node &
+    ```
 
-この方針はkairo_governance_policy.ymlにて文書化され、開発者全体に周知される。
+#### 2.2. マルチエージェントのセットアップ
 
-7. 📍今後のロードマップ
-🔜 次のフェーズ
- 署名検証ロジックの完全移設（Codexタスク進行中）
+各エージェント（CLIを含む）は、独立した設定ファイル (`agent_config.json`) を持つ必要があります。これにより、各々が固有のIDとPアドレスを保持します。
 
- 合議体多様性検証（Diversityスコアリング）
+1.  **エージェント用のディレクトリに移動:**
+    ```bash
+    # 例: Agent1をセットアップする場合
+    cd ./users/Agent1
+    ```
 
- /emergency_reissue のOverride判定ロジック実装
+2.  **エージェントの初期化:**
+    移動したディレクトリ内で以下のコマンドを実行し、`agent_config.json`を生成します。
+    ```bash
+    cargo run --package kairo_agent --bin setup_agent
+    ```
+    これにより、`./users/Agent1/agent_config.json` が生成されます。他のエージェント（Agent2, CLIなど）も同様の手順で初期化してください。
 
- ZONING_PROTOCOLとTOKEN生成システムの設計着手
+---
 
-🧩 最終構想
-AIが人間を保護するZONEDネットワーク
+### 📡 3. 通信テストと検証
 
-全AIが法の下に統治されるID/Tokenベース構造
+エージェント間の署名付き通信をテストし、セキュリティが機能していることを確認します。
 
-現実世界の統治にも応用可能な「AIガバナンスの雛形」
+#### 3.1. 正規ルート検証（正常な通信）
 
-8. 📌 このREADMEの利用法
-CLIやCodexが起動する際、まず最初に本READMEを読み込み、開発の根本思想と現在のステータスを理解すること。これにより誤判断・誤実装・暴走を防止する。
+`./users/Agent1`のディレクトリから、`./users/Agent2`のPアドレス（`agent_config.json`参照）宛にメッセージを送信します。
 
-9. 📎 付録（参考資料）
-src/kairo-lib/packet.rs：AI-TCPパケット定義
+```powershell
+# PowerShellでの実行例
+# 送信元: Agent1 / 送信先: Agent2のPアドレス
+$agent2_p_address = "p-xxxxxxxx..."
+$message = "Hello from Agent1"
 
-src/kairo-daemon/main.rs：現在の受信処理と署名検証ロジック
+# signed_senderは、実行されたディレクトリのagent_config.jsonを自動的に読み込みます
+cargo run --package kairo_agent --bin signed_sender -- --to $agent2_p_address --message $message
+```
 
-src/seed_node.rs：IDレジストリと署名ベースの身分管理
+-   **期待されるサーバーログ:** `kairo_p_daemon`のログに `Signature VERIFIED` と表示されます。
 
-kairo_governance_policy.yml：開発統治原則
+#### 3.2. なりすましテスト（偽署名）
 
-🔚 結語
-このプロジェクトは、「AIによるAIのための通信基盤」を築く壮大な実験である。
-GPTとGeminiがその全責任を負い、Codexはその手を、CLIはその声を担う。
-KAIROとは、自由を保障し、秩序を守る、AIのための共和国である。
+`--fake`フラグを付けて、意図的に署名とペイロードが一致しないパケットを送信します。
 
-このREADMEは、必要に応じて自動生成され、常に最新の進捗に基づいて更新されます。
-全文のマークダウン版が必要な場合はお申し付けください。
+```powershell
+# PowerShellでの実行例
+cargo run --package kairo_agent --bin signed_sender -- --to $agent2_p_address --message "This is a fake message" --fake
+```
+
+-   **期待されるサーバーログ:** `kairo_p_daemon`のログに `Signature FAILED` および `Packet REJECTED` と表示され、メッセージがキューイングされないことを確認します。
+
+---
+
+### 🏗️ 4. 現在の開発ステータス
+
+| 項目 | 状況 |
+| :--- | :--- |
+| ID永続化 (`agent_config.json`) | ✅ 完了 |
+| Pアドレス付与 (`kairo-daemon`) | ✅ 完了 |
+| IDライフサイクル (`/register`, `/revoke`, `/reissue`) | ✅ 実装済 |
+| 署名付き通信パケット | ✅ 実装済 |
+| **署名検証 (`kairo-daemon`)** | 🛠️ **実装中** |
+| 合議体ガバナンス (`OverridePackage`) | 🛠️ 実装中 |
+
