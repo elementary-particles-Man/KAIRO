@@ -33,3 +33,7 @@ path = "send_message.rs"
 [[bin]]
 name = "receive_signed"
 path = "receive_signed.rs"
+
+[[bin]]
+name = "forged_sender"
+path = "forged_sender.rs"
