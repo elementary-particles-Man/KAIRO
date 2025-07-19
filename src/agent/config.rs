@@ -32,18 +32,26 @@ fn verify_signature(config: &AgentConfig) -> bool {
         Ok(bytes) => bytes,
         Err(_) => return false,
     };
-    let public_key = match VerifyingKey::from_bytes(&public_key_bytes) {
-        Ok(key) => key,
+    let public_key = match public_key_bytes.as_slice().try_into() {
+        Ok(bytes_32) => match VerifyingKey::from_bytes(&bytes_32) {
+            Ok(pk) => pk,
+            Err(_) => return false,
+        },
         Err(_) => return false,
     };
+
     let signature_bytes = match hex::decode(&config.signature) {
         Ok(bytes) => bytes,
         Err(_) => return false,
     };
-    let signature = match Signature::from_bytes(&signature_bytes) {
-        Ok(sig) => sig,
+    let signature = match signature_bytes.as_slice().try_into() {
+        Ok(bytes_64) => match Signature::from_bytes(&bytes_64) {
+            Ok(sig) => sig,
+            Err(_) => return false,
+        },
         Err(_) => return false,
     };
+
     let message = format!("{}:{}", config.p_address, config.public_key);
     public_key.verify(message.as_bytes(), &signature).is_ok()
 }
@@ -65,7 +73,7 @@ pub fn load_first_config() -> Option<AgentConfig> {
         for entry in entries.flatten() {
             if let Ok(file) = File::open(entry.path()) {
                 let reader = BufReader::new(file);
-                if let Ok(config): Result<AgentConfig, _> = serde_json::from_reader(reader) {
+                if let Ok(config) = serde_json::from_reader::<_, AgentConfig>(reader) {
                     if verify_signature(&config) {
                         println!("-> Agent configuration integrity VERIFIED.");
                         return Some(config);
@@ -79,4 +87,3 @@ pub fn load_first_config() -> Option<AgentConfig> {
     }
     None
 }
-
