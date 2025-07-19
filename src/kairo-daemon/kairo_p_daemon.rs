@@ -13,6 +13,17 @@ use kairo_lib::packet::AiTcpPacket;
 use kairo_lib::AgentConfig;
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct DaemonConfig {
+    #[clap(long, default_value = "127.0.0.1")]
+    listen_address: String,
+
+    #[clap(long, default_value_t = 3030)]
+    listen_port: u16,
+}
 
 /// Simple pool for issuing incremental P-addresses.
 struct AddressPool {
@@ -224,6 +235,8 @@ async fn main() {
 
     let routes = assign_p_address.or(send).or(receive);
 
-    println!("Listening on http://127.0.0.1:3030");
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    let listen_addr: std::net::IpAddr = config.listen_address.parse().expect("Invalid listen address");
+
+    println!("Listening for address requests on http://{}:{}", config.listen_address, config.listen_port);
+    warp::serve(routes).run((listen_addr, config.listen_port)).await;
 }
