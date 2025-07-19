@@ -28,24 +28,32 @@ pub fn create_signature(p_address: &str, public_key: &str, secret_key: &SigningK
 
 // Verifies the signature within the config file.
 fn verify_signature(config: &AgentConfig) -> bool {
+    // 公開鍵
     let public_key_bytes = match hex::decode(&config.public_key) {
         Ok(bytes) => bytes,
         Err(_) => return false,
     };
-    let public_key = match public_key_bytes.as_slice().try_into().ok().and_then(|b: &[u8; 32]| VerifyingKey::from_bytes(b).ok()) {
-        Some(pk) => pk,
-        None => return false,
+    let public_key_array: &[u8; 32] = match public_key_bytes.as_slice().try_into() {
+        Ok(arr) => arr,
+        Err(_) => return false,
+    };
+    let public_key = match VerifyingKey::from_bytes(public_key_array) {
+        Ok(pk) => pk,
+        Err(_) => return false,
     };
 
+    // 署名
     let signature_bytes = match hex::decode(&config.signature) {
         Ok(bytes) => bytes,
         Err(_) => return false,
     };
-    let signature = match signature_bytes.as_slice().try_into().ok().and_then(|b: &[u8; 64]| Signature::from_bytes(b).ok()) {
-        Some(sig) => sig,
-        None => return false,
+    let signature_array: &[u8; 64] = match signature_bytes.as_slice().try_into() {
+        Ok(arr) => arr,
+        Err(_) => return false,
     };
+    let signature = Signature::from_bytes(signature_array);
 
+    // メッセージ検証
     let message = format!("{}:{}", config.p_address, config.public_key);
     public_key.verify(message.as_bytes(), &signature).is_ok()
 }
