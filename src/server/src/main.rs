@@ -46,10 +46,13 @@ async fn handle_emergency_reissue(req: OverridePackage) -> Result<impl Reply, Re
         return Ok(warp::reply::with_status(warp::reply::json(&res), warp::http::StatusCode::UNAUTHORIZED));
     }
 
-    Ok(warp::reply::json(&RegisterResponse {
-        status: "success".to_string(),
-        message: "Received".to_string(),
-    }))
+    Ok(warp::reply::with_status(
+        warp::reply::json(&RegisterResponse {
+            status: "success".to_string(),
+            message: "Received".to_string(),
+        }),
+        warp::http::StatusCode::OK,
+    ))
 }
 
 #[tokio::main]

@@ -1,6 +1,0 @@
-{
-  "p_address": "10.0.0.1",
-  "public_key": "04ea69c43ba1e19d796280d92a4a353dfb5d30e7ada68cba4bfbd7f3956fd4fe46fb4e98f4fbdfb212f646b1b94fe49317d5d4d3f01e4391574c7aed956beb09f5",
-  "secret_key": "cf71960d5910accbccc4232b477df3a28cfe952be98b5495340ed414c2807c73",
-  "signature": "signed(04ea69c43ba1e19d796280d92a4a353dfb5d30e7ada68cba4bfbd7f3956fd4fe46fb4e98f4fbdfb212f646b1b94fe49317d5d4d3f01e4391574c7aed956beb09f5)"
-}

@@ -15,8 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use clap::Parser;
 
-pub mod config;
-use config::load_daemon_config;
+use kairo_lib::config::load_daemon_config;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

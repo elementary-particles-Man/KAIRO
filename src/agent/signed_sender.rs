@@ -37,6 +37,13 @@ struct AiTcpPacket {
     signature: String,
 }
 
+use kairo_lib::config as daemon_config;
+
+fn get_daemon_url() -> String {
+    let config = daemon_config::load_daemon_config("daemon_config.json").expect("Failed to load daemon_config.json for sender");
+    format!("http://{}:{}/send", config.listen_address, config.listen_port)
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
@@ -68,7 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#?}", serde_json::to_string(&packet)?);
 
     let client = Client::new();
-    let res = client.post("http://127.0.0.1:3030/send")
+    let res = client.post(get_daemon_url())
         .json(&packet)
         .send()?;
 
