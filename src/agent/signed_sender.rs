@@ -40,7 +40,14 @@ struct AiTcpPacket {
 use kairo_lib::config as daemon_config;
 
 fn get_daemon_url() -> String {
-    let config = daemon_config::load_daemon_config("daemon_config.json").expect("Failed to load daemon_config.json for sender");
+    let config = daemon_config::load_daemon_config(".kairo/.config/daemon_config.json")
+        .unwrap_or_else(|_| {
+            println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
+            daemon_config::DaemonConfig {
+                listen_address: "127.0.0.1".to_string(),
+                listen_port: 3030,
+            }
+        });
     format!("http://{}:{}/send", config.listen_address, config.listen_port)
 }
 
