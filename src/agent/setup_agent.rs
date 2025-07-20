@@ -8,9 +8,13 @@ use std::path::PathBuf;
 use kairo_lib::config as daemon_config;
 
 fn get_daemon_assign_url() -> String {
-    let config = daemon_config::load_daemon_config(".kairo/config/daemon_config.json").unwrap_or_else(|e| {
-        eprintln!("Failed to load daemon_config.json for setup_agent: {}", e);
-        std::process::exit(1);
+    let config = daemon_config::load_daemon_config(".kairo/config/daemon_config.json")
+    .unwrap_or_else(|_| {
+        println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
+        daemon_config::DaemonConfig {
+            listen_address: "127.0.0.1".to_string(),
+            listen_port: 3030
+        }
     });
     format!("http://{}:{}/assign_p_address", config.listen_address, config.listen_port)
 }

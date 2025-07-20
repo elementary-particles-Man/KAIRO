@@ -13,7 +13,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.141"
 tokio = { version = "1.46", features = ["full"] }
 reqwest = { version = "0.11", features = ["json", "rustls-tls", "blocking"] }
-chrono = { version = "0.4", features = ["serde"] }
+chrono = "0.4"
 p256 = { version = "0.13", features = ["ecdsa"] }
 
 kairo_lib = { path = "../kairo-lib" }
@@ -37,3 +37,6 @@ path = "receive_signed.rs"
 [[bin]]
 name = "forged_sender"
 path = "forged_sender.rs"
+[[bin]]
+name = "propose_override"
+path = "../../src/governance/propose_override.rs"
