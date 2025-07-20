@@ -37,6 +37,4 @@ path = "receive_signed.rs"
 [[bin]]
 name = "forged_sender"
 path = "forged_sender.rs"
-[[bin]]
-name = "propose_override"
-path = "../../src/governance/propose_override.rs"
+

@@ -6,6 +6,7 @@ members = [
     "src/kairo-daemon",
     "src/kairof",
     "src/kairo-lib",
-    "src/mesh-node"
+    "src/mesh-node",
+    "src/governance"
 ]
 resolver = "2"

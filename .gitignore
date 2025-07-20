@@ -64,3 +64,4 @@ Desktop.ini
 registry.json
 Cargo.lock
 kairo_log.txt
+agent_config.json
