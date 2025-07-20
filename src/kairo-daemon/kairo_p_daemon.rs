@@ -20,7 +20,7 @@ use kairo_lib::config::load_daemon_config;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long, default_value = "daemon_config.json")]
+    #[arg(short, long, default_value = ".kairo/config/daemon_config.json")]
     config: String,
 }
 
@@ -218,7 +218,10 @@ async fn main() {
     println!("KAIRO-P Daemon starting...");
     println!("Loading configuration from: {}", args.config);
 
-    let config = load_daemon_config(&args.config).expect("Failed to load daemon_config.json");
+    let config = load_daemon_config(&args.config).unwrap_or_else(|e| {
+        eprintln!("Failed to load daemon_config.json: {}", e);
+        std::process::exit(1);
+    });
     let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
 
     let assign_p_address = warp::post()

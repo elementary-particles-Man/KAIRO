@@ -5,6 +5,16 @@ use reqwest;
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
+use kairo_lib::config as daemon_config;
+
+fn get_daemon_assign_url() -> String {
+    let config = daemon_config::load_daemon_config(".kairo/config/daemon_config.json").unwrap_or_else(|e| {
+        eprintln!("Failed to load daemon_config.json for setup_agent: {}", e);
+        std::process::exit(1);
+    });
+    format!("http://{}:{}/assign_p_address", config.listen_address, config.listen_port)
+}
+
 
 #[derive(Deserialize)]
 struct AgentMapping {
@@ -44,7 +54,7 @@ Requesting KAIRO-P address from local daemon...");
 
         // Change reqwest::get to reqwest::Client::new().post
         match reqwest::Client::new()
-            .post("http://127.0.0.1:3030/assign_p_address") // Changed endpoint
+            .post(get_daemon_assign_url()) // Changed endpoint
             .json(&serde_json::json!({ "public_key": public_key_hex })) // Changed to public_key
             .send()
             .await

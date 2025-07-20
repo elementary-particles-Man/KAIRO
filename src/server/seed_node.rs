@@ -16,6 +16,15 @@ use ed25519_dalek::{VerifyingKey, Signature, Verifier};
 use serde_json::from_reader;
 
 use kairo_lib::governance::OverridePackage;
+use kairo_lib::config::DaemonConfig;
+use std::fs;
+
+fn load_node_config(path: &str) -> Result<DaemonConfig, Box<dyn std::error::Error>> {
+    let config_str = fs::read_to_string(path)?;
+    let config: DaemonConfig = serde_json::from_str(&config_str)?;
+    Ok(config)
+}
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct RegisterRequest {
@@ -279,6 +288,13 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
 async fn main() {
     println!("KAIRO Seed Node [Unified: Registry + Messaging] starting...");
 
+    let config = load_node_config(".kairo/config/node_config.json").unwrap_or_else(|e| {
+        eprintln!("Failed to load node_config.json: {}", e);
+        DaemonConfig { listen_address: "10.0.0.254".to_string(), listen_port: 8000 }
+    });
+
+    println!("Listening on {}:{}", config.listen_address, config.listen_port);
+
     let db_lock = Arc::new(Mutex::new(()));
 
     let register = warp::post()
@@ -329,5 +345,5 @@ async fn main() {
 
     let routes = register.or(revoke).or(reissue).or(emergency_reissue).or(send).or(receive).recover(handle_rejection);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    warp::serve(routes).run((config.listen_address.parse::<std::net::IpAddr>().unwrap(), config.listen_port)).await;
 }

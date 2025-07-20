@@ -40,7 +40,10 @@ struct AiTcpPacket {
 use kairo_lib::config as daemon_config;
 
 fn get_daemon_url() -> String {
-    let config = daemon_config::load_daemon_config("daemon_config.json").expect("Failed to load daemon_config.json for sender");
+    let config = daemon_config::load_daemon_config(".kairo/config/daemon_config.json").unwrap_or_else(|e| {
+        eprintln!("Failed to load daemon_config.json for sender: {}", e);
+        std::process::exit(1);
+    });
     format!("http://{}:{}/send", config.listen_address, config.listen_port)
 }
 
