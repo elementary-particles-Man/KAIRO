@@ -19,7 +19,6 @@ struct Args {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct AgentConfig {
-    p_address: String,
     public_key: String,
     secret_key: String,
     signature: String,

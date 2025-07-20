@@ -46,6 +46,7 @@ struct RegisterResponse {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct AgentInfo {
     agent_id: String,
+    public_key: String,
     registered_at: String,
     status: String,
     replaces: Option<String>,
@@ -67,35 +68,19 @@ fn write_registry(registry: &[AgentInfo]) -> std::io::Result<()> {
     Ok(())
 }
 
-fn read_configs() -> Result<Vec<AgentConfig>, std::io::Error> {
-    let mut configs = Vec::new();
-    if let Ok(entries) = std::fs::read_dir("agent_configs") {
-        for entry in entries {
-            let path = entry?.path();
-            if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                let file = File::open(&path)?;
-                if let Ok(cfg) = from_reader(file) {
-                    configs.push(cfg);
-                }
-            }
-        }
-    }
-    Ok(configs)
-}
-
-fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bool {
-    let source_agent = match registry.iter().find(|a| {
-        let verifying_key_hex = hex::encode(a.verifying_key_bytes);
-        verifying_key_hex == packet.source_p_address
-    }) {
+fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
+    let source_agent = match registry.iter().find(|a| a.public_key == packet.source_public_key) {
         Some(agent) => agent,
         None => {
-            println!("Signature Fail: Source agent {} not found in registry.", packet.source_p_address);
+            println!("Signature Fail: Source agent {} not found in registry.", packet.source_public_key);
             return false;
         }
     };
 
-    let public_key_bytes = source_agent.verifying_key_bytes;
+    let public_key_bytes = match hex::decode(&source_agent.public_key) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
 
     let public_key = match VerifyingKey::try_from(&public_key_bytes[..]) {
         Ok(key) => key,
@@ -118,15 +103,15 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bo
 static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> = Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
 
 async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
-    println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_p_address);
+    println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_public_key);
     let mut queue = MESSAGE_QUEUE.lock().await;
-    let registry = read_configs().expect("Config read error during send");
+    let registry = read_registry().expect("Config read error during send");
     if verify_packet_signature(&packet, &registry) {
-        println!("Signature VERIFIED for packet from {}", packet.source_p_address);
+        println!("Signature VERIFIED for packet from {}", packet.source_public_key);
         let inbox = queue.entry(packet.destination_p_address.clone()).or_insert_with(Vec::new);
         inbox.push(packet);
     } else {
-        println!("Signature FAILED for packet from {}: Packet REJECTED.", packet.source_p_address);
+        println!("Signature FAILED for packet from {}: Packet REJECTED.", packet.source_public_key);
     }
     Ok(warp::reply::json(&"packet_queued"))
 }
@@ -153,6 +138,7 @@ async fn handle_registration(req: RegisterRequest, db_lock: Arc<Mutex<()>>) -> R
     } else {
         let new_agent = AgentInfo {
             agent_id: req.agent_id.clone(),
+            public_key: req.agent_id.clone(), // agent_id を public_key として使用
             registered_at: Utc::now().to_rfc3339(),
             status: "active".to_string(),
             replaces: None,
@@ -196,6 +182,7 @@ async fn handle_reissue(req: ReissueRequest, db_lock: Arc<Mutex<()>>) -> Result<
     }
     let new_agent = AgentInfo {
         agent_id: req.new_agent_id.clone(),
+        public_key: req.new_agent_id.clone(), // new_agent_id を public_key として使用
         registered_at: Utc::now().to_rfc3339(),
         status: "active".to_string(),
         replaces: Some(req.old_agent_id.clone()),
@@ -211,7 +198,7 @@ async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>)
     println!("Received emergency reissue request.");
 
     let mut registry = read_registry().expect("Failed to read from DB");
-    let agent_configs = read_configs().expect("Failed to read agent configs");
+    let agent_configs = read_registry().expect("Failed to read agent configs");
 
     // 1. JSONで受け取ったOverridePackageをパース (warp::body::json() で既にパース済み)
     let payload_bytes = serde_json::to_vec(&req.payload)
@@ -223,18 +210,19 @@ async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>)
         let signature_hex = &sig_package.signature;
 
         // 署名者IDが実在し、`agent_registry` に登録済であること
-        let signatory_agent = agent_configs.iter().find(|a| {
-            let verifying_key_hex = hex::encode(a.verifying_key_bytes);
-            verifying_key_hex == *signatory_id
-        }).ok_or_else(|| warp::reject::custom(BadRequest(format!("Signatory ID not found: {}", signatory_id))))?;
+        let signatory_agent = agent_configs.iter().find(|a| a.agent_id == *signatory_id)
+            .ok_or_else(|| warp::reject::custom(BadRequest(format!("Signatory ID not found: {}", signatory_id))))?;
 
-        let public_key_bytes = signatory_agent.verifying_key_bytes;
-        let public_key = VerifyingKey::try_from(&public_key_bytes[..])
+        let public_key_bytes: [u8; 32] = hex::decode(&signatory_agent.public_key)
+            .map_err(|_| warp::reject::custom(BadRequest("Invalid public key format".to_string())))?
+            .try_into()
+            .map_err(|_| warp::reject::custom(BadRequest("Invalid public key length".to_string())))?;
+        let public_key = VerifyingKey::from_bytes(&public_key_bytes)
             .map_err(|_| warp::reject::custom(BadRequest("Invalid public key format".to_string())))?;
 
         let signature_bytes = hex::decode(signature_hex)
             .map_err(|_| warp::reject::custom(BadRequest("Invalid signature format".to_string())))?;
-        let signature = Signature::try_from(signature_bytes.as_slice()) // ここを修正
+        let signature = Signature::try_from(signature_bytes.as_slice())
             .map_err(|_| warp::reject::custom(BadRequest("Invalid signature format".to_string())))?;
 
         if public_key.verify(&payload_bytes, &signature).is_err() {

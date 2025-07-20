@@ -22,7 +22,11 @@ struct Args {
     invalid_quorum: bool,
 }
 
-fn main() {
+use reqwest::Client;
+use tokio::main;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     let payload = ReissueRequestPayload {
@@ -80,17 +84,19 @@ fn main() {
         signatures,
     };
 
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::Client::new();
     let res = client
         .post("http://127.0.0.1:8000/emergency_reissue")
         .json(&package)
-        .send();
+        .send()
+        .await;
 
     match res {
         Ok(response) => {
             println!("-> Sent OverridePackage. Server response: {}", response.status());
-            println!("{}", response.text().unwrap_or_default());
+            println!("{}", response.text().await.unwrap_or_default());
         }
         Err(e) => eprintln!("-> Failed to send OverridePackage: {}", e),
     }
+    Ok(())
 }

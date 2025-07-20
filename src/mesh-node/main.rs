@@ -15,10 +15,10 @@ use std::sync::Arc;
 use ed25519_dalek::{VerifyingKey, Signature, Verifier};
 
 fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
-    let source_agent = match registry.iter().find(|a| a.p_address == packet.source_p_address) {
+    let source_agent = match registry.iter().find(|a| a.public_key == packet.source_public_key) {
         Some(agent) => agent,
         None => {
-            println!("Signature Fail: Source agent {} not found in registry.", packet.source_p_address);
+            println!("Signature Fail: Source agent {} not found in registry.", packet.source_public_key);
             return false;
         }
     };
@@ -54,15 +54,15 @@ static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<
 
 // --- AI-TCP Communication Handlers ---
 async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
-    println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_p_address);
+    println!("Received packet to: {}, from: {}", packet.destination_p_address, packet.source_public_key);
     let mut queue = MESSAGE_QUEUE.lock().await;
     let registry = read_registry().expect("DB read error during send");
     if verify_packet_signature(&packet, &registry) {
-        println!("Signature VERIFIED for packet from {}", packet.source_p_address);
+        println!("Signature VERIFIED for packet from {}", packet.source_public_key);
         let inbox = queue.entry(packet.destination_p_address.clone()).or_insert_with(Vec::new);
         inbox.push(packet);
     } else {
-        println!("Signature FAILED for packet from {}", packet.source_p_address);
+        println!("Signature FAILED for packet from {}", packet.source_public_key);
         // Do not queue the packet if signature is invalid
     }
     Ok(warp::reply::json(&"packet_queued"))

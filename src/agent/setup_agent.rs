@@ -1,11 +1,18 @@
-use kairo_lib::{AgentConfig, save_agent_config, sign_config};
+use kairo_lib::{save_agent_config, sign_config};
 use p256::ecdsa::SigningKey;
 use rand_core::OsRng;
 use reqwest;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use kairo_lib::config as daemon_config;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct AgentConfig {
+    public_key: String,
+    secret_key: String,
+    signature: String,
+}
 
 fn get_daemon_assign_url() -> String {
     let config = daemon_config::load_daemon_config(".kairo/config/daemon_config.json")
@@ -22,7 +29,6 @@ fn get_daemon_assign_url() -> String {
 
 #[derive(Deserialize)]
 struct AgentMapping {
-    public_key: String,
     p_address: String,
 }
 
@@ -52,36 +58,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("\nStep 2: Registering with a Seed Node...");
 
         // Try to request P address from local daemon
-        let mut p_address = String::from("invalid_address");
         println!("
 Requesting KAIRO-P address from local daemon...");
 
         // Change reqwest::get to reqwest::Client::new().post
-        match reqwest::Client::new()
+        let p_address_response = reqwest::Client::new()
             .post(get_daemon_assign_url()) // Changed endpoint
             .json(&serde_json::json!({ "public_key": public_key_hex })) // Changed to public_key
             .send()
-            .await
-        {
-            Ok(response) => {
-                if response.status().is_success() {
-                    match response.json::<AgentMapping>().await {
-                        Ok(mapping) => {
-                            println!("-> Received P Address: {}", mapping.p_address);
-                            p_address = mapping.p_address;
-                        }
-                        Err(e) => {
-                            println!("-> Failed to parse JSON response: {}", e);
-                        }
-                    }
-                } else {
-                    println!("-> Failed to assign P address. Status: {}", response.status());
-                }
-            }
-            Err(e) => {
-                println!("-> Failed to contact local daemon: {}", e);
-            }
-        }
+            .await?; // エラーハンドリングを簡略化
+
+        let p_address_mapping: AgentMapping = p_address_response.json().await?;
+        let p_address = p_address_mapping.p_address; // Pアドレスを取得
+
+        println!("-> Received P Address: {}", p_address);
 
         println!("-> Attempting to register public key with seed node...");
         let _ = reqwest::Client::new()
@@ -96,23 +86,17 @@ Requesting KAIRO-P address from local daemon...");
         println!("-> Successfully registered with seed node.");
 
         config = AgentConfig {
-            p_address: p_address.clone(),
             public_key: public_key_hex.clone(),
             secret_key: secret_key_hex,
             signature: String::new(), // will be set below
         };
-        sign_config(&mut config);
-        save_agent_config(&config)?;
-        println!("-> Agent configuration saved.");
 
-        println!("\n--- Onboarding Complete ---");
-        println!("Your assigned KAIRO-P Address: {}", config.p_address);
+        println!("--- Onboarding Complete ---");
     } else {
         println!("--- Welcome Back ---");
         let contents = fs::read_to_string(agent_config_path)?;
         config = serde_json::from_str(&contents)?;
         println!("Restored identity from agent_config.json");
-        println!("Your KAIRO-P Address: {}", config.p_address);
         println!("Your Public Key: {}", config.public_key);
     }
 

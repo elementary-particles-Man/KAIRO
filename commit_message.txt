@@ -1,1 +1,1 @@
-feat(onboard): support multi-agent configuration
+feat: Update .gitignore

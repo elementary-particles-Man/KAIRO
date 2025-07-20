@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AiTcpPacket {
     pub version: u32,
-    pub source_p_address: String,
+    pub source_public_key: String,
     pub destination_p_address: String,
     pub sequence: u64,
     pub timestamp: i64,
