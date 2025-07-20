@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use clap::Parser;
 
-use kairo_lib::config::load_daemon_config;
+use kairo_lib::config::{load_daemon_config, DaemonConfig};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -218,10 +218,14 @@ async fn main() {
     println!("KAIRO-P Daemon starting...");
     println!("Loading configuration from: {}", args.config);
 
-    let config = load_daemon_config(&args.config).unwrap_or_else(|e| {
-        eprintln!("Failed to load daemon_config.json: {}", e);
-        std::process::exit(1);
-    });
+    let config = load_daemon_config(".kairo/.config/daemon_config.json")
+        .unwrap_or_else(|_| {
+            println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
+            DaemonConfig {
+                listen_address: "127.0.0.1".to_string(),
+                listen_port: 3030,
+            }
+        });
     let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
 
     let assign_p_address = warp::post()
