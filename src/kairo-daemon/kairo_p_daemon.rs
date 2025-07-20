@@ -20,7 +20,7 @@ use kairo_lib::config::{load_daemon_config, DaemonConfig};
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long, default_value = "daemon_config.json")]
+    #[arg(short, long, default_value = ".kairo/config/daemon_config.json")]
     config: String,
 }
 

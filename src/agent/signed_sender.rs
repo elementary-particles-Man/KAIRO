@@ -48,6 +48,7 @@ fn get_daemon_url() -> String {
                 listen_port: 3030,
             }
         });
+
     format!("http://{}:{}/send", config.listen_address, config.listen_port)
 }
 
