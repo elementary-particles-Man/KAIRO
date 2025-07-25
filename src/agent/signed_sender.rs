@@ -24,6 +24,9 @@ struct Args {
 
     #[arg(long, default_value_t = false)]
     fake: bool,
+
+    #[arg(long, default_value = "agent_config.json")]
+    config: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -60,7 +63,7 @@ fn get_daemon_url() -> String {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    let config_path = PathBuf::from("agent_config.json");
+    let config_path = PathBuf::from(&args.config);
     let config_data = fs::read_to_string(config_path)?;
     let config: AgentConfig = serde_json::from_str(&config_data)?;
 

@@ -38,3 +38,7 @@ path = "receive_signed.rs"
 name = "forged_sender"
 path = "forged_sender.rs"
 
+[[bin]]
+name = "agent_config_gen"
+path = "agent_config_gen.rs"
+
