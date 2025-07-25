@@ -10,7 +10,7 @@ use tokio::sync::Mutex;
 use warp::{http::StatusCode, Filter, Rejection, Reply};
 
 use kairo_lib::packet::AiTcpPacket;
-use kairo_lib::AgentConfig;
+use kairo_lib::config::AgentConfig;
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use clap::Parser;
@@ -66,14 +66,20 @@ fn write_agent_registry(registry: &[AgentInfo]) -> std::io::Result<()> {
 
 
 /// Verify that a packet's signature matches the sending agent's public key.
-fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
+fn verify_packet_signature(
+    packet: &kairo_lib::packet::AiTcpPacket,
+    registry: &[kairo_lib::config::AgentConfig],
+) -> bool {
     let source_agent = match registry
         .iter()
-        .find(|a| a.public_key == packet.source_public_key) // public_key を使用
+        .find(|a| a.p_address == packet.source_p_address)
     {
         Some(agent) => agent,
         None => {
-            println!("🔴 Signature Fail: Source agent not found in registry for public key: {}", packet.source_public_key);
+            println!(
+                "🔴 Signature Fail: Source agent {} not found in registry.",
+                packet.source_p_address
+            );
             return false;
         }
     };
@@ -81,15 +87,21 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
     let public_key_bytes = match hex::decode(&source_agent.public_key) {
         Ok(bytes) => bytes,
         Err(_) => {
-            println!("🔴 Signature Fail: Invalid public key format in registry.");
+            println!(
+                "🔴 Signature Fail: Could not decode public key for {}.",
+                source_agent.p_address
+            );
             return false;
         }
     };
 
-    let public_key = match VerifyingKey::from_bytes(public_key_bytes.as_slice().try_into().unwrap()) {
+    let public_key = match VerifyingKey::from_bytes(&public_key_bytes) {
         Ok(key) => key,
         Err(_) => {
-            println!("🔴 Signature Fail: Invalid public key bytes from registry.");
+            println!(
+                "🔴 Signature Fail: Invalid public key format for {}.",
+                source_agent.p_address
+            );
             return false;
         }
     };
@@ -97,20 +109,18 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
     let signature_bytes = match hex::decode(&packet.signature) {
         Ok(bytes) => bytes,
         Err(_) => {
-            println!("🔴 Signature Fail: Invalid signature format.");
+            println!("🔴 Signature Fail: Could not decode signature from packet.");
             return false;
         }
     };
 
-    let signature_array: [u8; 64] = match signature_bytes.as_slice().try_into() {
-        Ok(arr) => arr,
+    let signature = match Signature::from_bytes(&signature_bytes) {
+        Ok(sig) => sig,
         Err(_) => {
-            println!("🔴 Signature Fail: Invalid signature byte length.");
+            println!("🔴 Signature Fail: Invalid signature format in packet.");
             return false;
         }
     };
-
-    let signature = Signature::from_bytes(&signature_array);
 
     public_key
         .verify(packet.payload.as_bytes(), &signature)
