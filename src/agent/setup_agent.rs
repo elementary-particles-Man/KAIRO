@@ -1,5 +1,6 @@
 use kairo_lib::{save_agent_config};
 use ed25519_dalek::SigningKey;
+use rand::RngCore;
 use rand::rngs::OsRng;
 use reqwest;
 use serde::Deserialize;
@@ -8,6 +9,8 @@ use std::path::PathBuf;
 use kairo_lib::config as daemon_config;
 use kairo_lib::AgentConfig;
 use clap::Parser;
+use rand::RngCore;
+use rand::rngs::OsRng;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -51,12 +54,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if cli_args.new || !agent_config_path.exists() {
         println!("--- KAIRO Mesh Initial Setup ---");
 
-        // Generate key pair
-        use rand::RngCore;
+// Generate key pair
         let mut csprng = OsRng;
-        let mut key_bytes = [0u8; 32];
-        csprng.fill_bytes(&mut key_bytes);
-        let signing_key = SigningKey::from_bytes(&key_bytes);
+        let mut sk_bytes = [0u8; 32];
+        csprng.fill_bytes(&mut sk_bytes);
+        let signing_key = SigningKey::from_bytes(&sk_bytes);
         let public_key_bytes = signing_key.verifying_key().to_bytes().to_vec();
         let secret_key_bytes = signing_key.to_bytes().to_vec();
 
