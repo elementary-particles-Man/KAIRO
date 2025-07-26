@@ -86,10 +86,16 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
         }
     };
 
-    let public_key = match VerifyingKey::from_bytes(public_key_bytes.as_slice()) {
-        Ok(key) => key,
+    let public_key = match public_key_bytes.as_slice().try_into() {
+        Ok(bytes) => match VerifyingKey::from_bytes(bytes) {
+            Ok(key) => key,
+            Err(e) => {
+                println!("🔴 Signature Fail: Invalid public key bytes from registry. Error: {:?}", e);
+                return false;
+            }
+        },
         Err(e) => {
-            println!("🔴 Signature Fail: Invalid public key bytes from registry. Error: {:?}", e);
+            println!("🔴 Signature Fail: Public key bytes not 32 bytes long. Error: {:?}", e);
             return false;
         }
     };
@@ -147,6 +153,7 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
 
 /// Deliver all queued packets for the requested P-address.
 async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
+    println!("🔵 [RECEIVE] Request received for P-address: {}", p_address);
     let mut queue = MESSAGE_QUEUE.lock().await;
     if let Some(inbox) = queue.get_mut(&p_address) {
         let packets = inbox.clone();
@@ -158,6 +165,7 @@ async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
         );
         Ok(warp::reply::json(&packets))
     } else {
+        println!("🟡 [RECEIVE] No inbox found for P-address: {}", p_address);
         Ok(warp::reply::json(&Vec::<AiTcpPacket>::new()))
     }
 }
@@ -211,7 +219,19 @@ async fn main() {
                 listen_port: 3030,
             }
         });
-    let pool = Arc::new(StdMutex::new(AddressPool { next_address: 1 }));
+    let initial_next_address = {
+        let registry = read_agent_registry().unwrap_or_default();
+        let max_p_address_num = registry.iter()
+            .filter_map(|agent| {
+                agent.p_address.split('/').next() // "10.0.0.X/24" から "10.0.0.X" を取得
+                    .and_then(|s| s.split('.').last()) // "10.0.0.X" から "X" を取得
+                    .and_then(|s| s.parse::<u8>().ok()) // "X" を数値に変換
+            })
+            .max()
+            .unwrap_or(0); // 登録がない場合は0
+        max_p_address_num + 1
+    };
+    let pool = Arc::new(StdMutex::new(AddressPool { next_address: initial_next_address }));
 
     let assign_p_address = warp::post()
         .and(warp::path("assign_p_address"))
@@ -226,8 +246,14 @@ async fn main() {
 
     let receive = warp::get()
         .and(warp::path("receive"))
-        .and(warp::path::param())
-        .and_then(handle_receive);
+        .and(warp::query::<HashMap<String, String>>()) // クエリパラメータを処理
+        .and_then(|params: HashMap<String, String>| async move {
+            if let Some(p_address) = params.get("for") {
+                handle_receive(p_address.clone()).await
+            } else {
+                Err(warp::reject::not_found())
+            }
+        });
 
     let routes = assign_p_address.or(send).or(receive);
 

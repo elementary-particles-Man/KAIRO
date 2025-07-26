@@ -2,14 +2,17 @@ use clap::Parser;
 use ed25519_dalek::{Signature, VerifyingKey, Verifier};
 use kairo_lib::AgentConfig;
 use serde::Deserialize;
-use std::fs::File;
-use std::io::Read;
+use std::fs;
+use std::path::PathBuf;
 
 #[derive(Parser)]
 struct Args {
     /// P address to fetch messages for
     #[arg(long, value_name = "P_ADDRESS")]
     for_address: String,
+
+    #[arg(long)]
+    from: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -24,16 +27,15 @@ struct Message {
 async fn main() {
     let args = Args::parse();
 
-    // Load agent configuration
-    let mut config_contents = String::new();
-    if let Err(e) = File::open("agent_config.json")
-        .and_then(|mut f| f.read_to_string(&mut config_contents))
-    {
-        eprintln!("Failed to read agent_config.json: {}", e);
-        return;
-    }
-
-    let config: AgentConfig = match serde_json::from_str(&config_contents) {
+    let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from.replace("/", "_")));
+    let config_data = match fs::read_to_string(agent_config_path) {
+        Ok(data) => data,
+        Err(e) => {
+            eprintln!("Failed to read agent_config.json: {}", e);
+            return;
+        }
+    };
+    let config: AgentConfig = match serde_json::from_str(&config_data) {
         Ok(c) => c,
         Err(e) => {
             eprintln!("Failed to parse agent_config.json: {}", e);
@@ -49,10 +51,16 @@ async fn main() {
         }
     };
 
-    let verifying_key = match VerifyingKey::try_from(public_key_bytes.as_slice()) {
-        Ok(k) => k,
+    let verifying_key = match public_key_bytes.as_slice().try_into() {
+        Ok(bytes) => match VerifyingKey::from_bytes(bytes) {
+            Ok(k) => k,
+            Err(e) => {
+                eprintln!("Invalid public key: {}", e);
+                return;
+            }
+        },
         Err(e) => {
-            eprintln!("Invalid public key: {}", e);
+            eprintln!("Public key bytes not 32 bytes long: {}", e);
             return;
         }
     };

@@ -27,8 +27,12 @@ struct Args {
 
 #[derive(Serialize, Debug)]
 struct AiTcpPacket {
+    version: u32,
     source_public_key: String,
     destination_p_address: String,
+    sequence: u64,
+    timestamp: i64,
+    payload_type: String,
     payload: String,
     signature: String,
 }
@@ -71,8 +75,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let signature_hex = hex::encode(signature.to_bytes());
 
     let packet = AiTcpPacket {
+        version: 1,
         source_public_key: config.public_key.clone(),
         destination_p_address: args.to,
+        sequence: 0,
+        timestamp: Utc::now().timestamp(),
+        payload_type: "message".to_string(),
         payload: args.message, // 表示上は正規メッセージ
         signature: signature_hex,
     };
