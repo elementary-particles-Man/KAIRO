@@ -1,1 +1,4 @@
-from kairo_lib.py.errors import *
+# Removed Rust binding dependency
+# Local definitions below
+class AgentConfigError(Exception): pass
+class InvalidSignatureError(Exception): pass
