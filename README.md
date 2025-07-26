@@ -37,20 +37,19 @@ KAIROメッシュをローカルで機能させるには、2つのコアサー�
 
 #### 2.2. マルチエージェントのセットアップ
 
-各エージェント（CLIを含む）は、独立した設定ファイル (`agent_config.json`) を持つ必要があります。これにより、各々が固有のIDとPアドレスを保持します。
+各エージェント（CLIを含む）は、独立した設定ファイル (`agent_configs/{agent_name}.json`) を持つ必要があります。これにより、各々が固有のIDとPアドレスを保持します。
 
-1.  **エージェント用のディレクトリに移動:**
+**注意:** 新しいエージェントをセットアップする際、またはPアドレスの重複を避けるために、デーモンを再起動する前に `agent_registry.json` ファイルを削除することを推奨します。
+
+1.  **エージェントの初期化:**
+    以下のコマンドを実行し、`agent_configs/{agent_name}.json`を生成します。`--name`にはエージェントの名前を指定し、`--new`フラグを付けて新しい鍵ペアとPアドレスを生成します。
     ```bash
+    # 例: CLIエージェントをセットアップする場合
+    cargo run --package kairo_agent --bin setup_agent -- --name CLI --new
     # 例: Agent1をセットアップする場合
-    cd ./users/Agent1
+    cargo run --package kairo_agent --bin setup_agent -- --name Agent1 --new
     ```
-
-2.  **エージェントの初期化:**
-    移動したディレクトリ内で以下のコマンドを実行し、`agent_config.json`を生成します。
-    ```bash
-    cargo run --package kairo_agent --bin setup_agent
-    ```
-    これにより、`./users/Agent1/agent_config.json` が生成されます。他のエージェント（Agent2, CLIなど）も同様の手順で初期化してください。
+    これにより、`agent_configs/CLI.json` や `agent_configs/Agent1.json` などが生成されます。他のエージェントも同様の手順で初期化してください。
 
 ---
 
@@ -58,43 +57,41 @@ KAIROメッシュをローカルで機能させるには、2つのコアサー�
 
 エージェント間の署名付き通信をテストし、セキュリティが機能していることを確認します。
 
-#### 3.1. 正規ルート検証（正常な通信）
+#### 3.1. メッセージ送信 (signed_sender)
 
-`./users/Agent1`のディレクトリから、`./users/Agent2`のPアドレス（`agent_config.json`参照）宛にメッセージを送信します。
-
-```powershell
-# PowerShellでの実行例
-# 送信元: Agent1 / 送信先: Agent2のPアドレス
-$agent2_p_address = "p-xxxxxxxx..."
-$message = "Hello from Agent1"
-
-# signed_senderは、実行されたディレクトリのagent_config.jsonを自動的に読み込みます
-cargo run --package kairo_agent --bin signed_sender -- --to $agent2_p_address --message $message
-```
-
--   **期待されるサーバーログ:** `kairo_p_daemon`のログに `Signature VERIFIED` と表示されます。
-
-#### 3.2. なりすましテスト（偽署名）
-
-`--fake`フラグを付けて、意図的に署名とペイロードが一致しないパケットを送信します。
+指定したエージェントから別のエージェントのPアドレス宛にメッセージを送信します。`--from`で送信元エージェントの名前を、`--to`で宛先Pアドレスを、`--message`でメッセージを指定します。
 
 ```powershell
 # PowerShellでの実行例
-cargo run --package kairo_agent --bin signed_sender -- --to $agent2_p_address --message "This is a fake message" --fake
+# Agent1からAgent2へメッセージを送信
+cargo run --package kairo_agent --bin signed_sender -- --from Agent1 --to 10.0.0.11/24 --message Hello
 ```
 
--   **期待されるサーバーログ:** `kairo_p_daemon`のログに `Signature FAILED` および `Packet REJECTED` と表示され、メッセージがキューイングされないことを確認します。
+-   **期待されるサーバーログ:** `kairo_p_daemon`のログに `[SIGNATURE VERIFIED]` と表示され、メッセージがキューイングされます。
 
-#### 3.3. Pアドレス偽装テスト
+#### 3.2. メッセージ受信 (receive_signed)
 
-`forged_sender` を使うと、`agent_config.json` の鍵で署名しつつ任意のPアドレスを送信元として指定できます。
+指定したエージェントのPアドレス宛のメッセージを受信します。`--for-address`で受信するPアドレスを、`--from`で受信するエージェントの名前を指定します。
 
 ```powershell
 # PowerShellでの実行例
-cargo run --package kairo_agent --bin forged_sender -- --to $agent2_p_address --from "p-fakeaddress" --message "spoof test"
+# Agent2が自身のPアドレス宛のメッセージを受信
+cargo run --package kairo_agent --bin receive_signed -- --for-address 10.0.0.11/24 --from Agent2
 ```
 
--   **期待されるサーバーログ:** 送信元Pアドレスが登録済みでないため `Signature Fail: Source agent not found.` が表示されます。
+-   **期待される出力:** 受信したメッセージと署名検証の結果が表示されます。例: `From [送信元公開鍵]: Hello (signature OK)`
+
+#### 3.3. なりすましテスト（偽署名）
+
+`--fake`フラグを付けて、意図的に署名とペイロードが一致しないパケットを送信します。このメッセージはデーモンによって拒否されるはずです。
+
+```powershell
+# PowerShellでの実行例
+cargo run --package kairo_agent --bin signed_sender -- --from Agent1 --to 10.0.0.11/24 --message Fake --fake
+```
+
+-   **期待されるサーバーログ:** `kairo_p_daemon`のログに `[SIGNATURE INVALID] Packet REJECTED` と表示され、メッセージがキューイングされないことを確認します。
+-   **期待される受信結果:** `receive_signed`でこのメッセージを受信しようとしても、メッセージは表示されません。
 
 ---
 

@@ -17,9 +17,13 @@ struct Args {
 
 #[derive(Debug, Deserialize)]
 struct Message {
-    from: String,
-    to: String,
-    message: String,
+    version: u32,
+    source_public_key: String,
+    destination_p_address: String,
+    sequence: u64,
+    timestamp: i64,
+    payload_type: String,
+    payload: String,
     signature: String,
 }
 
@@ -39,28 +43,6 @@ async fn main() {
         Ok(c) => c,
         Err(e) => {
             eprintln!("Failed to parse agent_config.json: {}", e);
-            return;
-        }
-    };
-
-    let public_key_bytes = match hex::decode(&config.public_key) {
-        Ok(b) => b,
-        Err(e) => {
-            eprintln!("Invalid public key hex: {}", e);
-            return;
-        }
-    };
-
-    let verifying_key = match public_key_bytes.as_slice().try_into() {
-        Ok(bytes) => match VerifyingKey::from_bytes(bytes) {
-            Ok(k) => k,
-            Err(e) => {
-                eprintln!("Invalid public key: {}", e);
-                return;
-            }
-        },
-        Err(e) => {
-            eprintln!("Public key bytes not 32 bytes long: {}", e);
             return;
         }
     };
@@ -95,10 +77,32 @@ async fn main() {
     }
 
     for msg in messages {
+        let public_key_bytes = match hex::decode(&msg.source_public_key) {
+            Ok(b) => b,
+            Err(e) => {
+                eprintln!("Invalid source public key hex in message: {}", e);
+                continue;
+            }
+        };
+
+        let verifying_key = match public_key_bytes.as_slice().try_into() {
+            Ok(bytes) => match VerifyingKey::from_bytes(bytes) {
+                Ok(k) => k,
+                Err(e) => {
+                    eprintln!("Invalid source public key in message: {}", e);
+                    continue;
+                }
+            },
+            Err(e) => {
+                eprintln!("Source public key bytes in message not 32 bytes long: {}", e);
+                continue;
+            }
+        };
+
         let signature_bytes = match hex::decode(&msg.signature) {
             Ok(b) => b,
             Err(_) => {
-                println!("From {}: invalid signature encoding", msg.from);
+                println!("From {}: invalid signature encoding", msg.source_public_key);
                 continue;
             }
         };
@@ -106,15 +110,15 @@ async fn main() {
         let signature = match Signature::try_from(signature_bytes.as_slice()) {
             Ok(sig) => sig,
             Err(_) => {
-                println!("From {}: invalid signature format", msg.from);
+                println!("From {}: invalid signature format", msg.source_public_key);
                 continue;
             }
         };
 
-        if verifying_key.verify(msg.message.as_bytes(), &signature).is_ok() {
-            println!("From {}: {} (signature OK)", msg.from, msg.message);
+        if verifying_key.verify(msg.payload.as_bytes(), &signature).is_ok() {
+            println!("From {}: {} (signature OK)", msg.source_public_key, msg.payload);
         } else {
-            println!("From {}: {} (signature INVALID)", msg.from, msg.message);
+            println!("From {}: {} (signature INVALID)", msg.source_public_key, msg.payload);
         }
     }
 }
