@@ -4,10 +4,13 @@ use std::io::{BufReader, BufWriter};
 use std::sync::{Arc, Mutex as StdMutex};
 use chrono::Utc;
 
-use ed25519_dalek::{Signature, VerifyingKey, Verifier};
+use ed25519_dalek::{Signature, VerifyingKey};
 use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 use warp::{http::StatusCode, Filter, Rejection, Reply};
+use base64::Engine;
+use hyper::{Body, Request, Response, StatusCode as HyperStatusCode};
+use sha2::Digest;
 
 use kairo_lib::packet::AiTcpPacket;
 use kairo_lib::AgentConfig;
@@ -33,6 +36,18 @@ struct AddressPool {
 /// Global in-memory message queue indexed by destination P-address.
 static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> =
     Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+/// Shared application state for Hyper handlers.
+struct AppState {
+    queue: Mutex<HashMap<String, Vec<Vec<u8>>>>,
+}
+
+impl AppState {
+    async fn enqueue(&self, to: String, data: Vec<u8>) {
+        let mut q = self.queue.lock().await;
+        q.entry(to).or_default().push(data);
+    }
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct AssignPAddressRequest {
@@ -123,31 +138,34 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
         .is_ok()
 }
 
-/// Handle an incoming packet POST request.
-async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
-    println!(
-        "🔵 [SEND] Received POST: from_public_key={}, to={}",
-        packet.source_public_key, packet.destination_p_address
-    );
-    let registry = read_agent_registry().unwrap_or_default();
-
-    if verify_packet_signature(&packet, &registry) {
-        println!("🟢 [SIGNATURE VERIFIED]");
-        let mut queue = MESSAGE_QUEUE.lock().await;
-        let inbox = queue
-            .entry(packet.destination_p_address.clone())
-            .or_insert_with(Vec::new);
-        inbox.push(packet);
-        Ok(warp::reply::with_status(
-            warp::reply::json(&"packet_queued"),
-            StatusCode::OK,
-        ))
+/// Handle an incoming packet POST request with signature verification.
+async fn handle_send(req: Request<Body>, state: Arc<AppState>) -> Result<Response<Body>, eyre::Error> {
+    // 署名付きパケットの検証を追加
+    use ed25519_dalek::{Signature, VerifyingKey};
+    use base64::Engine;
+    use hyper::{Response, Body, StatusCode};
+    use sha2::Digest;
+    let bytes = hyper::body::to_bytes(req.into_body()).await?;
+    // リクエストボディを JSON として解析
+    let incoming: serde_json::Value = serde_json::from_slice(&bytes)?;
+    // packet と signature を抽出
+    let packet: crate::packet::AiTcpPacket = serde_json::from_value(incoming["packet"].clone())?;
+    let signature_b64 = incoming["signature"].as_str().unwrap_or("");
+    let signature_bytes = base64::engine::general_purpose::STANDARD.decode(signature_b64)?;
+    let signature = Signature::from_bytes(&signature_bytes.try_into().map_err(|_| eyre::eyre!("Invalid signature length"))?);
+    // 公開鍵は Agent の設定ファイルに保存された hex 文字列と一致している想定
+    let public_key_bytes = hex::decode(&packet.from)?;
+    let verify_key = VerifyingKey::from_bytes(&public_key_bytes.try_into().map_err(|_| eyre::eyre!("Invalid public key length"))?)?;
+    // ペイロードに対してハッシュを計算
+    let mut hasher = sha2::Sha512::new();
+    hasher.update(packet.payload.as_bytes());
+    let digest = hasher.finalize();
+    // 署名検証
+    if verify_key.verify(&digest, &signature).is_ok() {
+        state.enqueue(packet.to.clone(), bytes.to_vec()).await;
+        Ok(Response::new(Body::from("[SIGNATURE VERIFIED] queued")))
     } else {
-        println!("🔴 [SIGNATURE INVALID] Packet REJECTED");
-        Ok(warp::reply::with_status(
-            warp::reply::json(&"invalid_signature"),
-            StatusCode::UNAUTHORIZED,
-        ))
+        Ok(Response::builder().status(StatusCode::UNAUTHORIZED).body(Body::from("[SIGNATURE INVALID] rejected"))?)
     }
 }
 
