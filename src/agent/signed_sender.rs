@@ -11,15 +11,18 @@ use kairo_lib::AgentConfig;
 use chrono::Utc;
 
 #[derive(Parser)]
-#[command(author, version, about)]
 struct Args {
-    #[arg(long)]
+    #[arg(long, default_value = "agent_test")]
     from: String,
+
     #[arg(long)]
     to: String,
 
     #[arg(long)]
     message: String,
+
+    #[arg(long, default_value = "./agent_configs")]
+    config_dir: String,
 
     #[arg(long, default_value_t = false)]
     fake: bool,

@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("--- KAIRO Mesh Initial Setup ---");
 
         // Generate key pair
-        let signing_key = SigningKey::generate(&mut OsRng);
+let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
         let public_key_bytes = signing_key.verifying_key().to_bytes().to_vec();
         let secret_key_bytes = signing_key.to_bytes().to_vec();
 
