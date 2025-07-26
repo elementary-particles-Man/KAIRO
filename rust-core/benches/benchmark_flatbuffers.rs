@@ -60,8 +60,8 @@ fn bench_deserialize(c: &mut Criterion) {
     c.bench_function("deserialize_flatbuffers", |b| {
         b.iter(|| {
             // PacketParser::parse returns Result<AITcpPacket, KairoError>
-            let mut parser = PacketParser::new(Vec::new());
-            let packet = parser.parse(black_box(&buffer)).expect("parse failed");
+            let mut parser = PacketParser::new();
+            let packet = parser.parse(black_box(&bytes::Bytes::from(buffer.clone()))).expect("parse failed");
             black_box(packet);
         })
     });
