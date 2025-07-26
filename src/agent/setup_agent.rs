@@ -55,6 +55,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("--- KAIRO Mesh Initial Setup ---");
 
 // Generate key pair
+        use rand::RngCore;
+use rand::rngs::OsRng;
         let mut csprng = OsRng;
         let mut sk_bytes = [0u8; 32];
         csprng.fill_bytes(&mut sk_bytes);
