@@ -8,11 +8,7 @@ use clap::Parser;
 use reqwest::Client;
 use hex;
 use kairo_lib::AgentConfig;
-
-#[derive(Deserialize)]
-struct AgentMapping {
-    p_address: String,
-}
+use chrono::Utc;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -31,7 +27,7 @@ struct Args {
 
 #[derive(Serialize, Debug)]
 struct AiTcpPacket {
-    source_p_address: String,
+    source_public_key: String,
     destination_p_address: String,
     payload: String,
     signature: String,
@@ -45,7 +41,7 @@ fn get_daemon_url() -> String {
             println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
             daemon_config::DaemonConfig {
                 listen_address: "127.0.0.1".to_string(),
-                listen_port: 3031,
+                listen_port: 3030,
             }
         });
 
@@ -58,31 +54,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from.replace("/", "_")));
     let config_data = fs::read_to_string(agent_config_path)?;
-    let config: AgentConfig = serde_json::from_str(&config_data)?;
+    let config: AgentConfig = serde_json::from_str(&config_data).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
-    // Get P-address from daemon
-    let daemon_config = daemon_config::load_daemon_config("daemon_config.json")
-        .unwrap_or_else(|_| {
-            println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
-            daemon_config::DaemonConfig {
-                listen_address: "127.0.0.1".to_string(),
-                listen_port: 3031,
-            }
-        });
-
-    let assign_url = format!("http://{}:{}/assign_p_address", daemon_config.listen_address, daemon_config.listen_port);
-    let client = Client::new();
-    let p_address_response = client.post(&assign_url)
-        .json(&serde_json::json!({ "public_key": config.public_key }))
-        .send()
-        .await?;
-
-    let p_address_mapping: AgentMapping = p_address_response.json().await?;
-    let source_p_address = p_address_mapping.p_address;
-
-    let signing_key_bytes = hex::decode(&config.secret_key)?;
+    let signing_key_bytes = hex::decode(&config.secret_key).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
     let key_bytes: [u8; 32] = signing_key_bytes.try_into()
-        .map_err(|_| "Invalid key length")?;
+        .map_err(|_| Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid key length")) as Box<dyn std::error::Error>)?;
     let signing_key = SigningKey::from_bytes(&key_bytes);
 
     let actual_payload = if args.fake {
@@ -95,24 +71,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let signature_hex = hex::encode(signature.to_bytes());
 
     let packet = AiTcpPacket {
-        source_p_address: source_p_address,
+        source_public_key: config.public_key.clone(),
         destination_p_address: args.to,
         payload: args.message, // 表示上は正規メッセージ
         signature: signature_hex,
     };
 
-    println!("{:#?}", serde_json::to_string(&packet)?);
+    println!("{:#?}", serde_json::to_string(&packet).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?);
 
+    let client = Client::new();
     let res = client.post(get_daemon_url())
         .json(&packet)
         .send()
-        .await?;
+        .await
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
     if res.status().is_success() {
         println!("✅ Packet sent successfully.");
+        Ok(())
     } else {
         println!("❌ Failed to send packet: {}", res.status());
+        Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to send packet: {}", res.status()))) as Box<dyn std::error::Error>)
     }
-
-    Ok(())
 }

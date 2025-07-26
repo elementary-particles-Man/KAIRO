@@ -86,10 +86,10 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
         }
     };
 
-    let public_key = match VerifyingKey::from_bytes(public_key_bytes.as_slice().try_into().unwrap()) {
+    let public_key = match VerifyingKey::from_bytes(public_key_bytes.as_slice()) {
         Ok(key) => key,
-        Err(_) => {
-            println!("🔴 Signature Fail: Invalid public key bytes from registry.");
+        Err(e) => {
+            println!("🔴 Signature Fail: Invalid public key bytes from registry. Error: {:?}", e);
             return false;
         }
     };
@@ -104,8 +104,8 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
 
     let signature_array: [u8; 64] = match signature_bytes.as_slice().try_into() {
         Ok(arr) => arr,
-        Err(_) => {
-            println!("🔴 Signature Fail: Invalid signature byte length.");
+        Err(e) => {
+            println!("🔴 Signature Fail: Invalid signature byte length. Error: {:?}", e);
             return false;
         }
     };

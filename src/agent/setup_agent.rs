@@ -1,6 +1,6 @@
 use kairo_lib::{save_agent_config};
-use p256::ecdsa::SigningKey;
-use rand_core::OsRng;
+use ed25519_dalek::SigningKey;
+use rand::rngs::OsRng;
 use reqwest;
 use serde::Deserialize;
 use std::fs;
@@ -52,10 +52,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("--- KAIRO Mesh Initial Setup ---");
 
         // Generate key pair
-        let signing_key = SigningKey::random(&mut OsRng);
-        let verifying_key = signing_key.verifying_key();
-        let secret_key_bytes = signing_key.to_bytes();
-        let public_key_bytes = verifying_key.to_encoded_point(false).as_bytes().to_vec();
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let public_key_bytes = signing_key.verifying_key().to_bytes().to_vec();
+        let secret_key_bytes = signing_key.to_bytes().to_vec();
 
         let public_key_hex = hex::encode(&public_key_bytes);
         let secret_key_hex = hex::encode(&secret_key_bytes);
