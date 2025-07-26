@@ -40,12 +40,12 @@ struct AiTcpPacket {
 use kairo_lib::config as daemon_config;
 
 fn get_daemon_url() -> String {
-    let config = daemon_config::load_daemon_config(".kairo/.config/daemon_config.json")
+    let config = daemon_config::load_daemon_config("daemon_config.json")
         .unwrap_or_else(|_| {
             println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
             daemon_config::DaemonConfig {
                 listen_address: "127.0.0.1".to_string(),
-                listen_port: 3030,
+                listen_port: 3031,
             }
         });
 
@@ -56,17 +56,17 @@ fn get_daemon_url() -> String {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from));
+    let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from.replace("/", "_")));
     let config_data = fs::read_to_string(agent_config_path)?;
     let config: AgentConfig = serde_json::from_str(&config_data)?;
 
     // Get P-address from daemon
-    let daemon_config = daemon_config::load_daemon_config(".kairo/.config/daemon_config.json")
+    let daemon_config = daemon_config::load_daemon_config("daemon_config.json")
         .unwrap_or_else(|_| {
             println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
             daemon_config::DaemonConfig {
                 listen_address: "127.0.0.1".to_string(),
-                listen_port: 3030,
+                listen_port: 3031,
             }
         });
 

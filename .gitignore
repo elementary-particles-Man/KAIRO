@@ -66,3 +66,4 @@ Cargo.lock
 kairo_log.txt
 agent_config.json
 agent_registry.json
+users/
