@@ -1,7 +1,7 @@
 use kairo_lib::{save_agent_config};
 use ed25519_dalek::SigningKey;
-use rand::RngCore;
 use rand::rngs::OsRng;
+use rand::RngCore;
 use reqwest;
 use serde::Deserialize;
 use std::fs;
@@ -9,8 +9,6 @@ use std::path::PathBuf;
 use kairo_lib::config as daemon_config;
 use kairo_lib::AgentConfig;
 use clap::Parser;
-use rand::RngCore;
-use rand::rngs::OsRng;
 
 #[derive(Parser)]
 #[command(author, version, about)]
