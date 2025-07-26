@@ -1,0 +1,99 @@
+# KAIRO プロジェクト作業ログ
+
+## 2025年7月26日
+
+### 1. 初期コンパイルチェックとエージェント設定生成の試行
+
+- **コマンド**: `cargo check --all-targets`
+- **結果**: 多数の警告が出力されたが、終了コードは0でコンパイル自体は成功。
+- **コマンド**: `cargo run --bin agent_config_gen -- agent_test`
+- **結果**: `agent_config_gen`というバイナリが存在しないエラー。`setup_agent`が正しいバイナリ名であることを確認。
+- **コマンド**: `cargo run --bin setup_agent -- --name agent_test`
+- **結果**: `agent_test_config.json`が正常に生成された。
+
+### 2. `signed_sender`の初期テストとデーモン接続問題
+
+- **コマンド**: `cargo run --bin signed_sender -- --to 10.0.0.2 --message "Hello" --config agent_test_config.json`
+- **結果**: `--config`引数が認識されないエラー。`signed_sender.rs`の引数定義を確認。
+- **コマンド**: `cargo run --bin signed_sender -- --from agent_test --to 10.0.0.2 --message "Hello"`
+- **結果**: `ConnectionRefused`エラー。デーモンが起動していないか、ポートが間違っている可能性を指摘。
+- **`daemon_config.json`の確認**: `listen_port`が3031に設定されていることを確認。
+- **`daemon_config.json`の修正**: `listen_port`を3031から3030に変更。
+- **デーモン再起動 (ユーザー操作)**: ユーザーがデーモンを再起動。
+
+### 3. `signed_sender`の再テストとパケット構造の不一致
+
+- **コマンド**: `cargo run --bin signed_sender -- --from agent_test --to 10.0.0.2 --message "Hello"`
+- **結果**: `400 Bad Request`エラー。デーモンがパケットを拒否していることを示唆。
+- **`kairo_lib/packet.rs`の確認**: `AiTcpPacket`が`version`, `sequence`, `timestamp`, `payload_type`フィールドを必要とすることを確認。
+- **`signed_sender.rs`の修正**: `AiTcpPacket`の定義とインスタンス化に不足していたフィールドを追加。
+
+### 4. `signed_sender`の再テストと`IncompleteMessage`エラー
+
+- **コマンド**: `cargo run --bin signed_sender -- --from agent_test --to 10.0.0.2 --message "Hello"`
+- **結果**: `hyper::Error(IncompleteMessage)`エラー。デーモンが不完全なメッセージを受信している可能性。
+- **`kairo_p_daemon.rs`の`handle_send`を一時的に簡素化**: 署名検証とキューイングをバイパス。
+- **デーモン再起動 (ユーザー操作)**: ユーザーがデーモンを再起動。
+- **`signed_sender`の再テスト**: 正常にパケットを送信。問題がデーモンの処理にあることを確認。
+- **`kairo_p_p_daemon.rs`の`handle_send`を元に戻す**: デバッグ用の変更を元に戻す。
+- **デーモン再起動 (ユーザー操作)**: ユーザーがデーモンを再起動。
+
+### 5. 鍵タイプ不一致の特定と修正
+
+- **`signed_sender`の再テスト**: 再び`hyper::Error(IncompleteMessage)`エラー。
+- **`kairo_p_daemon.rs`の`verify_packet_signature`に詳細ログを追加**: `TryFromSliceError`が発生していることを確認。
+- **原因特定**: `setup_agent`がP-256鍵（65バイト）を生成しているのに対し、デーモンはEd25519鍵（32バイト）を期待しているため、公開鍵の長さが不一致。
+- **`setup_agent.rs`の修正**: Ed25519鍵を生成するように変更。
+- **`src/agent/Cargo.toml`の修正**: `p256`と`rand_core`の依存関係を削除。
+- **`agent_test.json`の再生成**: 既存の`agent_test.json`を削除し、`setup_agent --new`で新しいEd25519鍵を持つファイルを生成。
+
+### 6. `signed_sender`の終了コード修正と最終テスト
+
+- **`signed_sender`の再テスト (`--fake`フラグ付き)**: `401 Unauthorized`エラーを返し、終了コードは0。
+- **`signed_sender.rs`の修正**: パケット送信が失敗した場合に非ゼロの終了コードを返すように変更。
+- **`signed_sender`の再テスト (`--fake`フラグ付き)**: 期待通り終了コード1で終了。
+
+### 7. デバッグ変更の巻き戻しとGit操作
+
+- **`kairo_lib/packet.rs`の変更を元に戻す**: `AiTcpPacket`の構造を元の状態に戻す。
+- **`kairo_p_daemon.rs`のデバッグログを削除**: 追加したログを削除。
+- **Gitコミットの試行**: `git commit -m`コマンドで引用符の扱いに問題が発生し、コミットに失敗。ユーザーに手動でのコミットを依頼。
+- **Gitプッシュ (ユーザー操作)**: ユーザーが変更をプッシュ。
+
+### 8. `cargo check --all-targets`による最終確認
+
+- **コマンド**: `cargo check --all-targets`
+- **結果**: すべてのバイナリがエラーなくコンパイルできることを確認。
+
+### 9. 複数エージェントの作成とPアドレス重複問題
+
+- **Agent2〜Agent9の作成**: `mkdir`と`setup_agent --new`を使用して各エージェントを作成。
+- **Pアドレス重複問題の特定**: `agent_registry.json`でPアドレスが重複していることを確認。
+- **`kairo_p_daemon.rs`の修正**: デーモン起動時に既存のPアドレスを考慮して`next_address`を初期化するように変更。
+- **`agent_registry.json`のクリア**: Pアドレスの重複を解消するため、`agent_registry.json`をクリア。
+- **全エージェントの再生成**: CLI、Agent1〜Agent9を再生成し、一意のPアドレスを取得。
+
+### 10. エージェント間通信テストの実施
+
+- **`Agent1`から`Agent2`へのメッセージ送信 (単一単語)**: 成功。
+- **`Agent2`から`Agent1`へのメッセージ送信 (単一単語)**: 成功。
+- **`receive_signed`の初期テスト**: `--p-address`引数エラー、`agent_config.json`が見つからないエラー。
+- **`receive_signed.rs`の修正**: `--from`引数を追加し、`agent_config.json`の読み込みパスを修正。
+- **`receive_signed`の再テスト**: `405 Method Not Allowed`エラー。
+- **`kairo_p_daemon.rs`の`receive`ルートを修正**: クエリパラメータを処理するように変更。
+- **デーモン再起動 (ユーザー操作)**: ユーザーがデーモンを再起動。
+- **`receive_signed`の再テスト**: `missing field 'from'`エラー。
+- **`receive_signed.rs`の`Message`構造体を`AiTcpPacket`と一致させる**: フィールド名を修正。
+- **`receive_signed`の再テスト**: `(signature INVALID)`エラー。
+- **`receive_signed.rs`の署名検証ロジックを修正**: メッセージの`source_public_key`を使用して検証するように変更。
+- **`receive_signed`の再テスト**: `(signature OK)`でメッセージ受信成功。
+- **`Agent1`から`Agent2`への偽メッセージ送信 (`--fake`フラグ)**: `401 Unauthorized`エラーで終了コード1。
+- **`Agent2`が偽メッセージを受信しないことを確認**: 期待通りメッセージなし。
+
+### 11. ドキュメント更新
+
+- **`README.md`の更新**: エージェントのセットアップ手順、エージェント間通信テストのセクションを追加。
+
+---
+**作業ログの記録完了**
+このファイルに記録しました。

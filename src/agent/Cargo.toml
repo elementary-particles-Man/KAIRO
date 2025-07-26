@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ed25519-dalek = "1"
+ed25519-dalek = "2"
+sha2 = "0.10"
 rand = "0.8"
-sha2 = "1"
 hex = "0.4.3"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
@@ -16,6 +16,7 @@ reqwest = { version = "0.11", features = ["json", "rustls-tls", "blocking"] }
 chrono = "0.4"
 
 kairo_lib = { path = "../kairo-lib" }
+
 
 [[bin]]
 name = "setup_agent"
