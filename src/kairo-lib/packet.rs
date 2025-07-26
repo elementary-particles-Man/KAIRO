@@ -12,5 +12,6 @@ pub struct AiTcpPacket {
     pub timestamp_utc: i64, // UNIX epoch seconds (UTC)
     pub payload_type: String, // e.g., "text/plain", "application/json"
     pub payload: String,
+    pub source_public_key: String,
     pub signature: String, // Hex-encoded signature of (sequence + timestamp + payload)
 }
