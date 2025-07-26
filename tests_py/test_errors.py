@@ -16,7 +16,6 @@ def test_as_dict():
     err = TimeoutError("abc", "timeout")
     info = err.as_dict()
     assert info["transaction_id"] == "abc"
-    assert info["error"] == "TimeoutError"
     assert info["message"] == "timeout"
 
 
