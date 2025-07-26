@@ -24,3 +24,8 @@ class ConnectionLostError(Exception):
 
     def as_dict(self):
         return {"transaction_id": self.transaction_id, "message": str(self)}
+
+# Removed Rust binding dependency
+# Local definitions below
+class AgentConfigError(Exception): pass
+class InvalidSignatureError(Exception): pass
