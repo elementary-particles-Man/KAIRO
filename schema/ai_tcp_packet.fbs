@@ -1,0 +1,22 @@
+// /schema/ai_tcp_packet.fbs
+namespace AITCP;
+
+/// AI-TCP Binary Packet Schema
+/// Fully encrypted. VoV log captures UUID, timestamp, hash externally.
+
+table AITcpPacket {
+  version:ubyte;                  // Protocol version
+  ephemeral_key:[ubyte] (required);  // Ephemeral public key for this packet
+  nonce:[ubyte] (required);          // Nonce for ChaCha20-Poly1305
+  encrypted_sequence_id:[ubyte] (required);  // Encrypted sequence ID
+  encrypted_payload:[ubyte] (required);      // Encrypted payload
+  signature:[ubyte] (required);              // Ed25519 signature over the whole packet
+  /// Optional unencrypted header for metadata exchange
+  header:[ubyte];
+  /// Optional plain payload for small control messages
+  payload:[ubyte];
+  /// Optional footer bytes for trailing data
+  footer:[ubyte];
+}
+
+root_type AITcpPacket;

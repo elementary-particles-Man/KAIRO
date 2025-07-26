@@ -1,0 +1,8 @@
+role_name: Auditor
+description: Verifies and reviews mesh operations.
+permissions:
+  can_initiate: false
+  can_analyze: true
+  can_integrate: false
+  can_audit: true
+system_fingerprint: KairoMesh-Local-v1.5

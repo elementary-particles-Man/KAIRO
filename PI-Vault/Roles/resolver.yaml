@@ -1,0 +1,4 @@
+# Placeholder role file mirroring configs/roles/resolver.yaml
+name: Resolver
+description: Handles conflict resolution.
+version: 0.1

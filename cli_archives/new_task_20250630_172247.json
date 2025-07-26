@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "task_id": "KAIRO-SEC-002",
+      "task_type": "validate_logs",
+      "execution_target": {
+        "local_exec": "python scripts/validate_logs.py --check VoV_Trace.log CoordinationNode_*.log"
+      },
+      "description": "VoVログとCoordination Nodeログの不変性検証を実行"
+    },
+    {
+      "task_id": "KAIRO-SEC-003",
+      "task_type": "benchmark_parser",
+      "execution_target": {
+        "local_exec": "cargo run --bin benchmark_flatbuffers"
+      },
+      "description": "FlatBuffersパーサのベンチマークを実行"
+    },
+    {
+      "task_id": "KAIRO-SEC-001",
+      "task_type": "crypto_stress_test",
+      "execution_target": {
+        "local_exec": "cargo test --test stress_crypto"
+      },
+      "description": "暗号化・署名モジュールのストレステストを実行"
+    }
+  ]
+}

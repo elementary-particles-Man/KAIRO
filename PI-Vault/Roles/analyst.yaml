@@ -1,0 +1,4 @@
+# Placeholder role file mirroring configs/roles/analyst.yaml
+name: Analyst
+description: Performs standard analysis.
+version: 0.1

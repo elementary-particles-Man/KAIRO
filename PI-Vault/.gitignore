@@ -1,0 +1,7 @@
+# Ignore Obsidian cache files
+.obsidian/workspace
+.obsidian/workspace.json
+.obsidian/cache
+
+# Ignore Windows specific files
+desktop.ini

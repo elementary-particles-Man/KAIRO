@@ -1,0 +1,8 @@
+role_name: Specialist
+description: Provides analysis and integration expertise.
+permissions:
+  can_initiate: false
+  can_analyze: true
+  can_integrate: true
+  can_audit: false
+system_fingerprint: KairoMesh-Local-v1.5

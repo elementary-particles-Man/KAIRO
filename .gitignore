@@ -1,0 +1,68 @@
+# ================================
+# KAIRO .gitignore 完全版
+# ================================
+
+# ログ & 鍵ファイル類
+/target
+logs/
+keys/
+*.key
+*.pem
+*.crt
+vov/raw_logs/
+
+# Rust ビルド成果物
+/target/
+
+# Rust 各クレート配下の target
+rust-core/target/
+go-p2p/bin/
+
+# Python キャッシュ
+__pycache__/
+/*.pyc
+
+# PCAP生成物（サンプル以外）
+samples/*.pcap
+samples/
+!samples/README.md
+!samples/*.jsonl
+
+# VSCode/IDE
+.vscode/
+.idea/
+
+# OS ゴミ
+.DS_Store
+Thumbs.db
+
+# Node/その他将来モジュール
+node_modules/
+
+# dotenv や local secrets
+.env
+*.env
+
+# 一時ファイル
+*.log
+*.tmp
+
+# Codex/AI生成物の中間キャッシュ
+.codex/
+codex/
+
+# PyTestキャッシュ
+.pytest_cache/
+
+# バックアップ
+*~
+
+# 念のため Mac/Windows 系のメタ
+Icon?
+ehthumbs.db
+**/desktop.ini
+registry.json
+Cargo.lock
+kairo_log.txt
+agent_config.json
+agent_registry.json
