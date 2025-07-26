@@ -1,0 +1,174 @@
+# Meshnet CLI End-to-End Validation Log
+
+## Task Group: `meshnet_cli_end_to_end`
+
+### 1. `git pull`
+
+**Command:**
+```bash
+git pull
+```
+
+**Output:**
+```
+Command: git pull
+Directory: (root)
+Stdout: Updating 823662c..9ebf0b8
+Fast-forward
+ rust-core/src/packet_validator.rs        | 55 +++++++++++++++++++++----
+ rust-core/tests/packet_validator_test.rs | 70 ++++++++++++++++++++------------
+ 2 files changed, 90 insertions(+), 35 deletions(-)
+
+Stderr: From https://github.com/elementary-particles-Man/KAIRO
+   823662c..9ebf0b8  main       -> origin/main
+ * [new branch]      codex/enhance-logging-and-unit-tests-for-packet_validator.rs -> origin/codex/enhance-logging-and-unit-tests-for-packet_validator.rs
+
+Error: (none)
+Exit Code: 0
+Signal: (none)
+Background PIDs: (none)
+Process Group PGID: 3048
+```
+**Result:** `git pull` は正常に完了し、終了コード0を返しました。
+
+### 2. `cargo check --all-targets`
+
+**Command:**
+```bash
+cargo check --all-targets
+```
+
+**Output:**
+```
+Command: cargo check --all-targets
+Directory: (root)
+Stdout: (empty)
+Stderr:     Checking cfg-if v1.0.1
+    ... (compilation output) ...
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 41.84s
+
+Error: (none)
+Exit Code: 0
+Signal: (none)
+Background PIDs: (none)
+Process Group PGID: 4620
+```
+**Result:** `cargo check --all-targets` は正常に完了し、終了コード0を返しました。
+
+### 3. `cargo test --package rust-core -- --nocapture`
+
+**Command:**
+```bash
+cargo test --package rust-core -- --nocapture
+```
+
+**Output:**
+```
+Command: cargo test --package rust-core -- --nocapture
+Directory: (root)
+Stdout: 
+running 0 tests
+
+... (test output) ...
+
+Stderr:    Compiling kairo_core v0.1.0 (D:\Dev\KAIRO\rust-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.63s
+     Running unittests src\lib.rs (D:\Dev\KAIRO\rust-core\target\debug\deps\kairo_core-fb577b7af19edb78.exe)
+
+Error: (none)
+Exit Code: 0
+Signal: (none)
+Background PIDs: (none)
+Process Group PGID: 33676
+```
+**Result:** `cargo test --package rust-core -- --nocapture` は正常に完了し、終了コード0を返しました。
+
+### 4. `cargo run --package kairo_agent --bin setup_agent -- --name AgentLogger --new`
+
+**Command:**
+```bash
+cargo run --package kairo_agent --bin setup_agent -- --name AgentLogger --new
+```
+
+**Output:**
+```
+Command: cargo run --package kairo_agent --bin setup_agent -- --name AgentLogger --new
+Directory: (root)
+Stdout: --- KAIRO Mesh Initial Setup ---
+Secret Key: "..."
+Public Key: "..."
+
+Step 2: Registering with a Seed Node...
+
+Requesting KAIRO-P address from local daemon...
+WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.
+-> Received P Address: 10.0.0.19/24
+-> Attempting to register public key with seed node...
+-> Successfully registered with seed node.
+--- Onboarding Complete ---
+
+Stderr:    Compiling kairo_agent v0.1.0 (D:\Dev\KAIRO\src\agent)
+warning: variable does not need to be mutable
+    ... (warning details) ...
+Error: (none)
+Exit Code: 0
+Signal: (none)
+Background PIDs: (none)
+Process Group PGID: 26684
+```
+**Result:** `setup_agent` は正常に完了し、終了コード0を返しました。
+
+### 5. `cargo run --package kairo_agent --bin signed_sender -- --from AgentLogger --to 10.0.0.2/24 --message "Test from Logger"`
+
+**Command:**
+```bash
+cargo run --package kairo_agent --bin signed_sender -- --from AgentLogger --to 10.0.0.2/24 --message "Test from Logger"
+```
+
+**Output:**
+```
+Command: cargo run --package kairo_agent --bin signed_sender -- --from AgentLogger --to 10.0.0.2/24 --message "Test from Logger"
+Directory: (root)
+Stdout: "{"version":1,"source_public_key":"...","destination_p_address":"10.0.0.2/24","sequence":0,"timestamp":1753550172,"payload_type":"message","payload":"\"Test from Logger\"","signature":"..."}"
+✅ Packet sent successfully.
+
+Stderr:    Compiling kairo_agent v0.1.0 (D:\Dev\KAIRO\src\agent)
+warning: unused import: `Deserialize`
+    ... (warning details) ...
+Error: (none)
+Exit Code: 0
+Signal: (none)
+Background PIDs: (none)
+Process Group PGID: 26144
+```
+**Result:** `signed_sender` は正常に完了し、終了コード0を返しました。
+
+### 6. `cargo run --package kairo_agent --bin receive_signed -- --for-address 10.0.0.2/24 --from AgentLogger`
+
+**Command:**
+```bash
+cargo run --package kairo_agent --bin receive_signed -- --for-address 10.0.0.2/24 --from AgentLogger
+```
+
+**Output:**
+```
+Command: cargo run --package kairo_agent --bin receive_signed -- --for-address 10.0.0.2/24 --from AgentLogger
+Directory: (root)
+Stdout: From ...: "Test from Logger" (signature OK)
+
+Stderr:    Compiling kairo_agent v0.1.0 (D:\Dev\KAIRO\src\agent)
+warning: unused variable: `config`
+    ... (warning details) ...
+Error: (none)
+Exit Code: 0
+Signal: (none)
+Background PIDs: (none)
+Process Group PGID: 33588
+```
+**Result:** `receive_signed` は正常に完了し、終了コード0を返し、メッセージを正しく受信しました。
+
+---
+**ログ記録完了**
+このファイルに記録しました。
+
+```

@@ -23,6 +23,6 @@ fn main() {
     };
     let json = serde_json::to_vec(&packet).unwrap();
     let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
-    socket.send_to(&json, "127.0.0.1:5050").unwrap();
+    socket.send_to(&json, "127.0.0.1:8080").unwrap();
     println!("✅ Sent packet to mesh_node.");
 }
