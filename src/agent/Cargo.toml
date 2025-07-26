@@ -31,6 +31,10 @@ name = "send_message"
 path = "send_message.rs"
 
 [[bin]]
+name = "mesh_udp_sender"
+path = "mesh_udp_sender.rs"
+
+[[bin]]
 name = "receive_signed"
 path = "receive_signed.rs"
 
