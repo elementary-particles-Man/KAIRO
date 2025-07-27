@@ -13,6 +13,7 @@ fn aitcp_packet_binary_roundtrip() {
     let signature_vec = builder.create_vector(&footer);
     let footer_vec = builder.create_vector(&footer);
     let ephemeral_vec = builder.create_vector(&[0u8; 32]);
+    let source_vec = builder.create_vector(&[1u8; 32]);
     let nonce_vec = builder.create_vector(&[0u8; 12]);
     let seq_vec = builder.create_vector(&1u64.to_le_bytes());
     let enc_payload_vec = builder.create_vector(&payload);
@@ -22,6 +23,7 @@ fn aitcp_packet_binary_roundtrip() {
         &fb::AITcpPacketArgs {
             version: 1,
             ephemeral_key: Some(ephemeral_vec),
+            source_public_key: Some(source_vec),
             nonce: Some(nonce_vec),
             encrypted_sequence_id: Some(seq_vec),
             encrypted_payload: Some(enc_payload_vec),

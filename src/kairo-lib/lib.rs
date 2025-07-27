@@ -4,11 +4,13 @@
 pub mod config;
 pub mod governance;
 pub mod packet;
+pub mod agent_registry;
 pub mod resolvers;
 
 // --- 構造体・型の再エクスポート ---
 pub use governance::OverridePackage;
 pub use packet::AiTcpPacket;
+pub use agent_registry::{AgentRegistry, RegistryEntry};
 
 // --- AgentConfig の定義とユーティリティ関数 ---
 use serde::{Serialize, Deserialize};

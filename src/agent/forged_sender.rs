@@ -1,6 +1,7 @@
 // forged_sender.rs - Send signed packet with spoofed P address for testing
 
-use ed25519_dalek::{Signer, SigningKey, Signature};
+use kairo_lib::packet::sign_packet;
+use kairo_lib::AgentConfig as LibAgentConfig;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -53,14 +54,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Loaded AgentConfig: {:?}", config);
 
-    let signing_key_bytes = hex::decode(&config.secret_key)?;
-    let key_bytes: [u8; 32] = signing_key_bytes
-        .try_into()
-        .map_err(|_| "Invalid key length")?;
-    let signing_key = SigningKey::from_bytes(&key_bytes);
-
-    let signature: Signature = signing_key.sign(args.message.as_bytes());
-    let signature_hex = hex::encode(signature.to_bytes());
+    let signature_hex = sign_packet(&LibAgentConfig {
+        p_address: config.p_address.clone(),
+        public_key: config.public_key.clone(),
+        secret_key: config.secret_key.clone(),
+        signature: config.signature.clone(),
+    }, 1, chrono::Utc::now().timestamp(), &args.message)?;
 
     let packet = AiTcpPacket {
         version: 1,

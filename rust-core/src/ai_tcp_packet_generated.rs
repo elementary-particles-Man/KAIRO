@@ -35,13 +35,14 @@ impl<'a> flatbuffers::Follow<'a> for AITcpPacket<'a> {
 impl<'a> AITcpPacket<'a> {
   pub const VT_VERSION: flatbuffers::VOffsetT = 4;
   pub const VT_EPHEMERAL_KEY: flatbuffers::VOffsetT = 6;
-  pub const VT_NONCE: flatbuffers::VOffsetT = 8;
-  pub const VT_ENCRYPTED_SEQUENCE_ID: flatbuffers::VOffsetT = 10;
-  pub const VT_ENCRYPTED_PAYLOAD: flatbuffers::VOffsetT = 12;
-  pub const VT_SIGNATURE: flatbuffers::VOffsetT = 14;
-  pub const VT_HEADER: flatbuffers::VOffsetT = 16;
-  pub const VT_PAYLOAD: flatbuffers::VOffsetT = 18;
-  pub const VT_FOOTER: flatbuffers::VOffsetT = 20;
+  pub const VT_SOURCE_PUBLIC_KEY: flatbuffers::VOffsetT = 8;
+  pub const VT_NONCE: flatbuffers::VOffsetT = 10;
+  pub const VT_ENCRYPTED_SEQUENCE_ID: flatbuffers::VOffsetT = 12;
+  pub const VT_ENCRYPTED_PAYLOAD: flatbuffers::VOffsetT = 14;
+  pub const VT_SIGNATURE: flatbuffers::VOffsetT = 16;
+  pub const VT_HEADER: flatbuffers::VOffsetT = 18;
+  pub const VT_PAYLOAD: flatbuffers::VOffsetT = 20;
+  pub const VT_FOOTER: flatbuffers::VOffsetT = 22;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -60,6 +61,7 @@ impl<'a> AITcpPacket<'a> {
     if let Some(x) = args.encrypted_payload { builder.add_encrypted_payload(x); }
     if let Some(x) = args.encrypted_sequence_id { builder.add_encrypted_sequence_id(x); }
     if let Some(x) = args.nonce { builder.add_nonce(x); }
+    if let Some(x) = args.source_public_key { builder.add_source_public_key(x); }
     if let Some(x) = args.ephemeral_key { builder.add_ephemeral_key(x); }
     builder.add_version(args.version);
     builder.finish()
@@ -79,6 +81,10 @@ impl<'a> AITcpPacket<'a> {
     // Created from valid Table for this object
     // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_EPHEMERAL_KEY, None).unwrap()}
+  }
+  #[inline]
+  pub fn source_public_key(&self) -> flatbuffers::Vector<'a, u8> {
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_SOURCE_PUBLIC_KEY, None).unwrap() }
   }
   #[inline]
   pub fn nonce(&self) -> flatbuffers::Vector<'a, u8> {
@@ -143,6 +149,7 @@ impl flatbuffers::Verifiable for AITcpPacket<'_> {
     v.visit_table(pos)?
      .visit_field::<u8>("version", Self::VT_VERSION, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("ephemeral_key", Self::VT_EPHEMERAL_KEY, true)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("source_public_key", Self::VT_SOURCE_PUBLIC_KEY, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("nonce", Self::VT_NONCE, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("encrypted_sequence_id", Self::VT_ENCRYPTED_SEQUENCE_ID, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("encrypted_payload", Self::VT_ENCRYPTED_PAYLOAD, true)?
@@ -157,6 +164,7 @@ impl flatbuffers::Verifiable for AITcpPacket<'_> {
 pub struct AITcpPacketArgs<'a> {
     pub version: u8,
     pub ephemeral_key: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub source_public_key: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub nonce: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub encrypted_sequence_id: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub encrypted_payload: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
@@ -171,6 +179,7 @@ impl<'a> Default for AITcpPacketArgs<'a> {
     AITcpPacketArgs {
       version: 0,
       ephemeral_key: None, // required field
+      source_public_key: None, // required field
       nonce: None, // required field
       encrypted_sequence_id: None, // required field
       encrypted_payload: None, // required field
@@ -194,6 +203,10 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> AITcpPacketBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_ephemeral_key(&mut self, ephemeral_key: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_EPHEMERAL_KEY, ephemeral_key);
+  }
+  #[inline]
+  pub fn add_source_public_key(&mut self, source_public_key: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_SOURCE_PUBLIC_KEY, source_public_key);
   }
   #[inline]
   pub fn add_nonce(&mut self, nonce: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
@@ -235,6 +248,7 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> AITcpPacketBuilder<'a, 'b, A> {
   pub fn finish(self) -> flatbuffers::WIPOffset<AITcpPacket<'a>> {
     let o = self.fbb_.end_table(self.start_);
     self.fbb_.required(o, AITcpPacket::VT_EPHEMERAL_KEY,"ephemeral_key");
+    self.fbb_.required(o, AITcpPacket::VT_SOURCE_PUBLIC_KEY,"source_public_key");
     self.fbb_.required(o, AITcpPacket::VT_NONCE,"nonce");
     self.fbb_.required(o, AITcpPacket::VT_ENCRYPTED_SEQUENCE_ID,"encrypted_sequence_id");
     self.fbb_.required(o, AITcpPacket::VT_ENCRYPTED_PAYLOAD,"encrypted_payload");
@@ -248,6 +262,7 @@ impl core::fmt::Debug for AITcpPacket<'_> {
     let mut ds = f.debug_struct("AITcpPacket");
       ds.field("version", &self.version());
       ds.field("ephemeral_key", &self.ephemeral_key());
+      ds.field("source_public_key", &self.source_public_key());
       ds.field("nonce", &self.nonce());
       ds.field("encrypted_sequence_id", &self.encrypted_sequence_id());
       ds.field("encrypted_payload", &self.encrypted_payload());

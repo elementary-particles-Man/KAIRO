@@ -13,6 +13,7 @@ use kairo_core::signature::sign_ed25519;
 fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();
     let ephemeral_key_vec = builder.create_vector(&[1u8; 32]);
+    let source_key_vec = builder.create_vector(&[2u8; 32]);
     let nonce_vec = builder.create_vector(&[0u8; 12]);
     let seq_vec = builder.create_vector(&seq.to_le_bytes());
     let payload_vec = builder.create_vector(payload);
@@ -23,6 +24,7 @@ fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
         &fb::AITcpPacketArgs {
             version: 1,
             ephemeral_key: Some(ephemeral_key_vec),
+            source_public_key: Some(source_key_vec),
             nonce: Some(nonce_vec),
             encrypted_sequence_id: Some(seq_vec),
             encrypted_payload: Some(payload_vec),
@@ -40,6 +42,7 @@ fn build_packet(seq: u64, key: &SigningKey, payload: &[u8]) -> Vec<u8> {
 fn build_packet_with_sig(seq: u64, payload: &[u8], signature: &[u8]) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();
     let ephemeral_key_vec = builder.create_vector(&[1u8; 32]);
+    let source_key_vec = builder.create_vector(&[2u8; 32]);
     let nonce_vec = builder.create_vector(&[0u8; 12]);
     let seq_vec = builder.create_vector(&seq.to_le_bytes());
     let payload_vec = builder.create_vector(payload);
@@ -49,6 +52,7 @@ fn build_packet_with_sig(seq: u64, payload: &[u8], signature: &[u8]) -> Vec<u8> 
         &fb::AITcpPacketArgs {
             version: 1,
             ephemeral_key: Some(ephemeral_key_vec),
+            source_public_key: Some(source_key_vec),
             nonce: Some(nonce_vec),
             encrypted_sequence_id: Some(seq_vec),
             encrypted_payload: Some(payload_vec),
