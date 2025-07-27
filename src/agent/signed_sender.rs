@@ -1,13 +1,12 @@
 // signed_sender.rs（署名付きパケット送信＋改ざんテスト用）
 
-use ed25519_dalek::{SigningKey, Signature, Signer};
 use serde::{Serialize, Deserialize};
+use kairo_lib::{AgentConfig, packet::sign_packet};
 use std::fs;
 use std::path::PathBuf;
 use clap::Parser;
 use reqwest::Client;
 use hex;
-use kairo_lib::AgentConfig;
 use chrono::Utc;
 
 #[derive(Parser)]
@@ -63,19 +62,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config_data = fs::read_to_string(agent_config_path)?;
     let config: AgentConfig = serde_json::from_str(&config_data).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
-    let signing_key_bytes = hex::decode(&config.secret_key).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
-    let key_bytes: [u8; 32] = signing_key_bytes.try_into()
-        .map_err(|_| Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid key length")) as Box<dyn std::error::Error>)?;
-    let signing_key = SigningKey::from_bytes(&key_bytes);
-
     let actual_payload = if args.fake {
-        format!("{}-tampered", args.message) // 故意に改ざん
+        format!("{}-tampered", args.message)
     } else {
         args.message.clone()
     };
 
-    let signature: Signature = signing_key.sign(actual_payload.as_bytes());
-    let signature_hex = hex::encode(signature.to_bytes());
+    let signature_hex = sign_packet(&config, 0, Utc::now().timestamp(), &actual_payload)?;
 
     let packet = AiTcpPacket {
         version: 1,

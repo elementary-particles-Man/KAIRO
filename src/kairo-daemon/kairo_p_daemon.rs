@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
-use std::io::{BufReader, BufWriter};
 use std::sync::{Arc, Mutex as StdMutex};
 use chrono::Utc;
 
@@ -13,7 +11,7 @@ use warp::{http::StatusCode, Filter, Rejection, Reply};
 
 
 use kairo_lib::packet::AiTcpPacket;
-use kairo_lib::AgentConfig;
+use kairo_lib::{AgentConfig, AgentRegistry, RegistryEntry};
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use clap::Parser;
@@ -44,38 +42,27 @@ struct AssignPAddressRequest {
     public_key: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct AgentInfo {
-    public_key: String,
-    p_address: String,
-    registered_at: String,
-    status: String,
-}
 
 const AGENT_REGISTRY_FILE: &str = "agent_registry.json";
 
-fn read_agent_registry() -> Result<Vec<AgentInfo>, std::io::Error> {
-    let file = File::open(AGENT_REGISTRY_FILE).unwrap_or_else(|_| File::create(AGENT_REGISTRY_FILE).unwrap());
-    let reader = BufReader::new(file);
-    let registry = serde_json::from_reader(reader).unwrap_or_else(|_| Vec::new());
-    Ok(registry)
+fn load_registry() -> AgentRegistry {
+    AgentRegistry::load(AGENT_REGISTRY_FILE).unwrap_or_default()
 }
 
-fn write_agent_registry(registry: &[AgentInfo]) -> std::io::Result<()> {
-    let file = OpenOptions::new().write(true).truncate(true).create(true).open(AGENT_REGISTRY_FILE)?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, registry)?;
-    Ok(())
+fn save_registry(registry: &AgentRegistry) -> std::io::Result<()> {
+    registry.save(AGENT_REGISTRY_FILE)
 }
 
 
 
 /// Verify that a packet's signature matches the sending agent's public key.
-fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
-    let source_agent = match registry
-        .iter()
-        .find(|a| a.public_key == packet.source_public_key) // public_key を使用
-    {
+fn verify_packet_signature(packet: &AiTcpPacket, registry: &AgentRegistry) -> bool {
+    if !registry.validate(&packet.source_p_address, &packet.source_public_key) {
+        println!("🔴 Signature Fail: Public key mismatch for p_address {}", packet.source_p_address);
+        return false;
+    }
+
+    let source_agent = match registry.entries.iter().find(|e| e.public_key == packet.source_public_key) {
         Some(agent) => agent,
         None => {
             println!("🔴 Signature Fail: Source agent not found in registry for public key: {}", packet.source_public_key);
@@ -134,7 +121,7 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
         "🔵 [SEND] Received POST: from_public_key={}, to={}",
         packet.source_public_key, packet.destination_p_address
     );
-    let registry = read_agent_registry().unwrap_or_default();
+    let registry = load_registry();
 
     if verify_packet_signature(&packet, &registry) {
         println!("🟢 [SIGNATURE VERIFIED]");
@@ -177,10 +164,10 @@ async fn handle_receive(p_address: String) -> Result<impl Reply, Rejection> {
 
 /// Assign a new P-address from the pool.
 async fn assign_p_address_handler(req: AssignPAddressRequest, pool: Arc<StdMutex<AddressPool>>) -> Result<impl Reply, Rejection> {
-    let mut registry = read_agent_registry().unwrap_or_default();
+    let mut registry = load_registry();
 
     // Check if public_key already exists in registry
-    if let Some(existing_agent) = registry.iter().find(|agent| agent.public_key == req.public_key) {
+    if let Some(existing_agent) = registry.entries.iter().find(|agent| agent.public_key == req.public_key) {
         println!("🟢 [DAEMON] Public Key already registered: {} with P-Address: {}", req.public_key, existing_agent.p_address);
         return Ok(warp::reply::with_status(
             warp::reply::json(&serde_json::json!({ "public_key": req.public_key, "p_address": existing_agent.p_address })),
@@ -193,15 +180,15 @@ async fn assign_p_address_handler(req: AssignPAddressRequest, pool: Arc<StdMutex
     pool_guard.next_address += 1;
     let p_address = format!("10.0.0.{}/24", addr); // CIDR表記を追加
 
-    let new_agent_info = AgentInfo {
+    let new_agent_info = RegistryEntry {
         public_key: req.public_key.clone(),
         p_address: p_address.clone(),
-        registered_at: Utc::now().to_rfc3339(),
-        status: "active".to_string(),
+        registered_at: Some(Utc::now().to_rfc3339()),
+        status: Some("active".to_string()),
     };
 
-    registry.push(new_agent_info);
-    write_agent_registry(&registry).expect("Failed to write agent registry");
+    registry.entries.push(new_agent_info);
+    save_registry(&registry).expect("Failed to write agent registry");
 
     println!("🟢 [DAEMON] Assigned NEW P-Address: {} for public_key: {}", p_address, req.public_key);
     Ok(warp::reply::with_status(
@@ -225,8 +212,8 @@ async fn main() {
             }
         });
     let initial_next_address = {
-        let registry = read_agent_registry().unwrap_or_default();
-        let max_p_address_num = registry.iter()
+        let registry = load_registry();
+        let max_p_address_num = registry.entries.iter()
             .filter_map(|agent| {
                 agent.p_address.split('/').next() // "10.0.0.X/24" から "10.0.0.X" を取得
                     .and_then(|s| s.split('.').last()) // "10.0.0.X" から "X" を取得

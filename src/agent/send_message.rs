@@ -1,6 +1,5 @@
 use clap::Parser;
-use ed25519_dalek::{Signer, SigningKey};
-use kairo_lib::AgentConfig;
+use kairo_lib::{AgentConfig, packet::sign_packet};
 use serde_json::json;
 use std::fs::File;
 use std::io::Read;
@@ -43,25 +42,14 @@ async fn main() {
         }
     };
 
-    // Sign the message
-    let secret_bytes = match hex::decode(&config.secret_key) {
-        Ok(b) => b,
+    // Sign the message using the common helper
+    let signature_hex = match sign_packet(&config, 0, chrono::Utc::now().timestamp(), &args.message) {
+        Ok(sig) => sig,
         Err(e) => {
-            eprintln!("Error: invalid secret key hex: {}", e);
+            eprintln!("Error signing packet: {}", e);
             return;
         }
     };
-
-    let signing_key = match secret_bytes[..].try_into() {
-        Ok(slice) => SigningKey::from_bytes(&slice),
-        Err(_) => {
-            eprintln!("Error: secret key size incorrect");
-            return;
-        }
-    };
-
-    let signature = signing_key.sign(args.message.as_bytes());
-    let signature_hex = hex::encode(signature.to_bytes());
 
     // Build request body
     let body = json!({
