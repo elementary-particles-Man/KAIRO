@@ -1,4 +1,4 @@
-use kairo_lib::{save_agent_config};
+use kairo_lib::config::{save_agent_config};
 use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -65,10 +65,11 @@ use rand::rngs::OsRng;
         let public_key_hex = hex::encode(&public_key_bytes);
         let secret_key_hex = hex::encode(&secret_key_bytes);
 
-        println!("Secret Key: \"{}\"", secret_key_hex);
-        println!("Public Key: \"{}\"", public_key_hex);
+        println!("Secret Key: {}", secret_key_hex);
+        println!("Public Key: {}", public_key_hex);
 
-        println!("\nStep 2: Registering with a Seed Node...");
+        println!("
+Step 2: Registering with a Seed Node...");
 
         // Try to request P address from local daemon
         println!("
@@ -103,6 +104,7 @@ Requesting KAIRO-P address from local daemon...");
             public_key: public_key_hex.clone(),
             secret_key: secret_key_hex,
             signature: String::new(), // will be set below
+            last_sequence: 0, // 新しいフィールドを追加
         };
 
         // Save the new agent config to the specified path

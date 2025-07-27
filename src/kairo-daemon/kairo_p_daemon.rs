@@ -37,6 +37,9 @@ struct AddressPool {
 static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> =
     Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
 
+static LAST_SEEN_SEQUENCE: Lazy<Arc<Mutex<HashMap<String, u64>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+
 
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -123,8 +126,14 @@ fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool
 
     let signature = Signature::from_bytes(&signature_array);
 
+    let message_to_verify = [
+        &packet.sequence.to_le_bytes()[..],
+        &packet.timestamp_utc.to_le_bytes()[..],
+        packet.payload.as_bytes(),
+    ].concat();
+
     public_key
-        .verify(packet.payload.as_bytes(), &signature)
+        .verify(&message_to_verify, &signature)
         .is_ok()
 }
 
@@ -136,8 +145,33 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
     );
     let registry = read_agent_registry().unwrap_or_default();
 
+    // タイムスタンプの検証
+    let current_timestamp = Utc::now().timestamp();
+    if (packet.timestamp_utc - current_timestamp).abs() > 10 {
+        println!("🔴 [TIMESTAMP INVALID] Packet REJECTED: timestamp_utc out of range ({} vs {})", packet.timestamp_utc, current_timestamp);
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&"invalid_timestamp"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    // シーケンス番号の検証
+    let mut last_seen_sequence_guard = LAST_SEEN_SEQUENCE.lock().await;
+    let last_seq = last_seen_sequence_guard.get(&packet.source_public_key).cloned().unwrap_or(0);
+
+    if packet.sequence <= last_seq {
+        println!("🔴 [SEQUENCE INVALID] Packet REJECTED: sequence {} not greater than last seen {} for {}", packet.sequence, last_seq, packet.source_public_key);
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&"invalid_sequence"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
     if verify_packet_signature(&packet, &registry) {
-        println!("🟢 [SIGNATURE VERIFIED]");
+        println!("✅ [SIGNATURE VERIFIED]");
+        // シーケンス番号を更新
+        last_seen_sequence_guard.insert(packet.source_public_key.clone(), packet.sequence);
+
         let mut queue = MESSAGE_QUEUE.lock().await;
         let inbox = queue
             .entry(packet.destination_p_address.clone())

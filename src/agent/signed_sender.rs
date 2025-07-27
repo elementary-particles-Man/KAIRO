@@ -34,7 +34,7 @@ struct AiTcpPacket {
     source_public_key: String,
     destination_p_address: String,
     sequence: u64,
-    timestamp: i64,
+    timestamp_utc: i64,
     payload_type: String,
     payload: String,
     signature: String,
@@ -60,8 +60,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from.replace("/", "_")));
-    let config_data = fs::read_to_string(agent_config_path)?;
-    let config: AgentConfig = serde_json::from_str(&config_data).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+    let mut config: AgentConfig = kairo_lib::config::load_agent_config(&agent_config_path.to_string_lossy())
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+
+    let current_sequence = config.last_sequence + 1;
+    config.last_sequence = current_sequence;
+
+    kairo_lib::config::save_agent_config(&config, &agent_config_path.to_string_lossy())
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
     let signing_key_bytes = hex::decode(&config.secret_key).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
     let key_bytes: [u8; 32] = signing_key_bytes.try_into()
@@ -74,15 +80,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         args.message.clone()
     };
 
-    let signature: Signature = signing_key.sign(actual_payload.as_bytes());
+    let current_timestamp = Utc::now().timestamp();
+
+    let message_to_sign = [
+        &current_sequence.to_le_bytes()[..],
+        &current_timestamp.to_le_bytes()[..],
+        actual_payload.as_bytes(),
+    ].concat();
+
+    let signature: Signature = signing_key.sign(&message_to_sign);
     let signature_hex = hex::encode(signature.to_bytes());
 
     let packet = AiTcpPacket {
         version: 1,
         source_public_key: config.public_key.clone(),
         destination_p_address: args.to,
-        sequence: 0,
-        timestamp: Utc::now().timestamp(),
+        sequence: current_sequence,
+        timestamp_utc: current_timestamp,
         payload_type: "message".to_string(),
         payload: args.message, // 表示上は正規メッセージ
         signature: signature_hex,
