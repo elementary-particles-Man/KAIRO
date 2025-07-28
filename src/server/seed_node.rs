@@ -11,9 +11,7 @@ use chrono::Utc;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use kairo_lib::packet::AiTcpPacket;
-use kairo_lib::config::AgentConfig;
 use ed25519_dalek::{VerifyingKey, Signature, Verifier};
-use serde_json::from_reader;
 
 use kairo_lib::governance::OverridePackage;
 use kairo_lib::config::DaemonConfig;

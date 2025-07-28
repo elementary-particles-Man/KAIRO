@@ -1,8 +1,6 @@
 // signed_sender.rs（署名付きパケット送信＋改ざんテスト用）
 
 use ed25519_dalek::{SigningKey, Signature, Signer};
-use serde::{Serialize, Deserialize};
-use std::fs;
 use std::path::PathBuf;
 use clap::Parser;
 use reqwest::Client;
@@ -28,17 +26,7 @@ struct Args {
     fake: bool,
 }
 
-#[derive(Serialize, Debug)]
-struct AiTcpPacket {
-    version: u32,
-    source_public_key: String,
-    destination_p_address: String,
-    sequence: u64,
-    timestamp_utc: i64,
-    payload_type: String,
-    payload: String,
-    signature: String,
-}
+use kairo_lib::packet::AiTcpPacket;
 
 use kairo_lib::config as daemon_config;
 
@@ -80,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         args.message.clone()
     };
 
-    let current_timestamp = Utc::now().timestamp();
+    let current_timestamp = Utc::now().timestamp() + 3600;
 
     let message_to_sign = [
         &current_sequence.to_le_bytes()[..],
@@ -94,6 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let packet = AiTcpPacket {
         version: 1,
         source_public_key: config.public_key.clone(),
+        source_p_address: config.p_address.clone(),
         destination_p_address: args.to,
         sequence: current_sequence,
         timestamp_utc: current_timestamp,
@@ -105,6 +94,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#?}", serde_json::to_string(&packet).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?);
 
     let client = Client::new();
+
+    // Wait for daemon to be ready
+    println!("Waiting for KAIRO-P Daemon to be ready...");
+    loop {
+        match client.get("http://127.0.0.1:3030/").send().await {
+            Ok(_) => {
+                println!("KAIRO-P Daemon is ready.");
+                break;
+            },
+            Err(_) => {
+                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            }
+        }
+    }
+
     let res = client.post(get_daemon_url())
         .json(&packet)
         .send()

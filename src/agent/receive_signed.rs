@@ -17,12 +17,12 @@ struct Args {
 
 #[derive(Debug, Deserialize)]
 struct Message {
-    version: u32,
+    _version: u32,
     source_public_key: String,
-    destination_p_address: String,
-    sequence: u64,
-    timestamp: i64,
-    payload_type: String,
+    _destination_p_address: String,
+    _sequence: u64,
+    _timestamp: i64,
+    _payload_type: String,
     payload: String,
     signature: String,
 }
@@ -39,7 +39,7 @@ async fn main() {
             return;
         }
     };
-    let config: AgentConfig = match serde_json::from_str(&config_data) {
+    let _config: AgentConfig = match serde_json::from_str(&config_data) {
         Ok(c) => c,
         Err(e) => {
             eprintln!("Failed to parse agent_config.json: {}", e);

@@ -18,6 +18,10 @@ struct MeshPacket {
 struct Args {
     #[arg(long)]
     log_file: Option<String>,
+    #[arg(long)]
+    join_address: String,
+    #[arg(long)]
+    id: String,
 }
 
 #[tokio::main]

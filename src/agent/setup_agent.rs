@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent_config_file_name = format!("{}.json", cli_args.name);
     let agent_config_path = agent_config_dir.join(&agent_config_file_name);
 
-    let mut config: AgentConfig;
+    let config: AgentConfig;
 
     if cli_args.new || !agent_config_path.exists() {
         println!("--- KAIRO Mesh Initial Setup ---");

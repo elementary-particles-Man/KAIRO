@@ -1,6 +1,7 @@
 {
-  "p_address": "10.0.0.9/24",
-  "public_key": "362ef1ec60a6ad06b2e1909e47714f2def501dcfbe140f2b84a32bf8dc3cd85e",
-  "secret_key": "fb19982d0e2e2ceb7a6bb31b35dce04e731d5159eccf72cab9c402443d217a42",
-  "signature": ""
+  "p_address": "10.0.0.23/24",
+  "public_key": "4ced77c175ad3fd2d2ced979419e28635d179d0724e696350031c4e9b4912fb6",
+  "secret_key": "70f8d7fa57d4b78a53c067b200f7fe846bec55887a82ae745aa7adb3c6e11def",
+  "signature": "",
+  "last_sequence": 0
 }

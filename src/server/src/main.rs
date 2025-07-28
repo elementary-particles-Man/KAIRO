@@ -1,10 +1,8 @@
 use warp::{Filter, Rejection, Reply};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use serde::{Serialize};
 
 use std::collections::HashSet;
-use kairo_lib::governance::{OverridePackage, SignaturePackage};
+use kairo_lib::governance::{OverridePackage};
 
 // Verifies the integrity and rules of a governance OverridePackage
 fn verify_override_package(package: &OverridePackage) -> bool {
