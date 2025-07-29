@@ -2,6 +2,3 @@
 	path = PI-Vault
 	url = https://github.com/elementary-particles-Man/PI-Vault.git
 
-[submodule "bin"]
-	path = bin
-	url = file:///D:/Dev/bin
