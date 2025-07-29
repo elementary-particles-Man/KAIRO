@@ -143,39 +143,34 @@ fn _verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> boo
         .is_ok()
 }
 
-/// Handle an incoming packet POST request.
+/// Handle POST /send_packet
 async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
     info!("DEBUG: handle_send called");
-    info!(" [SEND] Received POST: from_public_key={}, to={}", packet.source_p_address, packet.destination_p_address);
+    info!("\u{1f535} [SEND] Received POST: from_public_key={}, to={}", packet.source_p_address, packet.destination_p_address);
     info!("DEBUG: packet.destination_p_address = {:?}", packet.destination_p_address);
 
-    // 検証は現時点ではバイパス（後で実装）
+    // 署名検証（現段階では常に true）
     let valid = p_signature_validator::validate(&packet);
     if !valid {
-        error!("❌ Invalid signature from {}", packet.source_p_address);
+        error!("\u{274c} Invalid signature from {}", packet.source_p_address);
         return Ok(warp::reply::with_status("Forbidden", warp::http::StatusCode::FORBIDDEN));
     }
 
     if packet.destination_p_address == "gpt://main" {
-        // GPTへ同期処理 + 応答返却
+        // GPT 処理を同期的に実行し、HTTP応答を即時返却
         match gpt_responder::gpt_log_and_respond(&packet.payload).await {
             Ok(resp) => {
-                info!("✅ [GPT] Response delivered");
-                Ok(warp::reply::with_status(&resp, warp::http::StatusCode::OK))
+                info!("\u{2705} [GPT] Response delivered");
+                Ok(warp::reply::with_status(resp, warp::http::StatusCode::OK))
             },
             Err(e) => {
-                error!("❌ [GPT] Failed to handle packet: {}", e);
+                error!("\u{274c} [GPT] Failed to handle packet: {}", e);
                 Ok(warp::reply::with_status("Internal Server Error", warp::http::StatusCode::INTERNAL_SERVER_ERROR))
             }
         }
     } else {
-        info!("Packet for {} queued.", packet.destination_p_address);
-        let mut queue = MESSAGE_QUEUE.lock().await;
-        let inbox = queue
-            .entry(packet.destination_p_address.clone())
-            .or_insert_with(Vec::new);
-        inbox.push(packet);
-        Ok(warp::reply::with_status("Packet Queued", warp::http::StatusCode::OK))
+        error!("\u{274c} Unsupported destination: {}", packet.destination_p_address);
+        Ok(warp::reply::with_status("Not Implemented", warp::http::StatusCode::NOT_IMPLEMENTED))
     }
 }
 
