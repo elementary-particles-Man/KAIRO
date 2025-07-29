@@ -8,9 +8,9 @@ use hex;
 use kairo_lib::AgentConfig;
 use chrono::Utc;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 struct Args {
-    #[arg(long, default_value = "agent_test")]
+    #[arg(long)]
     from: String,
 
     #[arg(long)]
@@ -46,8 +46,12 @@ fn get_daemon_url() -> String {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
+    println!("{:?}", args); // ここにデバッグ出力を追加
+    return Ok(()); // ここでプログラムを終了
 
-    let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from.replace("/", "_")));
+    let from_agent = "Agent1".to_string(); // ハードコード
+
+    let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", from_agent.replace("/", "_")));
     let mut config: AgentConfig = kairo_lib::config::load_agent_config(&agent_config_path.to_string_lossy())
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
