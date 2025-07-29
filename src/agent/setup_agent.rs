@@ -1,4 +1,5 @@
 use kairo_lib::config::{save_agent_config};
+use kairo_lib::registry::{add_entry, RegistryEntry};
 use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -61,6 +62,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config: AgentConfig;
 
     if cli_args.new || !agent_config_path.exists() {
+        if cli_args.new && agent_config_path.exists() {
+            println!("Overwriting existing config at {:?} due to --new flag", agent_config_path);
+        }
         println!("--- KAIRO Mesh Initial Setup ---");
 
 // Generate key pair
@@ -101,6 +105,13 @@ Skipping KAIRO-P address assignment from local daemon (not implemented).");
 
         // Save the new agent config to the specified path
         save_agent_config(&config, agent_config_path.to_str().unwrap())?;
+        // Update global registry
+        if let Err(e) = add_entry(
+            "agent_registry.json",
+            RegistryEntry { name: cli_args.name.clone(), p_address: p_address.clone() }
+        ) {
+            println!("WARN: failed to update agent_registry.json: {}", e);
+        }
 
         println!("--- Onboarding Complete ---");
     } else {
