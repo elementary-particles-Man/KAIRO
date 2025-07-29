@@ -2,14 +2,14 @@ mod handler;
 
 use std::net::SocketAddr;
 use std::fs::File;
+use tokio::net::TcpListener;
 
 use axum::{
     routing::{get, post},
     Router,
 };
-use axum::Server;
-use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config as LogConfig, TerminalMode, ColorChoice, LevelFilter};
 
+use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config as LogConfig, TerminalMode, ColorChoice, LevelFilter};
 use handler::{handle_send, handle_gpt};
 
 // エントリポイント
@@ -36,10 +36,8 @@ async fn main() {
     println!("Listening on {}", addr);
 
     // ✅ サーバ起動
-    Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let listener = TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app.into_make_service()).await.unwrap();
 }
 
 // 🧪 root応答用（テスト用）

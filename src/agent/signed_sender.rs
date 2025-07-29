@@ -80,16 +80,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let signature_hex = hex::encode(signature.to_bytes());
 
     let packet = AiTcpPacket {
+        source: config.public_key.clone(),
+        destination: args.to.clone(),
         version: 1,
-        source_public_key: config.public_key.clone(),
         source_p_address: config.p_address.clone(),
-        destination_p_address: args.to,
+        destination_p_address: args.to.clone(),
+        source_public_key: config.public_key.clone(),
         sequence: current_sequence,
-        timestamp_utc: current_timestamp,
+        timestamp_utc: current_timestamp as u64,
         payload_type: "message".to_string(),
-        payload: args.message, // 表示上は正規メッセージ
-        signature: signature_hex,
+        payload: args.message.clone(),
+        signature: hex::encode(signature.to_bytes()),
     };
+
 
     println!("{:#?}", serde_json::to_string(&packet).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?);
 
