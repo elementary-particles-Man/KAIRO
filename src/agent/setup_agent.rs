@@ -1,22 +1,27 @@
-use kairo_lib::config::{save_agent_config};
-use kairo_lib::registry::{add_entry, RegistryEntry};
+use clap::Parser;
 use ed25519_dalek::SigningKey;
+use kairo_lib::config as daemon_config;
+use kairo_lib::config::save_agent_config;
+use kairo_lib::registry::{register_agent, RegistryEntry};
+use kairo_lib::AgentConfig;
 use rand::rngs::OsRng;
 use rand::RngCore;
 use reqwest;
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
-use kairo_lib::config as daemon_config;
-use kairo_lib::AgentConfig;
-use clap::Parser;
 
 #[derive(Parser)]
 #[command(author, version, about)]
 struct CliArgs {
     #[arg(long)]
     new: bool,
-    #[arg(long, help = "エージェント名 (英数字およびアンダースコアのみ。二重引用符は不要です)")]
+    #[arg(long)]
+    force: bool,
+    #[arg(
+        long,
+        help = "エージェント名 (英数字およびアンダースコアのみ。二重引用符は不要です)"
+    )]
     name: String,
 }
 
@@ -29,9 +34,11 @@ fn get_daemon_assign_url() -> String {
             listen_port: 8080
         }
     });
-    format!("http://{}:{}/assign_p_address", config.listen_address, config.listen_port)
+    format!(
+        "http://{}:{}/assign_p_address",
+        config.listen_address, config.listen_port
+    )
 }
-
 
 #[derive(Deserialize)]
 struct AgentMapping {
@@ -53,7 +60,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // エージェント名のサニタイズ
     sanitize_agent_name(&cli_args.name)?;
 
-    let agent_config_dir = PathBuf::from("D:/Dev/KAIRO/users").join(&cli_args.name).join("agent_configs");
+    let agent_config_dir = PathBuf::from("D:/Dev/KAIRO/users")
+        .join(&cli_args.name)
+        .join("agent_configs");
     fs::create_dir_all(&agent_config_dir)?;
 
     let agent_config_file_name = format!("{}.json", cli_args.name);
@@ -61,15 +70,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config: AgentConfig;
 
-    if cli_args.new || !agent_config_path.exists() {
-        if cli_args.new && agent_config_path.exists() {
-            println!("Overwriting existing config at {:?} due to --new flag", agent_config_path);
+    if cli_args.new {
+        if agent_config_path.exists() && !cli_args.force {
+            eprintln!(
+                "Config {:?} already exists. Use --force to overwrite",
+                agent_config_path
+            );
+            return Ok(());
+        }
+        if agent_config_path.exists() {
+            println!(
+                "Overwriting existing config at {:?} due to --force",
+                agent_config_path
+            );
         }
         println!("--- KAIRO Mesh Initial Setup ---");
 
-// Generate key pair
+        // Generate key pair
+        use rand::rngs::OsRng;
         use rand::RngCore;
-use rand::rngs::OsRng;
         let mut csprng = OsRng;
         let mut sk_bytes = [0u8; 32];
         csprng.fill_bytes(&mut sk_bytes);
@@ -83,12 +102,16 @@ use rand::rngs::OsRng;
         println!("Secret Key: {}", secret_key_hex);
         println!("Public Key: {}", public_key_hex);
 
-        println!("
-Step 2: Registering with a Seed Node...");
+        println!(
+            "
+Step 2: Registering with a Seed Node..."
+        );
 
         // Try to request P address from local daemon
-        println!("
-Skipping KAIRO-P address assignment from local daemon (not implemented).");
+        println!(
+            "
+Skipping KAIRO-P address assignment from local daemon (not implemented)."
+        );
         let p_address = format!("10.0.0.{}/24", rand::random::<u8>()); // ダミーのPアドレスを生成
 
         println!("-> Assigned Dummy P Address: {}", p_address);
@@ -100,20 +123,29 @@ Skipping KAIRO-P address assignment from local daemon (not implemented).");
             public_key: public_key_hex.clone(),
             secret_key: secret_key_hex,
             signature: String::new(), // will be set below
-            last_sequence: 0, // 新しいフィールドを追加
+            last_sequence: 0,         // 新しいフィールドを追加
         };
 
         // Save the new agent config to the specified path
         save_agent_config(&config, agent_config_path.to_str().unwrap())?;
         // Update global registry
-        if let Err(e) = add_entry(
+        if let Err(e) = register_agent(
             "agent_registry.json",
-            RegistryEntry { name: cli_args.name.clone(), p_address: p_address.clone() }
+            RegistryEntry {
+                name: cli_args.name.clone(),
+                p_address: p_address.clone(),
+            },
         ) {
-            println!("WARN: failed to update agent_registry.json: {}", e);
+            eprintln!("Failed to register agent: {}", e);
         }
 
         println!("--- Onboarding Complete ---");
+    } else if !agent_config_path.exists() {
+        eprintln!(
+            "Config {:?} not found. Use --new to create it",
+            agent_config_path
+        );
+        return Ok(());
     } else {
         println!("--- Welcome Back ---");
         let contents = fs::read_to_string(agent_config_path)?;

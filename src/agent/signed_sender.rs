@@ -34,7 +34,6 @@ struct Args {
 fn main() {
     let args = Args::parse();
     println!("{:?}", args);
-    process::exit(0);
 
     // Load agent config from file
     let config = load_agent_config(&args.config).unwrap_or_else(|err| {
@@ -88,5 +87,17 @@ fn main() {
             eprintln!("❌ Failed to send message: {}", err);
             process::exit(1);
         }
+    }
+
+    // verify delivery
+    match client.get("http://127.0.0.1:8080/").send() {
+        Ok(resp) => {
+            if resp.status().is_success() {
+                println!("✅ Daemon acknowledged receipt");
+            } else {
+                eprintln!("⚠️  Verification failed: {}", resp.status());
+            }
+        }
+        Err(e) => eprintln!("⚠️  Failed to verify delivery: {}", e),
     }
 }
