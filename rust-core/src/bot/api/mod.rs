@@ -13,3 +13,4 @@ pub mod router {
         // TODO: HTTP POSTリクエストの実装
     }
 }
+pub mod receiver;
