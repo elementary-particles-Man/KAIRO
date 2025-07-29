@@ -25,23 +25,23 @@ CLIの詳しい利用方法については、[usage_cli.md](./usage_cli.md) を�
 
 ### 🧭 2. セットアップと実行手順
 
-#### 2.1. 必須コンポーネントの起動
+#### 2.1. 常駐サービスの起動と停止
 
-KAIROメッシュをローカルで機能させるには、2つのコアサーバーをバックグラウンドで起動する必要があります。全てのコマンドはプロジェクトのルートディレクトリで実行してください。
+KAIROメッシュをローカルで機能させるには、常駐サービスをバックグラウンドで起動する必要があります。全てのコマンドはプロジェクトのルートディレクトリで実行してください。
 
-**重要:** デーモンとシードノードの起動および停止は、ユーザーが手動で行う必要があります。
+**重要:** デーモンとシードノードの起動および停止は、以下のPythonスクリプトを使用して行います。
 
-1.  **KAIRO-Pデーモン起動 (Pアドレス管理):**
+1.  **常駐サービスの起動:**
     ```bash
-    # PowerShell / Git Bash
-    cargo run --package kairo_daemon --bin kairo_p_daemon &
+    python start_services.py
     ```
+    このスクリプトは、`kairo_daemon`、`seed_node`、`mesh_node` を起動し、それぞれのポートが開くまで待機します。
 
-2.  **シードノード起動 (IDレジストリ):**
+2.  **常駐サービスの停止:**
     ```bash
-    # PowerShell / Git Bash
-    cargo run --package kairo_server --bin seed_node &
+    python stop_services.py
     ```
+    このスクリプトは、起動中の `kairo-daemon.exe`、`seed_node.exe`、`mesh_node.exe` プロセスを終了させます。
 
 #### 2.2. マルチエージェントのセットアップ
 
