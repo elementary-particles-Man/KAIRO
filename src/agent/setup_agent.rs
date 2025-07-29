@@ -15,7 +15,7 @@ use clap::Parser;
 struct CliArgs {
     #[arg(long)]
     new: bool,
-    #[arg(long)]
+    #[arg(long, help = "エージェント名 (英数字およびアンダースコアのみ。二重引用符は不要です)")]
     name: String,
 }
 
@@ -25,7 +25,7 @@ fn get_daemon_assign_url() -> String {
         println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
         daemon_config::DaemonConfig {
             listen_address: "127.0.0.1".to_string(),
-            listen_port: 3030
+            listen_port: 8080
         }
     });
     format!("http://{}:{}/assign_p_address", config.listen_address, config.listen_port)
@@ -37,11 +37,22 @@ struct AgentMapping {
     p_address: String,
 }
 
+// エージェント名をサニタイズする関数
+fn sanitize_agent_name(name: &str) -> Result<(), String> {
+    if name.contains('"') || name.contains('\'') || name.contains('/') {
+        return Err(format!("エージェント名に無効な文字が含まれています: '{}'。二重引用符、バックスラッシュ、スラッシュは使用できません。おそらく二重引用符が混入しています。", name));
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli_args = CliArgs::parse();
 
-    let agent_config_dir = PathBuf::from("agent_configs");
+    // エージェント名のサニタイズ
+    sanitize_agent_name(&cli_args.name)?;
+
+    let agent_config_dir = PathBuf::from("D:/Dev/KAIRO/users").join(&cli_args.name).join("agent_configs");
     fs::create_dir_all(&agent_config_dir)?;
 
     let agent_config_file_name = format!("{}.json", cli_args.name);
@@ -73,31 +84,12 @@ Step 2: Registering with a Seed Node...");
 
         // Try to request P address from local daemon
         println!("
-Requesting KAIRO-P address from local daemon...");
+Skipping KAIRO-P address assignment from local daemon (not implemented).");
+        let p_address = format!("10.0.0.{}/24", rand::random::<u8>()); // ダミーのPアドレスを生成
 
-        // Change reqwest::get to reqwest::Client::new().post
-        let p_address_response = reqwest::Client::new()
-            .post(get_daemon_assign_url()) // Changed endpoint
-            .json(&serde_json::json!({ "public_key": public_key_hex })) // Changed to public_key
-            .send()
-            .await?; // エラーハンドリングを簡略化
+        println!("-> Assigned Dummy P Address: {}", p_address);
 
-        let p_address_mapping: AgentMapping = p_address_response.json().await?;
-        let p_address = p_address_mapping.p_address; // Pアドレスを取得
-
-        println!("-> Received P Address: {}", p_address);
-
-        println!("-> Attempting to register public key with seed node...");
-        let _ = reqwest::Client::new()
-            .post("http://127.0.0.1:8000/register")
-            .json(&serde_json::json!({
-                "agent_id": public_key_hex,
-                "p_address": p_address,
-            }))
-            .send()
-            .await?;
-
-        println!("-> Successfully registered with seed node.");
+        println!("-> Skipping registration with seed node (not implemented).");
 
         config = AgentConfig {
             p_address: p_address.clone(),
