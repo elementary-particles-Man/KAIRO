@@ -42,3 +42,7 @@ path = "receive_signed.rs"
 name = "forged_sender"
 path = "forged_sender.rs"
 
+[[bin]]
+name = "validate_config"
+path = "validate_config.rs"
+

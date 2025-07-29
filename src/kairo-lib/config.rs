@@ -85,3 +85,18 @@ pub fn load_all_configs() -> Result<Vec<AgentConfig>, Box<dyn std::error::Error>
     }
     Ok(configs)
 }
+
+/// Validate the structure of an `AgentConfig`.
+/// This performs basic sanity checks on P address and key lengths.
+pub fn validate_agent_config(cfg: &AgentConfig) -> Result<(), String> {
+    if !cfg.p_address.contains('/') {
+        return Err("p_address must contain subnet like '10.0.0.x/24'".to_string());
+    }
+    if cfg.public_key.len() != 64 || !cfg.public_key.chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err("public_key must be 64 hex characters".to_string());
+    }
+    if cfg.secret_key.len() != 64 || !cfg.secret_key.chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err("secret_key must be 64 hex characters".to_string());
+    }
+    Ok(())
+}

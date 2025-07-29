@@ -59,6 +59,12 @@ KAIROメッシュをローカルで機能させるには、2つのコアサー�
     ```
     これにより、`agent_configs/CLI.json` や `agent_configs/Agent1.json` などが生成されます。他のエージェントも同様の手順で初期化してください。
 
+2.  **設定ファイルの検証:**
+    生成した `agent_configs/{agent_name}.json` は `validate_config` コマンドで形式チェックができます。
+    ```bash
+    cargo run --package kairo_agent --bin validate_config -- --path agent_configs/CLI.json
+    ```
+
 ---
 
 ### 📡 3. 通信テストと検証
