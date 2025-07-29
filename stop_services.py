@@ -1,6 +1,6 @@
 import subprocess
 
-PROCESS_NAMES = ["kairo-daemon.exe", "seed_node.exe", "mesh_node.exe"]
+PROCESS_NAMES = ["kairo-daemon.exe", "seed_node.exe", "mesh_node.exe", "kairobot.exe"]
 
 def stop_processes():
     for name in PROCESS_NAMES:

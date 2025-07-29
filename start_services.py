@@ -19,6 +19,11 @@ services = [
         "cmd": ["cargo", "run", "--bin", "mesh_node", "--", "--join-address", "127.0.0.1:9000", "--id", "mesh_01"],
         "port": 8080  # mesh_nodeも同じポートを使う場合、タイミング確認が必要
     },
+    {
+        "name": "kairobot",
+        "cmd": ["cargo", "run", "--package", "kairo_core", "--bin", "kairobot"],
+        "port": 4040
+    },
 ]
 
 def wait_for_port(port, host='127.0.0.1', timeout=180):
