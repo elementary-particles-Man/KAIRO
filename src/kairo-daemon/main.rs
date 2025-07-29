@@ -20,6 +20,9 @@ use log::{info, LevelFilter, error};
 use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config, TerminalMode, ColorChoice};
 
 
+use crate::packet::Packet;
+use crate::p_signature_validator;
+use crate::gpt_responder;
 use kairo_lib::packet::AiTcpPacket;
 use serde::{Deserialize, Serialize};
 use clap::Parser;
@@ -144,7 +147,7 @@ fn _verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> boo
 }
 
 /// Handle POST /send_packet
-async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+async fn handle_send(packet: Packet) -> Result<impl Reply, Rejection> {
     info!("DEBUG: handle_send called");
     info!("\u{1f535} [SEND] Received POST: from_public_key={}, to={}", packet.source_p_address, packet.destination_p_address);
     info!("DEBUG: packet.destination_p_address = {:?}", packet.destination_p_address);
@@ -158,10 +161,10 @@ async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
 
     if packet.destination_p_address == "gpt://main" {
         // GPT 処理を同期的に実行し、HTTP応答を即時返却
-        match gpt_responder::gpt_log_and_respond(&packet.payload).await {
+        match gpt_responder::gpt_log_and_respond(&packet).await {
             Ok(resp) => {
                 info!("\u{2705} [GPT] Response delivered");
-                Ok(warp::reply::with_status(resp, warp::http::StatusCode::OK))
+                Ok(warp::reply::with_status(resp.as_str(), warp::http::StatusCode::OK))
             },
             Err(e) => {
                 error!("\u{274c} [GPT] Failed to handle packet: {}", e);
