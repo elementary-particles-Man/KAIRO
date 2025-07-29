@@ -46,3 +46,7 @@ path = "forged_sender.rs"
 name = "validate_config"
 path = "validate_config.rs"
 
+[[bin]]
+name = "check_registry"
+path = "check_registry.rs"
+
