@@ -1,4 +1,1 @@
-[submodule "PI-Vault"]
-	path = PI-Vault
-	url = https://github.com/elementary-particles-Man/PI-Vault.git
-
+[submodule "bin"]`n    path = bin`n    url = file:///D:/Dev/bin
