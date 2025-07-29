@@ -16,7 +16,7 @@ use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 use warp::{http::StatusCode, Filter, Rejection, Reply};
 
-use log::{info, LevelFilter};
+use log::{info, LevelFilter, error};
 use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config, TerminalMode, ColorChoice};
 
 
@@ -146,92 +146,37 @@ fn _verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> boo
 /// Handle an incoming packet POST request.
 async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
     info!("DEBUG: handle_send called");
-    info!(
-        "🔵 [SEND] Received POST: from_public_key={}, to={}",
-        packet.source_public_key, packet.destination_p_address
-    );
-    info!("DEBUG: packet.destination_p_address = \"{}\"", packet.destination_p_address); // 追加
-    let registry = read_agent_registry().unwrap_or_default();
+    info!(" [SEND] Received POST: from_public_key={}, to={}", packet.source_p_address, packet.destination_p_address);
+    info!("DEBUG: packet.destination_p_address = {:?}", packet.destination_p_address);
 
-    // タイムスタンプの検証
-    let current_timestamp = Utc::now().timestamp();
-    if (packet.timestamp_utc - current_timestamp).abs() > 10 {
-        info!("🔴 [TIMESTAMP INVALID] Packet REJECTED: timestamp_utc out of range ({} vs {})", packet.timestamp_utc, current_timestamp);
-        return Ok(warp::reply::with_status(
-            warp::reply::json(&"invalid_timestamp"),
-            StatusCode::BAD_REQUEST,
-        ));
+    // 検証は現時点ではバイパス（後で実装）
+    let valid = p_signature_validator::validate(&packet);
+    if !valid {
+        error!("❌ Invalid signature from {}", packet.source_p_address);
+        return Ok(warp::reply::with_status("Forbidden", warp::http::StatusCode::FORBIDDEN));
     }
 
-    // シーケンス番号の検証
-    let mut last_seen_sequence_guard = LAST_SEEN_SEQUENCE.lock().await;
-    let last_seq = last_seen_sequence_guard.get(&packet.source_public_key).cloned().unwrap_or(0);
-
-    if packet.sequence <= last_seq {
-        info!("🔴 [SEQUENCE INVALID] Packet REJECTED: sequence {} not greater than last seen {} for {}", packet.sequence, last_seq, packet.source_public_key);
-        return Ok(warp::reply::with_status(
-            warp::reply::json(&"invalid_sequence"),
-            StatusCode::BAD_REQUEST,
-        ));
+    if packet.destination_p_address == "gpt://main" {
+        // GPTへ同期処理 + 応答返却
+        match gpt_responder::gpt_log_and_respond(&packet.payload).await {
+            Ok(resp) => {
+                info!("✅ [GPT] Response delivered");
+                Ok(warp::reply::with_status(&resp, warp::http::StatusCode::OK))
+            },
+            Err(e) => {
+                error!("❌ [GPT] Failed to handle packet: {}", e);
+                Ok(warp::reply::with_status("Internal Server Error", warp::http::StatusCode::INTERNAL_SERVER_ERROR))
+            }
+        }
+    } else {
+        info!("Packet for {} queued.", packet.destination_p_address);
+        let mut queue = MESSAGE_QUEUE.lock().await;
+        let inbox = queue
+            .entry(packet.destination_p_address.clone())
+            .or_insert_with(Vec::new);
+        inbox.push(packet);
+        Ok(warp::reply::with_status("Packet Queued", warp::http::StatusCode::OK))
     }
-
-    // if verify_packet_signature(&packet, &registry) { // コメントアウト
-        info!("✅ [SIGNATURE VERIFIED] (Temporarily bypassed)"); // 変更
-        // シーケンス番号を更新
-        last_seen_sequence_guard.insert(packet.source_public_key.clone(), packet.sequence);
-
-        // タイムスタンプの検証 (署名検証の前に移動)
-        let current_timestamp = Utc::now().timestamp();
-        if (packet.timestamp_utc - current_timestamp).abs() > 10 {
-            info!("🔴 [TIMESTAMP INVALID] Packet REJECTED: timestamp_utc out of range ({} vs {})", packet.timestamp_utc, current_timestamp);
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&"invalid_timestamp"),
-                StatusCode::BAD_REQUEST,
-            ));
-        }
-
-        // シーケンス番号の検証 (署名検証の前に移動)
-        let mut last_seen_sequence_guard = LAST_SEEN_SEQUENCE.lock().await;
-        let last_seq = last_seen_sequence_guard.get(&packet.source_public_key).cloned().unwrap_or(0);
-
-        if packet.sequence <= last_seq {
-            info!("🔴 [SEQUENCE INVALID] Packet REJECTED: sequence {} not greater than last seen {} for {}", packet.sequence, last_seq, packet.source_public_key);
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&"invalid_sequence"),
-                StatusCode::BAD_REQUEST,
-            ));
-        }
-
-        // GPT宛のパケットを処理
-        info!("DEBUG: Comparing destination_p_address \"{}\" with \"gpt://main\". Result: {}", packet.destination_p_address, packet.destination_p_address.trim() == "gpt://main");
-        if packet.destination_p_address.trim() == "gpt://main" {
-            info!("Packet from {} to gpt://main accepted", packet.source_p_address);
-            info!("Forwarding to GPT");
-            let gpt_response = gpt_responder::handle_gpt_response(&packet.payload);
-            gpt_log_processor::log_gpt_response(&gpt_response).await.expect("Failed to log GPT response");
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&serde_json::json!({ "status": "GPT_response_logged", "response": gpt_response})),
-                StatusCode::OK,
-            ));
-        } else {
-            info!("Packet for {} queued.", packet.destination_p_address);
-            let mut queue = MESSAGE_QUEUE.lock().await;
-            let inbox = queue
-                .entry(packet.destination_p_address.clone())
-                .or_insert_with(Vec::new);
-            inbox.push(packet);
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&"packet_queued"),
-                StatusCode::OK,
-            ));
-        }
-    // } else { // コメントアウト
-    //     info!("🔴 [SIGNATURE INVALID] Packet REJECTED");
-    //     Ok(warp::reply::with_status(
-    //         warp::reply::json(&"invalid_signature"),
-    //         StatusCode::UNAUTHORIZED,
-    //     ))
-    // }
 }
 
 /// Deliver all queued packets for the requested P-address.

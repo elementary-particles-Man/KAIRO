@@ -2,7 +2,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 use chrono::Utc;
-use log::info;
+use log::{info, error};
 
 /// GPT応答をログファイルに追記保存する
 pub async fn log_gpt_response(response: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -25,8 +25,11 @@ pub async fn log_gpt_response(response: &str) -> Result<(), Box<dyn std::error::
     let timestamp = Utc::now().to_rfc3339();
     let log_entry = format!(r#"{{"timestamp": "{}", "response": {}}}"#, timestamp, response);
 
-    writeln!(file, "{}", log_entry)?;
-
-    info!("📝 Logged GPT response to: {:?}", log_file);
-    Ok(())
+    if let Err(e) = writeln!(file, "{}", log_entry) {
+        error!("❌ Failed to write log entry: {}", e);
+        Err(Box::new(e))
+    } else {
+        info!("✅ Log written successfully to: {:?}", log_file);
+        Ok(())
+    }
 }
