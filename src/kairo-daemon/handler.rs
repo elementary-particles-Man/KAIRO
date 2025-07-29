@@ -1,14 +1,14 @@
 // src/kairo-daemon/handler.rs
 
 use axum::{Json, extract::Json as ExtractJson};
-use serde_json::Value;
+use kairo_lib::packet::AiTcpPacket;
 
-pub async fn handle_send(ExtractJson(payload): ExtractJson<Value>) -> Json<Value> {
-    println!("[SEND] Received: {:?}", payload);
-    Json(payload)
+pub async fn handle_send(ExtractJson(packet): ExtractJson<AiTcpPacket>) -> Json<String> {
+    println!("[SEND] From {} to {}: {}", packet.source, packet.destination, packet.payload);
+    Json(format!("Packet relayed to {}", packet.destination))
 }
 
-pub async fn handle_gpt(ExtractJson(payload): ExtractJson<Value>) -> Json<Value> {
-    println!("[GPT] Received: {:?}", payload);
-    Json(payload)
+pub async fn handle_gpt(ExtractJson(packet): ExtractJson<AiTcpPacket>) -> Json<String> {
+    println!("[GPT] From {} to {}: {}", packet.source, packet.destination, packet.payload);
+    Json(format!("GPT processed for {}", packet.destination))
 }

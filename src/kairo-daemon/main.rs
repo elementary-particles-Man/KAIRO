@@ -1,21 +1,16 @@
 mod handler;
 
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::fs::File;
 
 use axum::{
     routing::{get, post},
     Router,
 };
-use kairo_lib::packet::AiTcpPacket;
-use kairo_lib::logger::initialize_logger;
+use axum::Server;
 use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config as LogConfig, TerminalMode, ColorChoice, LevelFilter};
-use std::fs::File;
-
-use tokio::sync::Mutex;
 
 use handler::{handle_send, handle_gpt};
-use hyper::Server;
 
 // エントリポイント
 #[tokio::main]
