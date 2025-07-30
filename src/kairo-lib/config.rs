@@ -1,4 +1,4 @@
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey, Signature};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use serde::{Serialize, Deserialize};
@@ -19,14 +19,12 @@ pub fn load_daemon_config(path: &str) -> Result<DaemonConfig, Box<dyn std::error
 }
 
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentConfig {
     pub p_address: String,
     pub public_key: String,
     pub secret_key: String,
-    pub signature: String,
-    #[serde(default)]
-    pub last_sequence: u64,
+    pub signature: String, // Signature of p_address + public_key
 }
 
 impl AgentConfig {
@@ -41,9 +39,37 @@ impl AgentConfig {
             public_key: hex::encode(verifying_key.to_bytes()),
             secret_key: hex::encode(secret_key_bytes),
             signature: String::new(),
-            last_sequence: 0,
         }
     }
+}
+
+// Creates a signature for the config file to ensure its integrity.
+pub fn create_signature(p_address: &str, public_key: &str, secret_key: &SigningKey) -> String {
+    let message = format!("{}:{}", p_address, public_key);
+    let signature = secret_key.sign(message.as_bytes());
+    hex::encode(signature.to_bytes())
+}
+
+// Verifies the signature within the config file.
+fn verify_signature(config: &AgentConfig) -> bool {
+    let public_key_bytes = match hex::decode(&config.public_key) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
+    let public_key = match VerifyingKey::from_bytes(&public_key_bytes) {
+        Ok(key) => key,
+        Err(_) => return false,
+    };
+    let signature_bytes = match hex::decode(&config.signature) {
+        Ok(bytes) => bytes,
+        Err(_) => return false,
+    };
+    let signature = match Signature::from_bytes(&signature_bytes) {
+        Ok(sig) => sig,
+        Err(_) => return false,
+    };
+    let message = format!("{}:{}", config.p_address, config.public_key);
+    public_key.verify(message.as_bytes(), &signature).is_ok()
 }
 
 pub fn save_agent_config(config: &AgentConfig, path: &str) -> Result<(), std::io::Error> {
@@ -58,7 +84,13 @@ pub fn load_agent_config(path: &str) -> Result<AgentConfig, std::io::Error> {
     let mut json = String::new();
     file.read_to_string(&mut json)?;
     let config: AgentConfig = serde_json::from_str(&json)?;
-    Ok(config)
+    if verify_signature(&config) {
+        println!("-> Agent configuration integrity VERIFIED.");
+        Ok(config)
+    } else {
+        println!("CRITICAL: Agent configuration has been TAMPERED WITH. Loading aborted.");
+        Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "invalid signature"))
+    }
 }
 
 pub fn load_first_config() -> AgentConfig {
@@ -80,7 +112,11 @@ pub fn load_all_configs() -> Result<Vec<AgentConfig>, Box<dyn std::error::Error>
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
             let config_str = fs::read_to_string(&path)?;
             let config: AgentConfig = serde_json::from_str(&config_str)?;
-            configs.push(config);
+            if verify_signature(&config) {
+                configs.push(config);
+            } else {
+                println!("WARNING: Skipping tampered config {:?}", path);
+            }
         }
     }
     Ok(configs)

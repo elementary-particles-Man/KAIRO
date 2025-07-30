@@ -1,7 +1,7 @@
 use clap::Parser;
 use ed25519_dalek::SigningKey;
 use kairo_lib::config as daemon_config;
-use kairo_lib::config::save_agent_config;
+use kairo_lib::config::{save_agent_config, create_signature};
 use kairo_lib::registry::{register_agent, RegistryEntry};
 use kairo_lib::AgentConfig;
 // This import is unused and has been removed.
@@ -118,12 +118,13 @@ Skipping KAIRO-P address assignment from local daemon (not implemented)."
 
         println!("-> Skipping registration with seed node (not implemented).");
 
+        let signature = create_signature(&p_address, &public_key_hex, &signing_key);
+
         config = AgentConfig {
             p_address: p_address.clone(),
             public_key: public_key_hex.clone(),
             secret_key: secret_key_hex,
-            signature: String::new(), // will be set below
-            last_sequence: 0,         // 新しいフィールドを追加
+            signature,
         };
 
         // Save the new agent config to the specified path
