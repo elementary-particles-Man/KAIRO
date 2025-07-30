@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
-use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::fs::OpenOptions;
+use std::io::{Read, Seek, Write};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegistryEntry {
