@@ -195,7 +195,7 @@ async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>)
     let _lock = db_lock.lock().await;
     println!("Received emergency reissue request.");
 
-    let mut registry = read_registry().expect("Failed to read from DB");
+    let registry = read_registry().expect("Failed to read from DB");
     let agent_configs = read_registry().expect("Failed to read agent configs");
 
     // 1. JSONで受け取ったOverridePackageをパース (warp::body::json() で既にパース済み)
