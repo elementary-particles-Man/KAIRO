@@ -6,7 +6,7 @@ use warp::Filter;
 
 #[tokio::main]
 async fn main() {
-    let queue = Arc::new(Mutex::new(TaskQueue::new()));
+    let queue = Arc::new(Mutex::new(TaskQueue::load()));
 
     // APIサーバーの起動
     let api_routes = create_task_route(queue.clone());
