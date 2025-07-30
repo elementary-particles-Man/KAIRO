@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head><title>KAIROBOT Task Sender</title><style>body{font-family:sans-serif;background:#282c34;color:white;padding:2em;} input{width:300px;margin-bottom:1em;}</style></head>
+<head><title>KAIRO AI-TCP Interface</title><style>body{font-family:sans-serif;background:#282c34;color:white;padding:2em;} input, textarea{width:500px;margin-bottom:1em;background:#333;color:white;border:1px solid #555;padding:0.5em;}</style></head>
 <body>
-  <h1>KAIROBOT Task Sender</h1>
-  <label>ID: <input id="task_id" value="task-003" /></label><br />
-  <label>Name: <input id="task_name" value="New Task from UI" /></label><br />
-  <label>Command: <input id="task_command" value="echo Hello from Web UI" /></label><br />
-  <button onclick="sendTask()">Send Task</button>
+  <h1>KAIRO AI-TCP Direct Communication</h1>
+  <p>This UI acts on behalf of the agent defined in <strong>./users/CLI/agent_config.json</strong></p>
+  <hr>
+  <label>To P-Address: <input id="to_p_address" value="p-address-of-agent2" /></label><br />
+  <label>Payload (Message): <textarea id="payload" rows="4">Hello from another AI via UI</textarea></label><br />
+  <button onclick="sendPacket()">Send Signed Packet</button>
+  <h2>Response Log</h2>
+  <pre id="response_log"></pre>
 
   <script>
-    function sendTask() {
+    async function sendPacket() {
       const data = {
-        id: document.getElementById("task_id").value,
-        name: document.getElementById("task_name").value,
-        command: document.getElementById("task_command").value,
-        status: "Pending"
+        to_p_address: document.getElementById("to_p_address").value,
+        payload: document.getElementById("payload").value
       };
 
-      fetch("http://localhost:4040/add_task", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      }).then(resp => {
-        if (resp.ok) alert("Task sent!");
-        else alert("Error: " + resp.status);
-      });
+      const log = document.getElementById("response_log");
+      log.textContent = "Sending signed packet...";
+
+      try {
+        // This new endpoint will sign the packet on behalf of the CLI agent
+        const response = await fetch("http://localhost:4040/send_signed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        log.textContent = `Server Response:\n${JSON.stringify(result, null, 2)}`;
+      } catch (e) {
+        log.textContent = `Error: ${e.message}`;
+      }
     }
   </script>
 </body>
