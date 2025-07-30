@@ -35,7 +35,7 @@ impl AgentConfig {
         let verifying_key = VerifyingKey::from(&signing_key);
 
         AgentConfig {
-            p_address: String::new(), // 仮の値
+            p_address: String::new(), // placeholder
             public_key: hex::encode(verifying_key.to_bytes()),
             secret_key: hex::encode(secret_key_bytes),
             signature: String::new(),
@@ -50,8 +50,11 @@ pub fn create_signature(p_address: &str, public_key: &str, secret_key: &SigningK
     hex::encode(signature.to_bytes())
 }
 
-// Verifies the signature within the config file.
-fn verify_signature(config: &AgentConfig) -> bool {
+/// Verifies the signature within the config file.
+  pub fn verify_signature(config: &AgentConfig) -> bool {
+    ...
+  }
+
     let public_key_bytes = match hex::decode(&config.public_key) {
         Ok(bytes) => bytes,
         Err(_) => return false,
