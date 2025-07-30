@@ -52,6 +52,49 @@ async fn handle_ui_send(req: UiSendRequest) -> Result<impl warp::Reply, warp::Re
     }
 }
 
+use kairo_lib::config::{self, AgentConfig};
+use kairo_lib::packet::AiTcpPacket;
+use ed25519_dalek::{Signer, SigningKey};
+use chrono::Utc;
+
+#[derive(Debug, serde::Deserialize)]
+struct UiSendRequest {
+    to_p_address: String,
+    payload: String,
+}
+
+async fn handle_ui_send(req: UiSendRequest) -> Result<impl warp::Reply, warp::Rejection> {
+    let cli_config = match config::load_config_from_dir("./users/CLI") {
+        Some(c) => c,
+        None => return Ok(warp::reply::with_status(warp::reply::json(&"CLI agent config not found"), warp::http::StatusCode::INTERNAL_SERVER_ERROR))
+    };
+
+    let secret_key_bytes = hex::decode(&cli_config.secret_key).unwrap();
+    let signing_key = SigningKey::from_bytes(&secret_key_bytes);
+
+    let message_to_sign = req.payload.as_bytes();
+    let signature = signing_key.sign(message_to_sign);
+
+    let packet = AiTcpPacket {
+        version: 1,
+        source_p_address: cli_config.p_address,
+        destination_p_address: req.to_p_address,
+        sequence: 0,
+        timestamp_utc: Utc::now().timestamp(),
+        payload_type: "text/plain".to_string(),
+        payload: req.payload,
+        signature: hex::encode(signature.to_bytes()),
+    };
+
+    let client = reqwest::Client::new();
+    let res = client.post("http://localhost:3030/send").json(&packet).send().await;
+
+    match res {
+        Ok(response) => Ok(warp::reply::json(&response.status().as_u16())),
+        Err(_) => Ok(warp::reply::json(&"Failed to forward packet to daemon"))
+    }
+}
+
 #[tokio::main]
 async fn main() {
     println!("KAIROBOT: Starting bootstrap process...");

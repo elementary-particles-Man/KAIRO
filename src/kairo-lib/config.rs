@@ -1,9 +1,10 @@
-use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey, Signature};
+use ed25519_dalek::{SigningKey, VerifyingKey, Signature, Signer, Verifier};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use serde::{Serialize, Deserialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
+use hex::{encode, decode};
 
 
 #[derive(Debug, Deserialize)]
@@ -19,12 +20,14 @@ pub fn load_daemon_config(path: &str) -> Result<DaemonConfig, Box<dyn std::error
 }
 
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AgentConfig {
     pub p_address: String,
     pub public_key: String,
     pub secret_key: String,
-    pub signature: String, // Signature of p_address + public_key
+    pub signature: Option<String>,
+    #[serde(default)]
+    pub last_sequence: u64,
 }
 
 impl AgentConfig {
@@ -35,73 +38,70 @@ impl AgentConfig {
         let verifying_key = VerifyingKey::from(&signing_key);
 
         AgentConfig {
-            p_address: String::new(), // placeholder
-            public_key: hex::encode(verifying_key.to_bytes()),
-            secret_key: hex::encode(secret_key_bytes),
-            signature: String::new(),
+            p_address: String::new(), // 仮の値
+            public_key: encode(verifying_key.to_bytes()),
+            secret_key: encode(secret_key_bytes),
+            signature: None,
+            last_sequence: 0,
+        }
+    }
+
+    // 署名対象のデータを生成
+    fn get_signable_data(&self) -> Vec<u8> {
+        format!("{}-{}-{}", self.p_address, self.public_key, self.secret_key).as_bytes().to_vec()
+    }
+
+    // 設定に署名
+    pub fn sign(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let secret_key_bytes = decode(&self.secret_key)?;
+        let signing_key = SigningKey::from_bytes(secret_key_bytes.as_slice().try_into()?);
+        let signature = signing_key.sign(&self.get_signable_data());
+        self.signature = Some(encode(signature.to_bytes()));
+        Ok(())
+    }
+
+    // 署名を検証
+    pub fn verify(&self) -> Result<(), String> {
+        if let Some(sig_hex) = &self.signature {
+            let public_key_bytes = decode(&self.public_key).map_err(|_| "Invalid public key hex")?;
+            let verifying_key = VerifyingKey::from_bytes(public_key_bytes.as_slice().try_into().map_err(|_| "Invalid public key length")?)
+                .map_err(|_| "Invalid public key")?;
+            let signature_bytes = decode(sig_hex).map_err(|_| "Invalid signature hex")?;
+            let signature_bytes_array: [u8; 64] = signature_bytes.as_slice().try_into().map_err(|_| "Invalid signature length")?;
+            let signature = Signature::from_bytes(&signature_bytes_array);
+
+            verifying_key.verify(&self.get_signable_data(), &signature)
+                .map_err(|_| "CRITICAL: Agent configuration has been TAMPERED WITH.".to_string())?;
+            Ok(())
+        } else {
+            Err("Agent configuration has no signature.".to_string())
         }
     }
 }
 
-// Creates a signature for the config file to ensure its integrity.
-pub fn create_signature(p_address: &str, public_key: &str, secret_key: &SigningKey) -> String {
-    let message = format!("{}:{}", p_address, public_key);
-    let signature = secret_key.sign(message.as_bytes());
-    hex::encode(signature.to_bytes())
-}
-
-/// Verifies the signature within the config file.
-  pub fn verify_signature(config: &AgentConfig) -> bool {
-    ...
-  }
-
-    let public_key_bytes = match hex::decode(&config.public_key) {
-        Ok(bytes) => bytes,
-        Err(_) => return false,
-    };
-    let public_key = match VerifyingKey::from_bytes(&public_key_bytes) {
-        Ok(key) => key,
-        Err(_) => return false,
-    };
-    let signature_bytes = match hex::decode(&config.signature) {
-        Ok(bytes) => bytes,
-        Err(_) => return false,
-    };
-    let signature = match Signature::from_bytes(&signature_bytes) {
-        Ok(sig) => sig,
-        Err(_) => return false,
-    };
-    let message = format!("{}:{}", config.p_address, config.public_key);
-    public_key.verify(message.as_bytes(), &signature).is_ok()
-}
-
-pub fn save_agent_config(config: &AgentConfig, path: &str) -> Result<(), std::io::Error> {
-    let json = serde_json::to_string_pretty(config)?;
+pub fn save_agent_config(mut config: AgentConfig, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    config.sign()?; // 保存前に署名
+    let json = serde_json::to_string_pretty(&config)?;
     let mut file = File::create(path)?;
     file.write_all(json.as_bytes())?;
     Ok(())
 }
 
-pub fn load_agent_config(path: &str) -> Result<AgentConfig, std::io::Error> {
+pub fn load_agent_config(path: &str) -> Result<AgentConfig, Box<dyn std::error::Error>> {
     let mut file = File::open(path)?;
     let mut json = String::new();
     file.read_to_string(&mut json)?;
     let config: AgentConfig = serde_json::from_str(&json)?;
-    if verify_signature(&config) {
-        println!("-> Agent configuration integrity VERIFIED.");
-        Ok(config)
-    } else {
-        println!("CRITICAL: Agent configuration has been TAMPERED WITH. Loading aborted.");
-        Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "invalid signature"))
-    }
+    config.verify()?; // 読み込み後に署名を検証
+    Ok(config)
 }
 
 pub fn load_first_config() -> AgentConfig {
     match load_agent_config("agent_config.json") {
         Ok(config) => config,
         Err(_) => {
-            let config = AgentConfig::generate();
-            let _ = save_agent_config(&config, "agent_config.json");
+            let mut config = AgentConfig::generate();
+            let _ = save_agent_config(config.clone(), "agent_config.json"); // cloneして渡す
             config
         }
     }
@@ -115,7 +115,8 @@ pub fn load_all_configs() -> Result<Vec<AgentConfig>, Box<dyn std::error::Error>
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
             let config_str = fs::read_to_string(&path)?;
             let config: AgentConfig = serde_json::from_str(&config_str)?;
-            if verify_signature(&config) {
+            // ここは私のverify()を使うように変更
+            if config.verify().is_ok() {
                 configs.push(config);
             } else {
                 println!("WARNING: Skipping tampered config {:?}", path);
