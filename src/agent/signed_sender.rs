@@ -2,7 +2,6 @@ use clap::Parser;
 use kairo_lib::comm::{sign_message, Message};
 use kairo_lib::config::load_agent_config;
 use reqwest::blocking::Client;
-use std::fs;
 use std::process;
 
 /// CLI arguments for the signed sender
