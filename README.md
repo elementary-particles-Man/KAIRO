@@ -22,6 +22,7 @@
 ### 📖 CLIの利用方法
 
 CLIの詳しい利用方法については、[usage_cli.md](./usage_cli.md) を参照してください。
+🤖 KAIROBOTの使い方は [docs/KAIROBOT_USAGE.md](docs/KAIROBOT_USAGE.md) を参照。
 
 ### 🧭 2. セットアップと実行手順
 
