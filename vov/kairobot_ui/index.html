@@ -22,6 +22,8 @@
       log.textContent = "Sending signed packet...";
 
       try {
+
+        // This new endpoint will sign the packet on behalf of the CLI agent
         const response = await fetch("http://localhost:4040/send_signed", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
