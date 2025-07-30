@@ -5,6 +5,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use crate::bot::core::{TaskQueue, main_loop};
 use crate::bot::api::{receiver, status};
+use warp::Filter;
 
 #[tokio::main]
 async fn main() {
@@ -17,8 +18,9 @@ async fn main() {
     let api_server = tokio::spawn(async move {
         let add_task_route = receiver::create_task_route(Arc::clone(&api_task_queue));
         let status_route = status::create_status_route(Arc::clone(&api_task_queue));
-        let ui_route = warp::path("ui").and(warp::fs::dir("./src/bot/ui/"));
-        let routes = add_task_route.or(status_route).or(ui_route);
+        let health_check_route = warp::path::end().map(|| warp::reply::json(&"KAIROBOT is alive"));
+        let ui_route = warp::path("ui").and(warp::fs::dir("./vov/kairobot_ui/"));
+        let routes = add_task_route.or(status_route).or(ui_route).or(health_check_route);
         println!("KAIROBOT API: Listening on http://127.0.0.1:4040");
         warp::serve(routes).run(([127, 0, 0, 1], 4040)).await;
     });
