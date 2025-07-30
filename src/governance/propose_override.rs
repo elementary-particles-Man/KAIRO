@@ -4,7 +4,6 @@ use kairo_lib::governance::{OverridePackage, ReissueRequestPayload, SignaturePac
 use clap::Parser;
 use ed25519_dalek::{SigningKey, Signer};
 use hex;
-use rand::rngs::OsRng;
 
 #[derive(Parser, Debug)]
 #[command(about = "Constructs and sends a governance OverridePackage to the seed node.")]
@@ -22,8 +21,6 @@ struct Args {
     invalid_quorum: bool,
 }
 
-use reqwest::Client;
-use tokio::main;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
