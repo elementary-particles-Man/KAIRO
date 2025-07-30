@@ -17,7 +17,8 @@ async fn main() {
     let api_server = tokio::spawn(async move {
         let add_task_route = receiver::create_task_route(Arc::clone(&api_task_queue));
         let status_route = status::create_status_route(Arc::clone(&api_task_queue));
-        let routes = add_task_route.or(status_route);
+        let ui_route = warp::path("ui").and(warp::fs::dir("./src/bot/ui/"));
+        let routes = add_task_route.or(status_route).or(ui_route);
         println!("KAIROBOT API: Listening on http://127.0.0.1:4040");
         warp::serve(routes).run(([127, 0, 0, 1], 4040)).await;
     });
