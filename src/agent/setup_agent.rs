@@ -1,7 +1,7 @@
 use clap::Parser;
 use ed25519_dalek::SigningKey;
 use kairo_lib::config as daemon_config;
-use kairo_lib::config::save_agent_config;
+use kairo_lib::config::{save_agent_config, load_agent_config};
 use kairo_lib::registry::{register_agent, RegistryEntry};
 use kairo_lib::AgentConfig;
 // This import is unused and has been removed.
@@ -37,7 +37,7 @@ struct CliArgs {
         "http://{}:{}/assign_p_address",
         config.listen_address, config.listen_port
     )
-}
+} */
 
 #[derive(Deserialize)]
 struct AgentMapping {
@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent_config_file_name = format!("{}.json", cli_args.name);
     let agent_config_path = agent_config_dir.join(&agent_config_file_name);
 
-    let config: AgentConfig;
+    let mut config: AgentConfig;
 
     if cli_args.new {
         if agent_config_path.exists() && !cli_args.force {
@@ -103,14 +103,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Public Key: {}", public_key_hex);
 
         println!(
-            "
-Step 2: Registering with a Seed Node..."
+            "\nStep 2: Registering with a Seed Node..."
         );
 
         // Try to request P address from local daemon
         println!(
-            "
-Skipping KAIRO-P address assignment from local daemon (not implemented)."
+            "\nSkipping KAIRO-P address assignment from local daemon (not implemented)."
         );
         let p_address = format!("10.0.0.{}/24", rand::random::<u8>()); // ダミーのPアドレスを生成
 
@@ -122,12 +120,12 @@ Skipping KAIRO-P address assignment from local daemon (not implemented)."
             p_address: p_address.clone(),
             public_key: public_key_hex.clone(),
             secret_key: secret_key_hex,
-            signature: String::new(), // will be set below
-            last_sequence: 0,         // 新しいフィールドを追加
+            signature: None,
+            last_sequence: 0,
         };
 
         // Save the new agent config to the specified path
-        save_agent_config(&config, agent_config_path.to_str().unwrap())?;
+        save_agent_config(config.clone(), agent_config_path.to_str().unwrap())?;
         // Update global registry
         if let Err(e) = register_agent(
             "agent_registry.json",
@@ -150,10 +148,17 @@ Skipping KAIRO-P address assignment from local daemon (not implemented)."
         return Ok(());
     } else {
         println!("--- Welcome Back ---");
-        let contents = fs::read_to_string(agent_config_path)?;
-        config = serde_json::from_str(&contents)?;
-        println!("Restored identity from agent_config.json");
-        println!("Your Public Key: {}", config.public_key);
+        match load_agent_config(agent_config_path.to_str().unwrap()) {
+            Ok(loaded_config) => {
+                config = loaded_config;
+                println!("Restored identity from agent_config.json");
+                println!("Your Public Key: {}", config.public_key);
+            },
+            Err(e) => {
+                eprintln!("Error loading agent config: {}", e);
+                return Ok(());
+            }
+        }
     }
 
     Ok(())

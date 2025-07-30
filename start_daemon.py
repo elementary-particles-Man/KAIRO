@@ -21,10 +21,10 @@ else:
 print("10秒間待機します...")
 time.sleep(10)
 
-print("ポート3030のリスニング状態を確認します...")
-# netstat コマンドを実行してポート3030のリスニング状態を確認
+print("ポート8080のリスニング状態を確認します...")
+# netstat コマンドを実行してポート8080のリスニング状態を確認
 result = subprocess.run(["netstat", "-an"], capture_output=True, text=True)
-if ":3030" in result.stdout:
+if ":8080" in result.stdout:
     print("ポート3030がリッスンされています。")
 else:
     print("ポート3030がリッスンされていません。")

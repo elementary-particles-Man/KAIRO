@@ -1,9 +1,10 @@
-use ed25519_dalek::{SigningKey, VerifyingKey};
+use ed25519_dalek::{SigningKey, VerifyingKey, Signature, Signer, Verifier};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use serde::{Serialize, Deserialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
+use hex::{encode, decode};
 
 
 #[derive(Debug, Deserialize)]
@@ -24,7 +25,7 @@ pub struct AgentConfig {
     pub p_address: String,
     pub public_key: String,
     pub secret_key: String,
-    pub signature: String,
+    pub signature: Option<String>,
     #[serde(default)]
     pub last_sequence: u64,
 }
@@ -38,26 +39,60 @@ impl AgentConfig {
 
         AgentConfig {
             p_address: String::new(), // 仮の値
-            public_key: hex::encode(verifying_key.to_bytes()),
-            secret_key: hex::encode(secret_key_bytes),
-            signature: String::new(),
+            public_key: encode(verifying_key.to_bytes()),
+            secret_key: encode(secret_key_bytes),
+            signature: None,
             last_sequence: 0,
+        }
+    }
+
+    // 署名対象のデータを生成
+    fn get_signable_data(&self) -> Vec<u8> {
+        format!("{}-{}-{}", self.p_address, self.public_key, self.secret_key).as_bytes().to_vec()
+    }
+
+    // 設定に署名
+    pub fn sign(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let secret_key_bytes = decode(&self.secret_key)?;
+        let signing_key = SigningKey::from_bytes(secret_key_bytes.as_slice().try_into()?);
+        let signature = signing_key.sign(&self.get_signable_data());
+        self.signature = Some(encode(signature.to_bytes()));
+        Ok(())
+    }
+
+    // 署名を検証
+    pub fn verify(&self) -> Result<(), String> {
+        if let Some(sig_hex) = &self.signature {
+            let public_key_bytes = decode(&self.public_key).map_err(|_| "Invalid public key hex")?;
+            let verifying_key = VerifyingKey::from_bytes(public_key_bytes.as_slice().try_into().map_err(|_| "Invalid public key length")?)
+                .map_err(|_| "Invalid public key")?;
+            let signature_bytes = decode(sig_hex).map_err(|_| "Invalid signature hex")?;
+            let signature_bytes_array: [u8; 64] = signature_bytes.as_slice().try_into().map_err(|_| "Invalid signature length")?;
+            let signature = Signature::from_bytes(&signature_bytes_array);
+
+            verifying_key.verify(&self.get_signable_data(), &signature)
+                .map_err(|_| "CRITICAL: Agent configuration has been TAMPERED WITH.".to_string())?;
+            Ok(())
+        } else {
+            Err("Agent configuration has no signature.".to_string())
         }
     }
 }
 
-pub fn save_agent_config(config: &AgentConfig, path: &str) -> Result<(), std::io::Error> {
-    let json = serde_json::to_string_pretty(config)?;
+pub fn save_agent_config(mut config: AgentConfig, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    config.sign()?; // 保存前に署名
+    let json = serde_json::to_string_pretty(&config)?;
     let mut file = File::create(path)?;
     file.write_all(json.as_bytes())?;
     Ok(())
 }
 
-pub fn load_agent_config(path: &str) -> Result<AgentConfig, std::io::Error> {
+pub fn load_agent_config(path: &str) -> Result<AgentConfig, Box<dyn std::error::Error>> {
     let mut file = File::open(path)?;
     let mut json = String::new();
     file.read_to_string(&mut json)?;
     let config: AgentConfig = serde_json::from_str(&json)?;
+    config.verify()?; // 読み込み後に署名を検証
     Ok(config)
 }
 
@@ -65,8 +100,8 @@ pub fn load_first_config() -> AgentConfig {
     match load_agent_config("agent_config.json") {
         Ok(config) => config,
         Err(_) => {
-            let config = AgentConfig::generate();
-            let _ = save_agent_config(&config, "agent_config.json");
+            let mut config = AgentConfig::generate();
+            let _ = save_agent_config(config.clone(), "agent_config.json"); // cloneして渡す
             config
         }
     }
