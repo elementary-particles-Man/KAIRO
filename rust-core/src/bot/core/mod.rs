@@ -4,7 +4,7 @@ use tokio::time::{sleep, Duration};
 use uuid::Uuid;
 
 /// Status of a [`Task`] within the queue.
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum TaskStatus {
     Pending,
     InProgress,
@@ -13,7 +13,7 @@ pub enum TaskStatus {
 }
 
 /// A unit of work for the `KAIROBOT`.
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct Task {
     pub id: String,
     pub name: String,
@@ -37,18 +37,6 @@ impl TaskQueue {
     pub fn add_task(&mut self, task: Task) -> String {
         let id = task.id.clone();
         self.tasks.push(task);
-        id
-    }
-
-    /// Add a task to the queue and return its generated ID.
-    pub fn push(&mut self, name: impl Into<String>, command: impl Into<String>) -> String {
-        let id = Uuid::new_v4().to_string();
-        self.tasks.push(Task {
-            id: id.clone(),
-            name: name.into(),
-            command: command.into(),
-            status: TaskStatus::Pending,
-        });
         id
     }
 
