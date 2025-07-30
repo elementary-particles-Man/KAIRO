@@ -35,6 +35,7 @@ samples/
 # OS ゴミ
 .DS_Store
 Thumbs.db
+**/desktop.ini
 
 # Node/その他将来モジュール
 node_modules/
@@ -46,6 +47,7 @@ node_modules/
 # 一時ファイル
 *.log
 *.tmp
+task_queue.json
 
 # Codex/AI生成物の中間キャッシュ
 .codex/
@@ -60,7 +62,6 @@ codex/
 # 念のため Mac/Windows 系のメタ
 Icon?
 ehthumbs.db
-**/desktop.ini
 registry.json
 Cargo.lock
 kairo_log.txt
