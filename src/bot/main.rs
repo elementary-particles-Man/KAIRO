@@ -10,7 +10,7 @@ use crate::bot::api::{receiver, status};
 async fn main() {
     println!("KAIROBOT: Starting bootstrap process...");
 
-    let task_queue = Arc::new(Mutex::new(TaskQueue::new()));
+    let task_queue = Arc::new(Mutex::new(TaskQueue::load()));
 
     // Start the API server in a separate task
     let api_task_queue = Arc::clone(&task_queue);
