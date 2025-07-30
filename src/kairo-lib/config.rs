@@ -50,8 +50,11 @@ pub fn create_signature(p_address: &str, public_key: &str, secret_key: &SigningK
     hex::encode(signature.to_bytes())
 }
 
-// Verifies the signature within the config file.
-pub fn verify_signature(config: &AgentConfig) -> bool {
+/// Verifies the signature within the config file.
+  pub fn verify_signature(config: &AgentConfig) -> bool {
+    ...
+  }
+
     let public_key_bytes = match hex::decode(&config.public_key) {
         Ok(bytes) => bytes,
         Err(_) => return false,
@@ -112,7 +115,11 @@ pub fn load_all_configs() -> Result<Vec<AgentConfig>, Box<dyn std::error::Error>
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
             let config_str = fs::read_to_string(&path)?;
             let config: AgentConfig = serde_json::from_str(&config_str)?;
-            configs.push(config);
+            if verify_signature(&config) {
+                configs.push(config);
+            } else {
+                println!("WARNING: Skipping tampered config {:?}", path);
+            }
         }
     }
     Ok(configs)
