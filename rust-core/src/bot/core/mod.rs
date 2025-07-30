@@ -1,4 +1,8 @@
 use std::sync::Arc;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, BufWriter};
+
+const QUEUE_FILE: &str = "task_queue.json";
 use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration};
 use uuid::Uuid;
@@ -31,6 +35,32 @@ impl TaskQueue {
     /// Create a new empty queue.
     pub fn new() -> Self {
         Self { tasks: Vec::new() }
+    }
+
+    /// Load the task queue from a file
+    pub fn load() -> Self {
+        if let Ok(file) = File::open(QUEUE_FILE) {
+            let reader = BufReader::new(file);
+            if let Ok(queue) = serde_json::from_reader(reader) {
+                println!("Core: Task queue loaded from {}", QUEUE_FILE);
+                return queue;
+            }
+        }
+        println!("Core: No existing task queue found. Creating a new one.");
+        Self::new()
+    }
+
+    /// Save the entire task queue to a file
+    pub fn save(&self) -> Result<(), std::io::Error> {
+        let file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(QUEUE_FILE)?;
+        let writer = BufWriter::new(file);
+        serde_json::to_writer_pretty(writer, &self.tasks)?;
+        println!("Core: Task queue saved to {}", QUEUE_FILE);
+        Ok(())
     }
 
     /// Add a task to the queue and return its generated ID.
