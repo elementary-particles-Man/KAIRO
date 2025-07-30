@@ -115,7 +115,12 @@ pub fn load_all_configs() -> Result<Vec<AgentConfig>, Box<dyn std::error::Error>
         if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
             let config_str = fs::read_to_string(&path)?;
             let config: AgentConfig = serde_json::from_str(&config_str)?;
-            configs.push(config);
+            // ここは私のverify()を使うように変更
+            if config.verify().is_ok() {
+                configs.push(config);
+            } else {
+                println!("WARNING: Skipping tampered config {:?}", path);
+            }
         }
     }
     Ok(configs)
