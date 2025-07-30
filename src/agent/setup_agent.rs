@@ -4,7 +4,7 @@ use kairo_lib::config as daemon_config;
 use kairo_lib::config::save_agent_config;
 use kairo_lib::registry::{register_agent, RegistryEntry};
 use kairo_lib::AgentConfig;
-use rand::RngCore;
+// This import is unused and has been removed.
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
@@ -23,7 +23,8 @@ struct CliArgs {
     name: String,
 }
 
-fn get_daemon_assign_url() -> String {
+// This function is unused and has been removed.
+/* fn get_daemon_assign_url() -> String {
     let config = daemon_config::load_daemon_config(".kairo/config/daemon_config.json")
     .unwrap_or_else(|_| {
         println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
@@ -40,7 +41,8 @@ fn get_daemon_assign_url() -> String {
 
 #[derive(Deserialize)]
 struct AgentMapping {
-    p_address: String,
+    // p_address is unused in this struct
+    // p_address: String,
 }
 
 // エージェント名をサニタイズする関数
