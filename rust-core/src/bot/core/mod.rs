@@ -1,19 +1,10 @@
-pub fn main_loop() {
-    // A1: 起動処理（bootstrap）
-    // 初期化・ログ表示・自身のPアドレス取得／表示
-    println!("KAIROBOT: 起動処理を開始します。");
-    // TODO: Pアドレス取得 (A2) の呼び出し
-    // TODO: ログ表示
-    // TODO: メインループの開始
-}
-
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration};
 use uuid::Uuid;
 
 /// Status of a [`Task`] within the queue.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize)]
 pub enum TaskStatus {
     Pending,
     InProgress,
@@ -22,7 +13,7 @@ pub enum TaskStatus {
 }
 
 /// A unit of work for the `KAIROBOT`.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize)]
 pub struct Task {
     pub id: String,
     pub name: String,
@@ -40,6 +31,13 @@ impl TaskQueue {
     /// Create a new empty queue.
     pub fn new() -> Self {
         Self { tasks: Vec::new() }
+    }
+
+    /// Add a task to the queue and return its generated ID.
+    pub fn add_task(&mut self, task: Task) -> String {
+        let id = task.id.clone();
+        self.tasks.push(task);
+        id
     }
 
     /// Add a task to the queue and return its generated ID.

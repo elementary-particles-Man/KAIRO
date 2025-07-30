@@ -4,6 +4,13 @@ name = "kairo_core"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "kairobot"
+path = "src/main.rs"
+
 [dependencies]
 flatbuffers = "25.2.10"
 rand = "0.8"

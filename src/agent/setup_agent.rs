@@ -134,6 +134,8 @@ Skipping KAIRO-P address assignment from local daemon (not implemented)."
             RegistryEntry {
                 name: cli_args.name.clone(),
                 p_address: p_address.clone(),
+                deleted: false,
+                last_contact: None,
             },
         ) {
             eprintln!("Failed to register agent: {}", e);

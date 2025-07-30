@@ -7,11 +7,17 @@ use tokio::process::Command;
 pub async fn execute(command: &str) -> bool {
     println!("Plugin(Shell): Running '{}'", command);
 
-    let mut parts = command.split_whitespace();
-    let program = parts.next().unwrap_or_default();
-    let args: Vec<&str> = parts.collect();
+    #[cfg(target_os = "windows")]
+    let mut command_builder = Command::new("cmd");
+    #[cfg(target_os = "windows")]
+    command_builder.arg("/C").arg(command);
 
-    let Ok(mut child) = Command::new(program).args(&args).spawn() else {
+    #[cfg(not(target_os = "windows"))]
+    let mut command_builder = Command::new(program);
+    #[cfg(not(target_os = "windows"))]
+    command_builder.args(&args);
+
+    let Ok(mut child) = command_builder.spawn() else {
         eprintln!("Plugin(Shell): Failed to spawn command.");
         return false;
     };
