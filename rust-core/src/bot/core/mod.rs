@@ -68,6 +68,7 @@ impl TaskQueue {
     /// Updates the status of a task by its ID.
     pub fn update_task_status(&mut self, task_id: &str, status: TaskStatus) {
         if let Some(task) = self.tasks.iter_mut().find(|t| t.id == task_id) {
+            println!("Core: Updating status for task '{}' to {:?}", task_id, status);
             task.status = status;
         }
     }
@@ -75,7 +76,7 @@ impl TaskQueue {
 
 /// The main loop of the KAIROBOT.
 pub async fn main_loop(queue: Arc<Mutex<TaskQueue>>) {
-    println!("KAIROBOT Core: Main loop started.");
+    println!("KAIROBOT Core: Main loop started. Monitoring task queue...");
     loop {
         let task_to_run;
         {
@@ -84,7 +85,7 @@ pub async fn main_loop(queue: Arc<Mutex<TaskQueue>>) {
         }
 
         if let Some(task) = task_to_run {
-            println!("Executing task: {} ({})", task.name, task.id);
+            println!("Core: Executing task '{}' ({})", task.name, task.id);
             // TODO: Dispatch to the plugin layer
             let success = crate::bot::plugin::shell::execute(&task.command).await;
 
@@ -97,9 +98,8 @@ pub async fn main_loop(queue: Arc<Mutex<TaskQueue>>) {
                 let mut q = queue.lock().await;
                 q.update_task_status(&task.id, final_status);
             }
-            println!("Task {} finished.", task.id);
         } else {
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(2)).await;
         }
     }
 }

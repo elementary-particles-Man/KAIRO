@@ -4,7 +4,7 @@
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use crate::bot::core::{TaskQueue, main_loop};
-use crate::bot::api::receiver;
+use crate::bot::api::{receiver, status};
 
 #[tokio::main]
 async fn main() {
@@ -15,7 +15,9 @@ async fn main() {
     // Start the API server in a separate task
     let api_task_queue = Arc::clone(&task_queue);
     let api_server = tokio::spawn(async move {
-        let routes = receiver::create_task_route(api_task_queue);
+        let add_task_route = receiver::create_task_route(Arc::clone(&api_task_queue));
+        let status_route = status::create_status_route(Arc::clone(&api_task_queue));
+        let routes = add_task_route.or(status_route);
         println!("KAIROBOT API: Listening on http://127.0.0.1:4040");
         warp::serve(routes).run(([127, 0, 0, 1], 4040)).await;
     });
