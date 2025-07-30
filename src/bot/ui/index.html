@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><title>KAIROBOT Task Sender</title><style>body{font-family:sans-serif;background:#282c34;color:white;padding:2em;} input{width:300px;margin-bottom:1em;}</style></head>
+<body>
+  <h1>KAIROBOT Task Sender</h1>
+  <label>ID: <input id="task_id" value="task-003" /></label><br />
+  <label>Name: <input id="task_name" value="New Task from UI" /></label><br />
+  <label>Command: <input id="task_command" value="echo Hello from Web UI" /></label><br />
+  <button onclick="sendTask()">Send Task</button>
+
+  <script>
+    function sendTask() {
+      const data = {
+        id: document.getElementById("task_id").value,
+        name: document.getElementById("task_name").value,
+        command: document.getElementById("task_command").value,
+        status: "Pending"
+      };
+
+      fetch("http://localhost:4040/add_task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      }).then(resp => {
+        if (resp.ok) alert("Task sent!");
+        else alert("Error: " + resp.status);
+      });
+    }
+  </script>
+</body>
+</html>
