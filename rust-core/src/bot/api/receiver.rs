@@ -18,5 +18,8 @@ async fn add_task_handler(task: Task, queue: Arc<Mutex<TaskQueue>>) -> Result<im
     println!("API: Received new task -> {}", task.name);
     let mut q = queue.lock().await;
     q.add_task(task);
+    if let Err(e) = q.save() {
+        eprintln!("API: Error saving task queue: {}", e);
+    }
     Ok(warp::reply::json(&"Task added successfully"))
 }
