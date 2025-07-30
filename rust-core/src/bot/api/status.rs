@@ -1,7 +1,7 @@
 //! src/bot/api/status.rs
 // The API endpoint for querying task statuses.
 
-use crate::bot::core::{Task, TaskQueue};
+use crate::bot::core::TaskQueue;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use warp::Filter;
