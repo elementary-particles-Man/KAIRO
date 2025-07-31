@@ -6,6 +6,7 @@ members = [
   "src/kairo-daemon",
   "src/kairo-lib",
   "src/kairof",
+  "src/bot",
   "src/mesh-node",
   "src/server",
 ]
