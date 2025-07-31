@@ -100,7 +100,7 @@ pub fn load_first_config() -> AgentConfig {
     match load_agent_config("agent_config.json") {
         Ok(config) => config,
         Err(_) => {
-            let mut config = AgentConfig::generate();
+            let config = AgentConfig::generate();
             let _ = save_agent_config(config.clone(), "agent_config.json"); // cloneして渡す
             config
         }

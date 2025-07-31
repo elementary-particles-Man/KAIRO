@@ -1,6 +1,5 @@
 use clap::Parser;
 use ed25519_dalek::SigningKey;
-use kairo_lib::config as daemon_config;
 use kairo_lib::config::{save_agent_config, load_agent_config};
 use kairo_lib::registry::{register_agent, RegistryEntry};
 use kairo_lib::AgentConfig;
@@ -68,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent_config_file_name = format!("{}.json", cli_args.name);
     let agent_config_path = agent_config_dir.join(&agent_config_file_name);
 
-    let mut config: AgentConfig;
+    let config: AgentConfig;
 
     if cli_args.new {
         if agent_config_path.exists() && !cli_args.force {

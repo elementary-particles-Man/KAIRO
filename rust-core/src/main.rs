@@ -10,8 +10,9 @@ async fn main() {
 
     // APIサーバーの起動
     let api_routes = create_task_route(queue.clone());
-    let ui_routes = dir("vov/kairobot_ui");
-    let routes = api_routes.or(ui_routes);
+    let ui_routes = warp::fs::dir("vov/kairobot_ui");
+    let index_route = warp::path::end().and(warp::fs::file("vov/kairobot_ui/index.html"));
+    let routes = api_routes.or(ui_routes).or(index_route);
     let api_server = warp::serve(routes).run(([127, 0, 0, 1], 4040));
 
     // KAIROBOTのメインループとAPIサーバーを並行して実行
