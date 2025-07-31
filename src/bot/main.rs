@@ -1,16 +1,21 @@
-'''//! src/bot/main.rs
+//! src/bot/main.rs
 
 use simple_logger;
 use log::*;
+use warp::Filter;
+
+mod api;
+use api::status::status_route;
 
 #[tokio::main]
 async fn main() {
     simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Debug).init().unwrap();
-    info!("KAIROBOT: Logger initialized successfully. This is a test log.");
-    debug!("KAIROBOT: This is a debug log.");
+    info!("KAIROBOT: Logger initialized successfully. Starting warp server...");
 
-    // プログラムがすぐに終了しないように少し待機
-    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-    info!("KAIROBOT: Program exiting.");
+    let health_check = warp::path("health").map(|| warp::reply::json(&"OK"));
+    let routes = status_route().or(health_check);
+
+    warp::serve(routes)
+        .run(([127, 0, 0, 1], 4040))
+        .await;
 }
-''
