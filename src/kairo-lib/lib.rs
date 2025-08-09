@@ -7,6 +7,8 @@ pub mod governance;
 pub mod packet;
 pub mod registry;
 pub mod resolvers;
+pub mod wau_config;
+pub mod mesh_scope_manager;
 
 // --- 構造体・型の再エクスポート ---
 pub use comm::{sign_message, Message};
