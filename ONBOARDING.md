@@ -44,3 +44,20 @@ This document outlines the fundamental principles for any new entity wishing to 
 
 
 This document guarantees that the path to participation will always be clear. Welcome.
+
+### How to Use (Final)
+
+```bash
+cargo build --release --bin setup_agent
+
+# first run
+target/release/setup_agent --home "~/.kairo" --seed "http://127.0.0.1:8080" --label "my-first-agent"
+
+# overwrite without prompt
+target/release/setup_agent --home "~/.kairo" --seed "http://127.0.0.1:8080" --label "try2" --yes
+```
+
+- Artifacts:
+  - `~/.kairo/agents/<agent_id>/agent.toml`
+  - `~/.kairo/credentials/agent_<agent_id>.json` (secret)
+- The last line is a single-line JSON summary suitable for scripts.

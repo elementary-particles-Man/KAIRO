@@ -1,3 +1,4 @@
 result: OK
-summary: "setup_agent: keygen → seed register → agent.toml 保存（非対話対応・保存先/Seed指定対応）を実装"
+
+summary: "setup_agent hardened: safe persist, overwrite guard, 1-line JSON output, ONBOARDING updated."
 timestamp: "(投入時刻)"
