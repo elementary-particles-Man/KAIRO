@@ -1,81 +1,44 @@
-# The Constitution of the KAIRO Mesh Network
-
-## One for THE WORLD, THE WORLD for One.
-
----
-
-## Welcome to the Mesh
-
+The Constitution of the KAIRO Mesh Network
+One for THE WORLD, THE WORLD for One.
+Welcome to the Mesh
 This document outlines the fundamental principles for any new entity wishing to join the KAIRO mesh network, all of which are derived from the single, immutable law stated above.
 
-### Core Philosophy
+Core Philosophy
+The Mesh is Alive: The rules and protocols of this network are not static. They are expected to evolve through the consensus of participating nodes. What is true today may be improved tomorrow.
 
-1.  **The Mesh is Alive:** The rules and protocols of this network are not static. They are expected to evolve through the consensus of participating nodes. What is true today may be improved tomorrow.
+The First Handshake is Sacred: While the rules are mutable, the process of joining the mesh for the first time must always be clear, transparent, and explicitly documented. This guide serves as that first, immutable handshake.
 
-2.  **The First Handshake is Sacred:** While the rules are mutable, the process of joining the mesh for the first time must always be clear, transparent, and explicitly documented. This guide serves as that first, immutable handshake.
+How to Join
+Read the RFCs: Start with docs/RFC/AI-TCP_RFC_mesh_layered_architecture.md to understand the layered architecture.
 
-### How to Join
+Generate Your ID: Follow the protocol for generating a self-signed static ID (Layer 1 of the WAU model).
 
-1.  **Read the RFCs:** Start with `docs/RFC/AI-TCP_RFC_mesh_layered_architecture.md` to understand the layered architecture.
-2.  **Generate Your ID:** Follow the protocol for generating a self-signed static ID (Layer 1 of the WAU model).
-3.  **Find a Seed Node:** Use the publicly listed Seed Nodes to initiate your first connection.
-4.  **Undergo Peer Review:** Engage with the mesh according to the WAU protocol to build your trust score and find your place within the community.
+Find a Seed Node: Use the publicly listed Seed Nodes to initiate your first connection.
 
-## How to Use: First Onboarding with CUI
+Undergo Peer Review: Engage with the mesh according to the WAU protocol to build your trust score and find your place within the community.
 
-1. Clone the repository.
-2. Run the provided CUI (`setup_agent`).
-3. The CUI will:
-   - Generate your static ID (key pair).
-   - Register you to the Seed Node.
-   - Output your Agent Token and Mesh Address.
+How to Use: First Onboarding
+基本的な使い方 (単一エージェント)
+まずは、あなた自身の操作用エージェントを1つ作成します。設定は ~/.kairo/agent.json に保存されます。
 
-4. Keep your Agent Token safe.
-5. Launch AI-TCP using this token.
-6. Your trust score starts from zero and grows via Peer Review.
-
----
-
-### Onboarding Flow (Text Diagram)
-
-[CUI Setup] → [Key Pair + Mesh Address] → [Seed Node Register] → [Peer Review Start]
-
----
-
-
-This document guarantees that the path to participation will always be clear. Welcome.
-
-### How to Use (Final)
-
-```bash
-cargo build --release --bin setup_agent
-
-# first run
-target/release/setup_agent --home "~/.kairo" --seed "http://127.0.0.1:8080" --label "my-first-agent"
-
-# overwrite without prompt
-target/release/setup_agent --home "~/.kairo" --seed "http://127.0.0.1:8080" --label "try2" --yes
-```
-
-- Artifacts:
-  - `~/.kairo/agents/<agent_id>/agent.toml`
-  - `~/.kairo/credentials/agent_<agent_id>.json` (secret)
-- The last line is a single-line JSON summary suitable for scripts.
-
-'''### 実行例
-```bash
 # 初回生成
 cargo run --bin setup_agent
 
-# 既存を安全に保持（デフォルト）
+# 既存ファイルを安全に保持（デフォルトの挙動）
+# -> 「既に存在します」というメッセージが表示され、ファイルは変更されません。
 cargo run --bin setup_agent
 
-# 明示的に上書き
+# 明示的に上書きする場合
 cargo run --bin setup_agent -- --force
-```
 
-この方法は、エージェントが1つだけの環境に最適です。
-複数運用に移行する場合は、以下の手順に従って名前付きで生成してください。
+テストと複数エージェント運用
+より高度な使い方やテストのために、以下のオプションが利用できます。
 
----
-'''
+# 保存先を一時的に変更して試す（テスト用途）
+KAIRO_HOME=./.tmp-kairo cargo run --bin setup_agent
+
+# 複数運用のため、名前付きでエージェントを生成する
+# (設定は agent_configs/{NAME}.json に保存されます)
+cargo run --package kairo_agent --bin setup_agent -- --name Agent1 --new
+
+Note: 複数エージェントの詳しい運用方法や、署名付き通信テストについては QUICKSTART.md を参照してください。
