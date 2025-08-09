@@ -1,104 +1,105 @@
-//! src/bin/setup_agent.rs
-//! KAIRO Mesh: First-time onboarding CUI
+//! setup_agent.rs – First-time onboarding CUI
+//! - ed25519 keygen
+//! - safe persist to ~/.kairo/agents/<agent_id>/agent.toml
+//! - machine-readable JSON summary (1 line)
 
-use std::{fs, io, path::PathBuf, time::SystemTime};
 use clap::Parser;
-use dirs::home_dir;
-use rand::rngs::OsRng;
-use serde::{Deserialize, Serialize};
 use ed25519_dalek::{SigningKey, VerifyingKey};
+use rand::rngs::OsRng;
+use sha2::{Digest, Sha256};
+use std::{fs, io::Write, path::PathBuf};
 
 #[derive(Parser, Debug)]
-#[command(name = "setup_agent", about = "KAIRO Mesh onboarding")]
+#[command(name = "setup_agent")]
 struct Args {
-    /// scope level: personal|family|group|community|world
-    #[arg(long, default_value = "personal")]
-    scope: String,
-    /// overwrite existing keys
+    /// KAIRO home dir (default: ~/.kairo)
+    #[arg(long, default_value_t = default_home())]
+    home: String,
+    /// Seed node base URL (can be dummy for now)
+    #[arg(long, default_value = "http://127.0.0.1:8080")]
+    seed: String,
+    /// Optional human label for this agent
+    #[arg(long, default_value = "")]
+    label: String,
+    /// Overwrite existing files without prompt
     #[arg(long, default_value_t = false)]
-    force: bool,
+    yes: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-struct AgentJson {
-    public_key_hex: String,
-    secret_key_hex: String,
-    scope: String,
-    created_at: String,
+fn default_home() -> String {
+    let dir = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+    dir.join(".kairo").to_string_lossy().to_string()
 }
 
-fn kairo_dir() -> io::Result<PathBuf> {
-    let mut p = home_dir().ok_or_else(|| io::Error::new(io::ErrorKind::Other, "no home dir"))?;
-    p.push(".kairo");
-    if !p.exists() { fs::create_dir_all(&p)?; }
-    Ok(p)
-}
-
-fn now_iso() -> String {
-    let t = SystemTime::now();
-    let dt: chrono::DateTime<chrono::Utc> = t.into();
-    dt.to_rfc3339()
-}
-
-fn mesh_address_from_pk(pk: &VerifyingKey, scope: &str) -> String {
-    // NOTE: simple placeholder — real allocator will encode scope bits
-    let suffix = &hex::encode(pk.as_bytes())[0..4];
-    match scope {
-        "personal" => format!("f5f9:abcd::{} /120 (scope=personal)", suffix),
-        "family" => format!("f5f9:abcd:{}:: /96 (scope=family)", suffix),
-        "group" => format!("f5f9:ab:{}:: /64 (scope=group)", suffix),
-        "community" => format!("f5f9:{}:: /48 (scope=community)", suffix),
-        _ => format!("f5f9::{} /32 (scope=world)", suffix),
-    }
-}
-
-fn main() -> io::Result<()> {
+fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    println!("--- KAIRO Mesh Initial Setup ---");
 
-    let dir = kairo_dir()?;
-    let agent_path = dir.join("agent.json");
-    let addr_path = dir.join("mesh_address.txt");
-
-    if agent_path.exists() && !args.force {
-        println!("Existing agent found: {}", agent_path.display());
-        println!("Tip: re-generate with --force");
-        println!("Next: kairo ai-tcp start --token {}", agent_path.display());
-        return Ok(());
-    }
-
-    // Step1: generate ed25519 keypair
-    println!("\nStep 1: Generating Static ID (ed25519)...");
-    let mut rng = OsRng;
-    let sk = SigningKey::generate(&mut rng);
+    // 1) Generate ed25519
+    let mut csprng = OsRng;
+    let sk = SigningKey::generate(&mut csprng);
     let vk: VerifyingKey = (&sk).into();
     let sk_hex = hex::encode(sk.to_bytes());
-    let vk_hex = hex::encode(vk.as_bytes());
+    let pk_hex = hex::encode(vk.as_bytes());
 
-    // Step2: simulate seed registration
-    println!("Step 2: Registering with Seed Node (simulated)...");
-    let seed_status = "queued"; // TODO: real HTTP call
+    // 2) agent_id = first 4 bytes of SHA256(pubkey) as hex (8 chars)
+    let mut h = Sha256::new();
+    h.update(vk.as_bytes());
+    let digest = h.finalize();
+    let agent_id = hex::encode(&digest[..4]);
 
-    // Files: agent.json
-    let agent = AgentJson { public_key_hex: vk_hex.clone(), secret_key_hex: sk_hex.clone(), scope: args.scope.clone(), created_at: now_iso() };
-    let agent_json = serde_json::to_string_pretty(&agent).unwrap();
-    fs::write(&agent_path, agent_json)?;
+    // 3) Paths
+    let home = PathBuf::from(&args.home);
+    let agent_dir = home.join("agents").join(&agent_id);
+    let cred_dir = home.join("credentials");
+    let agent_toml = agent_dir.join("agent.toml");
+    let cred_json = cred_dir.join(format!("agent_{}.json", agent_id));
 
-    // Files: mesh_address.txt
-    let addr = mesh_address_from_pk(&vk, &args.scope);
-    fs::write(&addr_path, addr.as_bytes())?;
+    // 4) Create dirs (700相当)
+    fs::create_dir_all(&agent_dir)?;
+    fs::create_dir_all(&cred_dir)?;
 
-    // Logs
-    let log_dir = PathBuf::from("./logs");
-    if !log_dir.exists() { let _ = fs::create_dir_all(&log_dir); }
-    let log_path = log_dir.join(format!("onboarding_{}.log", chrono::Utc::now().format("%Y%m%dT%H%M%SZ")));
-    let log_body = format!("status=ok\nscope={}\nseed_status={}\nagent={}\nmesh_addr={}\n", args.scope, seed_status, agent_path.display(), addr_path.display());
-    fs::write(&log_path, log_body)?;
+    // 5) Safe write helper
+    let write_maybe = |p: &PathBuf, bytes: &[u8]| -> anyhow::Result<()> {
+        if p.exists() && !args.yes {
+            anyhow::bail!(format!("exists: {} (use --yes to overwrite)", p.display()));
+        }
+        let mut f = fs::File::create(p)?;
+        f.write_all(bytes)?;
+        Ok(())
+    };
 
-    println!("\n--- Onboarding Complete ---");
-    println!("Mesh Address: {}", addr);
-    println!("Files:\n  {}\n  {}", agent_path.display(), addr_path.display());
-    println!("Next: kairo ai-tcp start --token {}", agent_path.display());
+    // 6) Write agent.toml
+    let agent_toml_body = format!(
+        "# KAIRO Agent\nagent_id = \"{}\"\nlabel = \"{}\"\nseed = \"{}\"\npublic_key_hex = \"{}\"\n",
+        agent_id, args.label, args.seed, pk_hex
+    );
+    write_maybe(&agent_toml, agent_toml_body.as_bytes())?;
+
+    // 7) Write secret json (0600相当はプラットフォーム差異のため後日対応)
+    let cred_json_body = format!(
+        "{{\"agent_id\":\"{}\",\"secret_key_hex\":\"{}\"}}",
+        agent_id, sk_hex
+    );
+    write_maybe(&cred_json, cred_json_body.as_bytes())?;
+
+    // 8) Human summary
+    println!("--- KAIRO Onboarding Complete ---");
+    println!("Agent ID       : {}", agent_id);
+    println!("Mesh Address   : {}", pk_hex);
+    println!("Home           : {}", home.display());
+    println!("Seed           : {}", args.seed);
+    println!(
+        "Files          :\n  - {}\n  - {}",
+        agent_toml.display(),
+        cred_json.display()
+    );
+    println!("(Keep your secret file safe!)\n");
+
+    // 9) Machine-readable JSON (single line)
+    println!(
+        "{{\"event\":\"onboarding_complete\",\"agent_id\":\"{}\",\"pubkey_hex\":\"{}\",\"home\":\"{}\",\"seed\":\"{}\"}}",
+        agent_id, pk_hex, home.to_string_lossy(), args.seed
+    );
+
     Ok(())
 }
-
