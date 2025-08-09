@@ -61,3 +61,15 @@ target/release/setup_agent --home "~/.kairo" --seed "http://127.0.0.1:8080" --la
   - `~/.kairo/agents/<agent_id>/agent.toml`
   - `~/.kairo/credentials/agent_<agent_id>.json` (secret)
 - The last line is a single-line JSON summary suitable for scripts.
+
+### 実行例
+```bash
+# 初回生成
+cargo run --bin setup_agent
+
+# 既存を安全に保持（デフォルト）
+cargo run --bin setup_agent
+
+# 明示的に上書き
+cargo run --bin setup_agent -- --force
+```
