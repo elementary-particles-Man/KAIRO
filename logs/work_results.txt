@@ -1,4 +1,3 @@
 result: OK
-
-summary: "setup_agent hardened: safe persist, overwrite guard, 1-line JSON output, ONBOARDING updated."
+summary: "setup_agent implemented (ed25519, ~/.kairo/agent.json, 0600/Windows ACL, --force). ONBOARDING updated."
 timestamp: "(投入時刻)"
