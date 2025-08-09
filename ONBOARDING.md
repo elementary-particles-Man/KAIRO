@@ -73,3 +73,15 @@ cargo run --bin setup_agent
 # 明示的に上書き
 cargo run --bin setup_agent -- --force
 ```
+
+#### 使い方（再掲）
+```bash
+# 初回（安全に既存を保持）
+cargo run --bin setup_agent
+
+# 上書き保存
+cargo run --bin setup_agent -- --force
+
+# 保存先を一時的に切り替えて試す（テスト用途）
+KAIRO_HOME=./.tmp-kairo cargo run --bin setup_agent
+```
