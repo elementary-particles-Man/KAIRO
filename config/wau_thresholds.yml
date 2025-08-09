@@ -1,0 +1,8 @@
+personal: 0.30
+family: 0.55
+group: 0.70
+community: 0.80
+world: 0.90
+hysteresis:
+  up_margin: 0.03
+  down_margin: 0.05
