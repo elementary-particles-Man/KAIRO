@@ -1,0 +1,130 @@
+KAIRO Repository Overview
+Path: D:\Dev\KAIRO
+Branch: work
+Commit: 6a35579840d592239a2cf3007ce3d1401246a78c
+Timestamp: 2025-08-09T17:43:43Z
+
+## Manifests
+- Cargo.toml
+- src/server/Cargo.toml
+- src/governance/Cargo.toml
+- src/kairo-daemon/Cargo.toml
+- src/mesh-node/Cargo.toml
+- rust-core/Cargo.toml
+- src/kairof/Cargo.toml
+- src/bot/Cargo.toml
+- src/kairo-lib/Cargo.toml
+- src/agent/Cargo.toml
+- go-client/go.mod
+- go-p2p/go.mod
+- go-p2p/go.sum
+- Dockerfile
+- Makefile
+- .github/workflows/ci.yml
+- .github/workflows/main.yml
+- .github/workflows/release-build.yml
+- schema/ai_tcp_packet.fbs
+- schema/ephemeral_session.fbs
+
+## Major Crates and Binaries
+- **kairo-daemon** (`src/kairo-daemon`): Axum-based task daemon exposing `/send`, `/gpt`, `/add_task`; listens on 127.0.0.1:8080. Run `cargo run --package kairo_daemon`.
+- **mesh-node** (`src/mesh-node`): UDP mesh forwarder listening on 0.0.0.0:8080. Run `cargo run --bin mesh_node -- --join-address <addr> --id <id>`.
+- **seed_node** (`src/server`): Warp server providing agent registry and signed message queue. Run `cargo run --bin seed_node`.
+- **kairo_lib** (`src/kairo-lib`): Shared utilities for communication, configuration, governance, packet handling and registry.
+- **kairobot** (`src/bot`): Warp web service and UI serving at :4040 with auto identity generation. Run `cargo run --package kairobot`.
+- **kairo_agent** (`src/agent`): Command-line tools for agent setup, message signing, registry checks and config validation.
+- **kairo_core** (`rust-core`): Core library and CLI running the bot UI and task queue. Run `cargo run --package kairo_core`.
+- **go-client** (`go-client`): Go HTTP client with gzip compression and adaptive backoff. Run `go run ./go-client`.
+- **go-p2p** (`go-p2p`): Libp2p-based P2P manager and PCAP reader with API on :8080. Run `go run ./go-p2p/cmd`.
+
+## Tests
+- tests/packet_parser_test.rs – packet parser instantiation.
+- tests/behavior_anomaly_test.rs – behavior anomaly detection.
+- tests/packet_validator_test.rs – packet signature and sequence checks.
+- tests/baseline_profile_test.rs – baseline profile manager.
+- tests/mesh_auditor_test.rs – mesh auditor flow.
+- tests/diagnosis_integration_test.rs – behavior verification integration.
+
+### Python Tests (tests_py/)
+- test_generate_mesh_config.py – role config generation CLI.
+- test_log_recorder.py – log creation and key rotation.
+- test_generate_test_pcaps.py – deterministic PCAP samples.
+- KAIRO_Autoloop.py – monitor/execute archived tasks.
+- test_generate_kairo_pcap.py – IPv6 packet structure.
+- test_errors.py – custom error classes.
+
+## Scripts
+- generate_agent_list.py – derive AGENT_LIST.md from agent_registry.json.
+- generate_kairo_pcap.py – sample IPv6 PCAP with destination options.
+- renormalize.sh – normalize line endings via git.
+- verify_local_llm.ps1 – query local LLM and log fingerprint.
+- clear_agents.ps1 – remove agent_config_*.json files.
+- validate_logs.py – validate VoV/coord logs for UUID, timestamp and hash.
+- generate_test_pcaps.py – deterministic PCAP writer for tests.
+- check_duplicate_deps.py – detect duplicate Cargo dependencies.
+- write_work_results.sh – dump CI message to work_results.txt.
+- generate_mesh_config.py – emit role TOML configs.
+- update_flatbuffers.py – regenerate FlatBuffers code for Rust and Go.
+
+## Schemas
+- ai_tcp_packet.fbs – FlatBuffers definition for encrypted AI-TCP packets.
+- ephemeral_session.fbs – FlatBuffers definition for short-lived sessions.
+
+## Configs
+- configs/roles/*.yaml – role permissions (initiator, specialist, auditor, archivist, resolver).
+- configs/workflows/standard_analysis.yaml – multi-step analysis workflow.
+
+## Other Directories
+- docs/ – RFCs, design notes and usage guides.
+- rust-core/ – core Rust library and CLI.
+- src/ – Rust crates and Python modules.
+- scripts/ – helper utilities in Python, shell and PowerShell.
+- tests/ – Rust unit tests.
+- tests_py/ – Python unit tests and automation utilities.
+- schema/ – FlatBuffers schemas.
+- configs/ – role and workflow YAML configs.
+- users/ – (none tracked)
+- vov/ – log definitions and sample VoV log, plus kairobot_ui.
+- PI-Vault/ – Obsidian vault for RFCs, roles, workflows, logs.
+
+## Entry Points
+- Rust: `src/kairo-daemon/main.rs`, `src/mesh-node/src/main.rs`, `src/server/seed_node.rs`, `rust-core/src/main.rs`, `src/bot/main.rs`, `src/agent/*` binaries.
+- Python: `start_services.py`, `stop_services.py`, scripts in `scripts/` (e.g., generate_mesh_config.py).
+- Go: `go-p2p/cmd/main.go`, `go-p2p/cmd/pcap_node/main.go`, `go-client/client.go`.
+- PowerShell: `scripts/verify_local_llm.ps1`, `scripts/clear_agents.ps1`.
+
+## Build & Run
+- Rust: `cargo build --workspace`, `cargo run --package kairo_daemon`, `cargo test --all`.
+- Python: `python start_services.py`, `pytest tests_py`.
+- Go: `go build ./go-p2p/cmd`, `go run ./go-client`.
+
+## Potential Risks
+- Windows absolute paths (`D:\Dev\KAIRO`) may break if cloned under directories with spaces.
+- `start_services.py` launches multiple components on port 8080, risking conflicts.
+- FlatBuffers schema changes require `scripts/update_flatbuffers.py` or `make generate_schema` to avoid JSON/FlatBuffers mismatches.
+- `tests_py/KAIRO_Autoloop.py` contains a long-running loop; ensure proper shutdown.
+- Deep directory structures (e.g., PI-Vault/Workflows/...) could hit path length limits on Windows.
+
+## Language Breakdown (approx. lines)
+- Rust: ~5,937
+- Python: ~1,266
+- Go: ~560
+- PowerShell: ~227
+- Shell: ~23
+- Docs (Markdown/Text): ~2,064
+- Config & other (JSON/TOML/YAML/etc.): ~1,041
+
+## Start Here Checklist
+1. Install Rust 1.77+, Go 1.20 and Python 3.10.
+2. Clone repository to a path without spaces.
+3. Run `cargo build --workspace`.
+4. Generate mesh configs: `python scripts/generate_mesh_config.py relay`.
+5. Start services: `python start_services.py`.
+6. Run Rust tests: `cargo test --all`.
+7. Run Python tests: `pytest tests_py`.
+8. Regenerate FlatBuffers after schema edits: `python scripts/update_flatbuffers.py` or `make generate_schema`.
+9. Validate logs: `python scripts/validate_logs.py --check vov/*.jsonl`.
+10. Use `scripts/verify_local_llm.ps1` to confirm local LLM availability.
+
+## Executive Summary
+KAIRO is a multi-language mesh network project centered on Rust crates for a daemon, mesh node, registry server and shared library, complemented by Go clients, Python utilities and extensive documentation. FlatBuffers schemas define the AI‑TCP packet structure, with scripts to regenerate bindings and manage logs. Tests cover packet validation, behavior analysis and configuration generators. Developers build via Cargo, coordinate services with Python scripts, and optionally interact through Go components or PowerShell utilities. Care must be taken with port assignments, schema regeneration and long-running loops to avoid conflicts or drift.
