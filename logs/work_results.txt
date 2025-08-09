@@ -1,3 +1,3 @@
 result: OK
-summary: "setup_agent finished: keygen + seed stub + file outputs + --force + logs"
+summary: "setup_agent: keygen → seed register → agent.toml 保存（非対話対応・保存先/Seed指定対応）を実装"
 timestamp: "(投入時刻)"
