@@ -1,3 +1,18 @@
+[package]
+name = "setup_agent"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+dirs = "5"
+chrono = "0.4"
+hex = "0.4"
+rand = "0.8"
+ed25519-dalek = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
 [workspace]
 members = [
   "rust-core",

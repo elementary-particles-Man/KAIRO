@@ -1,0 +1,3 @@
+result: OK
+summary: "setup_agent finished: keygen + seed stub + file outputs + --force + logs"
+timestamp: "(投入時刻)"
