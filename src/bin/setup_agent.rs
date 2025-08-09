@@ -56,15 +56,26 @@ fn secure_permissions(path: &Path) -> std::io::Result<()> {
 
 #[cfg(windows)]
 fn secure_permissions(path: &Path) -> std::io::Result<()> {
-    // Windowsはデフォルトでユーザー専用ACLになっていることが多いが、
-    // 明示的に現在ユーザーのみに読み書きを付与
-    use windows_acl::acl::{AceType, ACL};
-    let p = path.to_string_lossy().to_string();
-    let mut acl = ACL::from_file_path(&p)?;
-    acl.clear()?;
-    acl.allow_user_current(AceType::GenericRead | AceType::GenericWrite)?;
-    acl.apply(&p)?;
-    Ok(())
+    use windows_acl::acl::ACL;
+    use winapi::um::winnt::{GENERIC_READ, GENERIC_WRITE};
+
+    let current_user = whoami::username();
+    let sid = match windows_acl::helper::name_to_sid(&current_user, None) {
+        Ok(sid) => sid,
+        Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to get SID: {}", e))),
+    };
+
+    let path_str = path.to_string_lossy().to_string();
+    let mut acl = match ACL::from_file_path(&path_str, false) {
+        Ok(acl) => acl,
+        Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to read ACL: {}", e))),
+    };
+
+    match acl.allow(sid.as_ptr() as *mut _, true, GENERIC_READ | GENERIC_WRITE) {
+        Ok(true) => Ok(()),
+        Ok(false) => Err(std::io::Error::new(std::io::ErrorKind::Other, "Failed to apply ACL")),
+        Err(e) => Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to apply ACL: {}", e))),
+    }
 }
 
 fn main() -> anyhow::Result<()> {

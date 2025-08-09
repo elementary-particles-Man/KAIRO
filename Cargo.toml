@@ -20,6 +20,8 @@ serde_json = "1"
 
 [target.'cfg(windows)'.dependencies]
 windows-acl = "0.3"
+whoami = "1.5"
+winapi = { version = "0.3", features = ["winnt"] }
 
 [workspace]
 members = [

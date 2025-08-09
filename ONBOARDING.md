@@ -62,7 +62,7 @@ target/release/setup_agent --home "~/.kairo" --seed "http://127.0.0.1:8080" --la
   - `~/.kairo/credentials/agent_<agent_id>.json` (secret)
 - The last line is a single-line JSON summary suitable for scripts.
 
-### 実行例
+'''### 実行例
 ```bash
 # 初回生成
 cargo run --bin setup_agent
@@ -73,3 +73,9 @@ cargo run --bin setup_agent
 # 明示的に上書き
 cargo run --bin setup_agent -- --force
 ```
+
+この方法は、エージェントが1つだけの環境に最適です。
+複数運用に移行する場合は、以下の手順に従って名前付きで生成してください。
+
+---
+'''
