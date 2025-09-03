@@ -5,8 +5,9 @@ use dirs::home_dir;
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
 use serde::Serialize;
+use std::env;
 use std::fs;
-use std::io::{Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 #[derive(Parser, Debug)]
@@ -28,9 +29,13 @@ struct AgentFile {
 }
 
 fn kairo_dir() -> PathBuf {
-    let mut home = home_dir().expect("HOME not found");
-    home.push(".kairo");
-    home
+    if let Ok(dir) = env::var("KAIRO_HOME") {
+        PathBuf::from(dir)
+    } else {
+        let mut home = home_dir().expect("HOME not found");
+        home.push(".kairo");
+        home
+    }
 }
 
 fn agent_path() -> PathBuf {
