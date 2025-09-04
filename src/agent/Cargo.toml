@@ -19,7 +19,7 @@ kairo_lib = { path = "../kairo-lib" }
 
 
 [[bin]]
-name = "setup_agent"
+name = "kairo_agent_setup"
 path = "setup_agent.rs"
 
 [[bin]]

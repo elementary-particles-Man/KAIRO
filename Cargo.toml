@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+kairo_lib = { path = "src/kairo-lib" }
+kairo_core = { path = "rust-core" }
+flatbuffers = "25.2.10"
 clap = { version = "4", features = ["derive"] }
 dirs = "5"
 
@@ -34,5 +37,6 @@ members = [
   "src/bot",
   "src/mesh-node",
   "src/server",
+  "Kairo-Nexus",
 ]
 resolver = "2"

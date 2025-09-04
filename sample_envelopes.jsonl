@@ -1,0 +1,5 @@
+{"to_p":"cli","from_p":"gpt","body":"Get-Process | Select-Object -First 3 | Format-Table"}
+{"to_p":"gpt","from_p":"cli","body":"summarize the process list in one sentence"}
+{"to_p":"gemini","from_p":"gpt","body":"{\"task\":\"create a Cargo.toml for a minimal Rust lib named foo\"}"}
+{"to_p":"gemini","from_p":"gpt","body":"{\"task\":\"review the Cargo.toml and suggest features\"}"}
+{"to_p":"cli","from_p":"gpt","body":"\"cargo test -q\""}
