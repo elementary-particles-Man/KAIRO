@@ -1,5 +1,0 @@
-{
-    "from_p": "test-harness-8",
-    "to_p": "cli",
-    "body": "echo 'This is a test for output capturing.'"
-}
