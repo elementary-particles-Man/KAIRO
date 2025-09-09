@@ -1,0 +1,8 @@
+{
+  "bindings": [
+    { "p": "alice", "ui": { "kind": "chrome", "pid": 408 } },
+    { "p": "bob",   "ui": { "kind": "winapp", "pid": 12345 } },
+    { "p": "cli",   "ui": { "kind": "terminal", "pid": 30104 } },
+    { "p": "gpt",   "ui": { "kind": "llm", "pid": 2444 } }
+  ]
+}

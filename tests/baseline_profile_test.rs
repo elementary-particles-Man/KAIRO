@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use kairo::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile};
+    use kairo_core::baseline_profile_manager::{BaselineProfileManager, BehaviorProfile};
 
     #[test]
     fn test_profile_management() {

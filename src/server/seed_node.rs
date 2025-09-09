@@ -11,9 +11,7 @@ use chrono::Utc;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use kairo_lib::packet::AiTcpPacket;
-use kairo_lib::config::AgentConfig;
 use ed25519_dalek::{VerifyingKey, Signature, Verifier};
-use serde_json::from_reader;
 
 use kairo_lib::governance::OverridePackage;
 use kairo_lib::config::DaemonConfig;
@@ -197,7 +195,7 @@ async fn handle_emergency_reissue(req: OverridePackage, db_lock: Arc<Mutex<()>>)
     let _lock = db_lock.lock().await;
     println!("Received emergency reissue request.");
 
-    let mut registry = read_registry().expect("Failed to read from DB");
+    let registry = read_registry().expect("Failed to read from DB");
     let agent_configs = read_registry().expect("Failed to read agent configs");
 
     // 1. JSONで受け取ったOverridePackageをパース (warp::body::json() で既にパース済み)

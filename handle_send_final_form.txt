@@ -1,0 +1,93 @@
+async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+    info!("DEBUG: handle_send called");
+    info!(
+        "🔵 [SEND] Received POST: from_public_key={}, to={}",
+        packet.source_public_key, packet.destination_p_address
+    );
+    // ここに、packet.destination_p_address の詳細なデバッグ情報を追加
+    info!("DEBUG: Raw destination_p_address bytes: {:?}", packet.destination_p_address.as_bytes());
+    info!("DEBUG: Trimmed destination_p_address: \"{}\"", packet.destination_p_address.trim());
+    info!("DEBUG: Comparing trimmed destination_p_address \"{}\" with \"gpt://main\". Result: {}", packet.destination_p_address.trim(), packet.destination_p_address.trim() == "gpt://main");
+
+
+    let registry = read_agent_registry().unwrap_or_default();
+
+    // タイムスタンプの検証
+    let current_timestamp = Utc::now().timestamp();
+    if (packet.timestamp_utc - current_timestamp).abs() > 10 {
+        info!("🔴 [TIMESTAMP INVALID] Packet REJECTED: timestamp_utc out of range ({} vs {})", packet.timestamp_utc, current_timestamp);
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&"invalid_timestamp"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    // シーケンス番号の検証
+    let mut last_seen_sequence_guard = LAST_SEEN_SEQUENCE.lock().await;
+    let last_seq = last_seen_sequence_guard.get(&packet.source_public_key).cloned().unwrap_or(0);
+
+    if packet.sequence <= last_seq {
+        info!("🔴 [SEQUENCE INVALID] Packet REJECTED: sequence {} not greater than last seen {} for {}", packet.sequence, last_seq, packet.source_public_key);
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&"invalid_sequence"),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    // if verify_packet_signature(&packet, &registry) { // コメントアウト
+        info!("✅ [SIGNATURE VERIFIED] (Temporarily bypassed)");
+        // シーケンス番号を更新
+        last_seen_sequence_guard.insert(packet.source_public_key.clone(), packet.sequence);
+
+        // タイムスタンプの検証 (署名検証の前に移動)
+        let current_timestamp = Utc::now().timestamp();
+        if (packet.timestamp_utc - current_timestamp).abs() > 10 {
+            info!("🔴 [TIMESTAMP INVALID] Packet REJECTED: timestamp_utc out of range ({} vs {})", packet.timestamp_utc, current_timestamp);
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&"invalid_timestamp"),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
+
+        // シーケンス番号の検証 (署名検証の前に移動)
+        let mut last_seen_sequence_guard = LAST_SEEN_SEQUENCE.lock().await;
+        let last_seq = last_seen_sequence_guard.get(&packet.source_public_key).cloned().unwrap_or(0);
+
+        if packet.sequence <= last_seq {
+            info!("🔴 [SEQUENCE INVALID] Packet REJECTED: sequence {} not greater than last seen {} for {}", packet.sequence, last_seq, packet.source_public_key);
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&"invalid_sequence"),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
+
+        // GPT宛のパケットを処理
+        if packet.destination_p_address.trim() == "gpt://main" {
+            info!("Packet from {} to gpt://main accepted", packet.source_p_address);
+            info!("Forwarding to GPT");
+            let gpt_response = gpt_responder::handle_gpt_response(&packet.payload);
+            gpt_log_processor::log_gpt_response(&gpt_response).await.expect("Failed to log GPT response");
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&serde_json::json!({ "status": "GPT_response_logged", "response": gpt_response})),
+                StatusCode::OK,
+            ));
+        } else {
+            info!("Packet for {} queued.", packet.destination_p_address);
+            let mut queue = MESSAGE_QUEUE.lock().await;
+            let inbox = queue
+                .entry(packet.destination_p_address.clone())
+                .or_insert_with(Vec::new);
+            inbox.push(packet);
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&"packet_queued"),
+                StatusCode::OK,
+            ));
+        }
+    // } else { // コメントアウト
+    //     info!("🔴 [SIGNATURE INVALID] Packet REJECTED");
+    //     Ok(warp::reply::with_status(
+    //         warp::reply::json(&"invalid_signature"),
+    //         StatusCode::UNAUTHORIZED,
+    //     ))
+    // }
+}

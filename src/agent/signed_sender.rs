@@ -1,118 +1,102 @@
-// signed_sender.rs（署名付きパケット送信＋改ざんテスト用）
-
-use ed25519_dalek::{SigningKey, Signature, Signer};
-use serde::{Serialize, Deserialize};
-use std::fs;
-use std::path::PathBuf;
 use clap::Parser;
-use reqwest::Client;
-use hex;
-use kairo_lib::AgentConfig;
+use kairo_lib::comm::{sign_message, Message};
+use kairo_lib::config::load_agent_config;
+use reqwest::blocking::Client;
+use std::process;
 
-#[derive(Deserialize)]
-struct AgentMapping {
-    p_address: String,
-}
-
-#[derive(Parser)]
-#[command(author, version, about)]
+/// CLI arguments for the signed sender
+#[derive(Parser, Debug)]
+#[command(name = "signed_sender")]
+#[command(about = "Send a signed message to the KAIRO network", long_about = None)]
 struct Args {
-    #[arg(long)]
-    from: String,
-    #[arg(long)]
+    /// The destination P address
+    #[arg(short, long)]
     to: String,
 
-    #[arg(long)]
-    message: String,
-
-    #[arg(long, default_value_t = false)]
-    fake: bool,
-}
-
-#[derive(Serialize, Debug)]
-struct AiTcpPacket {
-    source_p_address: String,
-    destination_p_address: String,
+    /// The message payload to send
+    #[arg(short, long)]
     payload: String,
-    signature: String,
+
+    /// Path to the agent's configuration file
+    #[arg(short, long, default_value = "agent_configs/config_agent_1.json")]
+    config: String,
+
+    /// Optional sender ID (overrides config file value)
+    #[arg(short, long)]
+    from: String,
+
+    /// Allow mismatch between --from and config.agent_id (use with caution)
+    #[arg(long)]
+    allow_mismatch: bool,
 }
 
-use kairo_lib::config as daemon_config;
-
-fn get_daemon_url() -> String {
-    let config = daemon_config::load_daemon_config("daemon_config.json")
-        .unwrap_or_else(|_| {
-            println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
-            daemon_config::DaemonConfig {
-                listen_address: "127.0.0.1".to_string(),
-                listen_port: 3031,
-            }
-        });
-
-    format!("http://{}:{}/send", config.listen_address, config.listen_port)
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     let args = Args::parse();
+    println!("{:?}", args);
 
-    let agent_config_path = PathBuf::from(format!("agent_configs/{}.json", args.from.replace("/", "_")));
-    let config_data = fs::read_to_string(agent_config_path)?;
-    let config: AgentConfig = serde_json::from_str(&config_data)?;
+    // Load agent config from file
+    let config = load_agent_config(&args.config).unwrap_or_else(|err| {
+        eprintln!("❌ Failed to load agent config: {}", err);
+        process::exit(1);
+    });
 
-    // Get P-address from daemon
-    let daemon_config = daemon_config::load_daemon_config("daemon_config.json")
-        .unwrap_or_else(|_| {
-            println!("WARN: daemon_config.json not found or invalid. Falling back to default bootstrap address.");
-            daemon_config::DaemonConfig {
-                listen_address: "127.0.0.1".to_string(),
-                listen_port: 3031,
-            }
-        });
+    // Determine actual sender ID
+    let from_id = args.from.clone();
 
-    let assign_url = format!("http://{}:{}/assign_p_address", daemon_config.listen_address, daemon_config.listen_port);
-    let client = Client::new();
-    let p_address_response = client.post(&assign_url)
-        .json(&serde_json::json!({ "public_key": config.public_key }))
-        .send()
-        .await?;
-
-    let p_address_mapping: AgentMapping = p_address_response.json().await?;
-    let source_p_address = p_address_mapping.p_address;
-
-    let signing_key_bytes = hex::decode(&config.secret_key)?;
-    let key_bytes: [u8; 32] = signing_key_bytes.try_into()
-        .map_err(|_| "Invalid key length")?;
-    let signing_key = SigningKey::from_bytes(&key_bytes);
-
-    let actual_payload = if args.fake {
-        format!("{}-tampered", args.message) // 故意に改ざん
-    } else {
-        args.message.clone()
-    };
-
-    let signature: Signature = signing_key.sign(actual_payload.as_bytes());
-    let signature_hex = hex::encode(signature.to_bytes());
-
-    let packet = AiTcpPacket {
-        source_p_address: source_p_address,
-        destination_p_address: args.to,
-        payload: args.message, // 表示上は正規メッセージ
-        signature: signature_hex,
-    };
-
-    println!("{:#?}", serde_json::to_string(&packet)?);
-
-    let res = client.post(get_daemon_url())
-        .json(&packet)
-        .send()
-        .await?;
-
-    if res.status().is_success() {
-        println!("✅ Packet sent successfully.");
-    } else {
-        println!("❌ Failed to send packet: {}", res.status());
+    // Check consistency if --from was given
+    if args.from != config.public_key && !args.allow_mismatch {
+        eprintln!(
+            "❌ --from argument ({}) does not match public_key in config ({})",
+            args.from, config.public_key
+        );
+        eprintln!("ℹ️  Use --allow-mismatch to override this check.");
+        process::exit(1);
     }
 
-    Ok(())
+    // Construct message
+    let message = Message {
+        from: from_id.clone(),
+        to: args.to.clone(),
+        payload: args.payload.clone(),
+        signature: String::new(), // Placeholder
+    };
+
+    // Sign the message
+    let signed_message = sign_message(&message, &config.secret_key).unwrap_or_else(|err| {
+        eprintln!("❌ Failed to sign message: {}", err);
+        process::exit(1);
+    });
+
+    // Send it
+    let client = Client::new();
+    let res = client
+        .post("http://127.0.0.1:8080/send")
+        .json(&signed_message)
+        .send();
+
+    match res {
+        Ok(response) => {
+            if response.status().is_success() {
+                println!("✅ Message sent successfully to {}", args.to);
+            } else {
+                eprintln!("❌ Server responded with status: {}", response.status());
+            }
+        }
+        Err(err) => {
+            eprintln!("❌ Failed to send message: {}", err);
+            process::exit(1);
+        }
+    }
+
+    // verify delivery
+    match client.get("http://127.0.0.1:8080/").send() {
+        Ok(resp) => {
+            if resp.status().is_success() {
+                println!("✅ Daemon acknowledged receipt");
+            } else {
+                eprintln!("⚠️  Verification failed: {}", resp.status());
+            }
+        }
+        Err(e) => eprintln!("⚠️  Failed to verify delivery: {}", e),
+    }
 }

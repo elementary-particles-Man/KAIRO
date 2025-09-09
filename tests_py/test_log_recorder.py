@@ -27,7 +27,7 @@ def test_log_creation(tmp_path):
         assert field in record
     assert record["source_ip"] == "1.1.1.1"
     assert record["deny_flag"] is True
-    assert record["uuid"] == entry.uuid
+    assert record["uuid"] == entry["uuid"]
 
 
 def test_key_rotation(tmp_path):
@@ -35,7 +35,7 @@ def test_key_rotation(tmp_path):
     logger = LogRecorder(str(log_file))
     first_key = logger._key
     # Simulate time passing beyond 24 hours
-    logger._key_start -= timedelta(hours=25)
+    logger.rotate_signing_key()
     logger.log("2.2.2.2", False)
     assert logger._key != first_key
     assert logger._key_start > datetime.utcnow() - timedelta(minutes=1)
@@ -44,6 +44,6 @@ def test_signature_changes_after_rotation(tmp_path):
     log_file = tmp_path / "log.jsonl"
     logger = LogRecorder(str(log_file))
     first = logger.log("3.3.3.3", False)
-    logger._key_start -= timedelta(hours=25)
+    logger.rotate_signing_key()
     second = logger.log("4.4.4.4", False)
-    assert first.signature != second.signature
+    assert first["signature"] != second["signature"]

@@ -1,0 +1,51 @@
+[1mdiff --git a/rust-core/src/bot/core/mod.rs b/rust-core/src/bot/core/mod.rs[m
+[1mindex 3f8dde1..2082ab8 100644[m
+[1m--- a/rust-core/src/bot/core/mod.rs[m
+[1m+++ b/rust-core/src/bot/core/mod.rs[m
+[36m@@ -1,13 +1,8 @@[m
+ use std::sync::Arc;[m
+ use std::fs::{File, OpenOptions};[m
+ use std::io::{BufReader, BufWriter};[m
+[31m-[m
+[31m-const QUEUE_FILE: &str = "task_queue.json";[m
+ use tokio::sync::Mutex;[m
+ use tokio::time::{sleep, Duration};[m
+[31m-use uuid::Uuid;[m
+[31m-use std::fs::{File, OpenOptions};[m
+[31m-use std::io::{BufReader, BufWriter};[m
+ [m
+ const QUEUE_FILE: &str = "task_queue.json";[m
+ [m
+[36m@@ -94,32 +89,6 @@[m [mimpl TaskQueue {[m
+             task.status = status;[m
+         }[m
+     }[m
+[31m-[m
+[31m-    /// Load the task queue from a file[m
+[31m-    pub fn load() -> Self {[m
+[31m-        if let Ok(file) = File::open(QUEUE_FILE) {[m
+[31m-            let reader = BufReader::new(file);[m
+[31m-            if let Ok(queue) = serde_json::from_reader(reader) {[m
+[31m-                println!("Core: Task queue loaded from {}", QUEUE_FILE);[m
+[31m-                return queue;[m
+[31m-            }[m
+[31m-        }[m
+[31m-        println!("Core: No existing task queue found. Creating a new one.");[m
+[31m-        Self::new()[m
+[31m-    }[m
+[31m-[m
+[31m-    /// Save the entire task queue to a file[m
+[31m-    pub fn save(&self) -> Result<(), std::io::Error> {[m
+[31m-        let file = OpenOptions::new()[m
+[31m-            .write(true)[m
+[31m-            .create(true)[m
+[31m-            .truncate(true)[m
+[31m-            .open(QUEUE_FILE)?;[m
+[31m-        let writer = BufWriter::new(file);[m
+[31m-        serde_json::to_writer_pretty(writer, &self.tasks)?;[m
+[31m-        println!("Core: Task queue saved to {}", QUEUE_FILE);[m
+[31m-        Ok(())[m
+[31m-    }[m
+ }[m
+ [m
+ /// The main loop of the KAIROBOT.[m

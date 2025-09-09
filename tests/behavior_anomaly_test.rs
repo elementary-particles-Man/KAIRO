@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use kairo::mesh_trust_calculator::TrustScoreCalculator; // Assuming the struct is in this path
+    use kairo_core::mesh_trust_calculator::TrustScoreCalculator; // Assuming the struct is in this path
 
     #[test]
     fn test_anomaly_detection_normal_case() {

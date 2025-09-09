@@ -1,0 +1,61 @@
+KAIRO Agent Creation Summary
+
+Date: 2025年7月30日水曜日
+Operating System: win32
+Working Directory: D:\Dev\KAIRO
+
+--- Test Case: Agent Creation and Address Acquisition ---
+
+Objective: Create 8 agents (Agent2 to Agent9) and acquire their P-addresses.
+
+Initial State:
+- KAIRO services (daemon, seed_node, mesh_node) were not running or not properly configured for setup_agent.
+- setup_agent was attempting to connect to port 3030, while kairo_daemon was listening on port 8080.
+- setup_agent's P-address assignment logic was dependent on the daemon, which did not have the required endpoint.
+- Agent naming convention issues were present (e.g., passing names with quotes).
+
+Steps Taken:
+1.  Stopped all KAIRO services using `stop_services.py`.
+2.  Corrected a `SyntaxError` in `start_services.py` (`ddef` to `def`).
+3.  Removed Unicode characters from `start_services.py` to prevent `UnicodeEncodeError`.
+4.  Corrected an `unterminated string literal` in `start_services.py`.
+5.  Started KAIRO services using `start_services.py`.
+6.  Modified `src/agent/setup_agent.rs` to change the default daemon listen_port from 3030 to 8080.
+7.  Modified `src/agent/setup_agent.rs` to bypass the daemon's P-address assignment and seed node registration, assigning dummy P-addresses instead. This was done to prioritize flexibility over robustness at this stage.
+8.  Modified `src/agent/setup_agent.rs` to use absolute paths for agent configuration directories to resolve `InvalidFilename` errors.
+9.  Modified `src/agent/setup_agent.rs` to add a `sanitize_agent_name` function to validate agent names (disallowing quotes, backslashes, and slashes) and provide a clear error message.
+10. Modified `src/agent/setup_agent.rs` to update the `clap` argument help message for `--name` to clarify naming conventions.
+11. Created Agent2 through Agent9 using `cargo run --bin setup_agent -- --name <AgentName>` (without quotes around AgentName).
+12. Read the generated agent configuration files to extract P-addresses.
+
+Results:
+All 8 agents (Agent2-Agent9) were successfully created, and their dummy P-addresses were acquired.
+
+Agent P-Addresses:
+- Agent1: 10.0.0.2/24
+- Agent2: 10.0.0.202/24
+- Agent3: 10.0.0.216/24
+- Agent4: 10.0.0.246/24
+- Agent5: 10.0.0.245/24
+- Agent6: 10.0.0.107/24
+- Agent7: 10.0.0.138/24
+- Agent8: 10.0.0.47/24
+- Agent9: 10.0.0.95/24
+
+--- Test Case: `clap` and `--name` argument handling ---
+
+Issue: `clap` requires `--name <NAME>` and initially caused errors when `--name "AgentX"` was used.
+
+Resolution:
+- Identified that the issue was due to shell interpretation of quotes, leading to `setup_agent` receiving `"AgentX"` instead of `AgentX`.
+- Corrected the command invocation to `cargo run --bin setup_agent -- --name AgentX` (without quotes).
+- Implemented `sanitize_agent_name` in `setup_agent.rs` to detect and reject invalid characters (including quotes) in agent names, providing a user-friendly error message.
+- Updated the `--name` argument's help message in `setup_agent.rs` to explicitly state that quotes are not needed.
+
+Current Behavior for Duplicate Agent Creation:
+- If `cargo run --bin setup_agent -- --name AgentX` is run for an existing agent, `setup_agent` will load the existing configuration (`--- Welcome Back ---`) instead of creating a new one, unless the `--new` flag is explicitly used. This behavior aligns with the current preference for flexibility over strict robustness.
+
+--- Naming Convention Notes ---
+- Agent names should ideally consist of alphanumeric characters and underscores only.
+- Avoid using quotes (`"`), backslashes (`\`), or slashes (`/`) in agent names, as these can lead to OS-specific file system errors or incorrect argument parsing.
+- Be aware that CLI environments (e.g., PowerShell, Python scripts) might automatically add or interpret quotes, potentially leading to unexpected behavior. The `sanitize_agent_name` function helps mitigate this by validating the name received by the Rust application.

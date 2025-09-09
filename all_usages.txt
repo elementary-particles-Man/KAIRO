@@ -1,0 +1,122 @@
+
+rust-core\benches\benchmark_flatbuffers.rs:13:/// Helper function to build a sample AITcpPacket and return the encoded bytes
+rust-core\benches\benchmark_flatbuffers.rs:26:    let packet_offset = fb::AITcpPacket::create(
+rust-core\benches\benchmark_flatbuffers.rs:28:        &fb::AITcpPacketArgs {
+rust-core\benches\benchmark_flatbuffers.rs:62:            // PacketParser::parse returns Result<AITcpPacket, KairoError>
+rust-core\src\ai_tcp_packet_generated.rs:18:pub enum AITcpPacketOffset {}
+rust-core\src\ai_tcp_packet_generated.rs:23:pub struct AITcpPacket<'a> {
+rust-core\src\ai_tcp_packet_generated.rs:27:impl<'a> flatbuffers::Follow<'a> for AITcpPacket<'a> {
+rust-core\src\ai_tcp_packet_generated.rs:28:  type Inner = AITcpPacket<'a>;
+rust-core\src\ai_tcp_packet_generated.rs:35:impl<'a> AITcpPacket<'a> {
+rust-core\src\ai_tcp_packet_generated.rs:48:    AITcpPacket { _tab: table }
+rust-core\src\ai_tcp_packet_generated.rs:53:    args: &'args AITcpPacketArgs<'args>
+rust-core\src\ai_tcp_packet_generated.rs:54:  ) -> flatbuffers::WIPOffset<AITcpPacket<'bldr>> {
+rust-core\src\ai_tcp_packet_generated.rs:55:    let mut builder = AITcpPacketBuilder::new(_fbb);
+rust-core\src\ai_tcp_packet_generated.rs:74:    unsafe { self._tab.get::<u8>(AITcpPacket::VT_VERSION, Some(0)).unwrap()}
+rust-core\src\ai_tcp_packet_generated.rs:81:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_EPHEMERAL_KEY, None).unwrap()}
+rust-core\src\ai_tcp_packet_generated.rs:88:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_NONCE, None).unwrap()}
+rust-core\src\ai_tcp_packet_generated.rs:95:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_ENCRYPTED_SEQUENCE_ID, None).unwrap()}
+rust-core\src\ai_tcp_packet_generated.rs:102:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_ENCRYPTED_PAYLOAD, None).unwrap()}
+rust-core\src\ai_tcp_packet_generated.rs:109:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_SIGNATURE, None).unwrap()}
+rust-core\src\ai_tcp_packet_generated.rs:117:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_HEADER, None)}
+rust-core\src\ai_tcp_packet_generated.rs:125:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_PAYLOAD, None)}
+rust-core\src\ai_tcp_packet_generated.rs:133:    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(AITcpPacket::VT_FOOTER, None)}
+rust-core\src\ai_tcp_packet_generated.rs:137:impl flatbuffers::Verifiable for AITcpPacket<'_> {
+rust-core\src\ai_tcp_packet_generated.rs:157:pub struct AITcpPacketArgs<'a> {
+rust-core\src\ai_tcp_packet_generated.rs:168:impl<'a> Default for AITcpPacketArgs<'a> {
+rust-core\src\ai_tcp_packet_generated.rs:171:    AITcpPacketArgs {
+rust-core\src\ai_tcp_packet_generated.rs:185:pub struct AITcpPacketBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+rust-core\src\ai_tcp_packet_generated.rs:189:impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> AITcpPacketBuilder<'a, 'b, A> {
+rust-core\src\ai_tcp_packet_generated.rs:192:    self.fbb_.push_slot::<u8>(AITcpPacket::VT_VERSION, version, 0);
+rust-core\src\ai_tcp_packet_generated.rs:196:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_EPHEMERAL_KEY, ephemeral_key);
+rust-core\src\ai_tcp_packet_generated.rs:200:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_NONCE, nonce);
+rust-core\src\ai_tcp_packet_generated.rs:204:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_ENCRYPTED_SEQUENCE_ID, encrypted_sequence_id);
+rust-core\src\ai_tcp_packet_generated.rs:208:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_ENCRYPTED_PAYLOAD, encrypted_payload);
+rust-core\src\ai_tcp_packet_generated.rs:212:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_SIGNATURE, signature);
+rust-core\src\ai_tcp_packet_generated.rs:216:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_HEADER, header);
+rust-core\src\ai_tcp_packet_generated.rs:220:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_PAYLOAD, payload);
+rust-core\src\ai_tcp_packet_generated.rs:224:    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(AITcpPacket::VT_FOOTER, footer);
+rust-core\src\ai_tcp_packet_generated.rs:227:  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> AITcpPacketBuilder<'a, 'b, A> {
+rust-core\src\ai_tcp_packet_generated.rs:229:    AITcpPacketBuilder {
+rust-core\src\ai_tcp_packet_generated.rs:235:  pub fn finish(self) -> flatbuffers::WIPOffset<AITcpPacket<'a>> {
+rust-core\src\ai_tcp_packet_generated.rs:237:    self.fbb_.required(o, AITcpPacket::VT_EPHEMERAL_KEY,"ephemeral_key");
+rust-core\src\ai_tcp_packet_generated.rs:238:    self.fbb_.required(o, AITcpPacket::VT_NONCE,"nonce");
+rust-core\src\ai_tcp_packet_generated.rs:239:    self.fbb_.required(o, AITcpPacket::VT_ENCRYPTED_SEQUENCE_ID,"encrypted_sequence_id");
+rust-core\src\ai_tcp_packet_generated.rs:240:    self.fbb_.required(o, AITcpPacket::VT_ENCRYPTED_PAYLOAD,"encrypted_payload");
+rust-core\src\ai_tcp_packet_generated.rs:241:    self.fbb_.required(o, AITcpPacket::VT_SIGNATURE,"signature");
+rust-core\src\ai_tcp_packet_generated.rs:246:impl core::fmt::Debug for AITcpPacket<'_> {
+rust-core\src\ai_tcp_packet_generated.rs:248:    let mut ds = f.debug_struct("AITcpPacket");
+rust-core\src\ai_tcp_packet_generated.rs:262:/// Verifies that a buffer of bytes contains a `AITcpPacket`
+rust-core\src\ai_tcp_packet_generated.rs:268:pub fn root_as_aitcp_packet(buf: &[u8]) -> Result<AITcpPacket, flatbuffers::InvalidFlatbuffer> {
+rust-core\src\ai_tcp_packet_generated.rs:269:  flatbuffers::root::<AITcpPacket>(buf)
+rust-core\src\ai_tcp_packet_generated.rs:273:/// `AITcpPacket` and returns it.
+rust-core\src\ai_tcp_packet_generated.rs:278:pub fn size_prefixed_root_as_aitcp_packet(buf: &[u8]) -> Result<AITcpPacket, flatbuffers::InvalidFlatbuffer> {
+rust-core\src\ai_tcp_packet_generated.rs:279:  flatbuffers::size_prefixed_root::<AITcpPacket>(buf)
+rust-core\src\ai_tcp_packet_generated.rs:283:/// contains a `AITcpPacket` and returns it.
+rust-core\src\ai_tcp_packet_generated.rs:291:) -> Result<AITcpPacket<'b>, flatbuffers::InvalidFlatbuffer> {
+rust-core\src\ai_tcp_packet_generated.rs:292:  flatbuffers::root_with_opts::<AITcpPacket<'b>>(opts, buf)
+rust-core\src\ai_tcp_packet_generated.rs:296:/// bytes contains a size prefixed `AITcpPacket` and returns
+rust-core\src\ai_tcp_packet_generated.rs:304:) -> Result<AITcpPacket<'b>, flatbuffers::InvalidFlatbuffer> {
+rust-core\src\ai_tcp_packet_generated.rs:305:  flatbuffers::size_prefixed_root_with_opts::<AITcpPacket<'b>>(opts, buf)
+rust-core\src\ai_tcp_packet_generated.rs:308:/// Assumes, without verification, that a buffer of bytes contains a AITcpPacket and returns it.
+rust-core\src\ai_tcp_packet_generated.rs:310:/// Callers must trust the given bytes do indeed contain a valid `AITcpPacket`.
+rust-core\src\ai_tcp_packet_generated.rs:311:pub unsafe fn root_as_aitcp_packet_unchecked(buf: &[u8]) -> AITcpPacket {
+rust-core\src\ai_tcp_packet_generated.rs:312:  flatbuffers::root_unchecked::<AITcpPacket>(buf)
+rust-core\src\ai_tcp_packet_generated.rs:315:/// Assumes, without verification, that a buffer of bytes contains a size prefixed AITcpPacket and returns it.
+rust-core\src\ai_tcp_packet_generated.rs:317:/// Callers must trust the given bytes do indeed contain a valid size prefixed `AITcpPacket`.
+rust-core\src\ai_tcp_packet_generated.rs:318:pub unsafe fn size_prefixed_root_as_aitcp_packet_unchecked(buf: &[u8]) -> AITcpPacket {
+rust-core\src\ai_tcp_packet_generated.rs:319:  flatbuffers::size_prefixed_root_unchecked::<AITcpPacket>(buf)
+rust-core\src\ai_tcp_packet_generated.rs:324:    root: flatbuffers::WIPOffset<AITcpPacket<'a>>) {
+rust-core\src\ai_tcp_packet_generated.rs:329:pub fn finish_size_prefixed_aitcp_packet_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>, root: flatbuffers::WIPOffset<AITcpPacket<'a>>) {
+rust-core\src\log_recorder.rs:54:    /// existing `AITcpPacket` schema for simplicity.
+rust-core\src\log_recorder.rs:65:        let packet = fb::AITcpPacket::create(
+rust-core\src\log_recorder.rs:67:            &fb::AITcpPacketArgs {
+rust-core\src\packet_signer.rs:11:    // バイト列からAITcpPacketをパースする単純な関数
+rust-core\src\packet_signer.rs:12:    pub fn parse<'a>(buffer: &'a [u8]) -> Result<fb::AITcpPacket<'a>, KairoError> {
+rust-core\src\packet_validator.rs:5:// Validate AITcpPacket fields, signatures, and consistency.
+rust-core\src\packet_validator.rs:29:/// Validate an `AITcpPacket` by checking its sequence number and signature.
+rust-core\src\packet_validator.rs:35:    packet: &fb::AITcpPacket,
+rust-core\tests\aitcp_roundtrip.rs:20:    let pkt = fb::AITcpPacket::create(
+rust-core\tests\aitcp_roundtrip.rs:22:        &fb::AITcpPacketArgs {
+rust-core\tests\packet_validator_test.rs:12:/// Build a valid AITcpPacket FlatBuffer for testing.
+rust-core\tests\packet_validator_test.rs:21:    let packet_offset = fb::AITcpPacket::create(
+rust-core\tests\packet_validator_test.rs:23:        &fb::AITcpPacketArgs {
+rust-core\tests\packet_validator_test.rs:47:    let packet_offset = fb::AITcpPacket::create(
+rust-core\tests\packet_validator_test.rs:49:        &fb::AITcpPacketArgs {
+src\agent\forged_sender.rs:36:struct AiTcpPacket {
+src\agent\forged_sender.rs:65:    let packet = AiTcpPacket {
+src\agent\signed_sender.rs:29:use kairo_lib::packet::AiTcpPacket;
+src\agent\signed_sender.rs:82:    let packet = AiTcpPacket {
+src\kairo-daemon\handler.rs:4:use kairo_lib::packet::AiTcpPacket;
+src\kairo-daemon\handler.rs:6:pub async fn handle_send(ExtractJson(packet): ExtractJson<AiTcpPacket>) -> Json<String> {
+src\kairo-daemon\handler.rs:11:pub async fn handle_gpt(ExtractJson(packet): ExtractJson<AiTcpPacket>) -> Json<String> {
+src\kairo-daemon\kairo_p_listener.rs:4:use kairo_lib::packet::AiTcpPacket;
+src\kairo-daemon\kairo_p_listener.rs:30:                    match serde_json::from_str::<AiTcpPacket>(received_str) {
+src\kairo-daemon\kairo_p_listener.rs:38:                                .json(&packet) // AiTcpPacketを直接JSONとして送信
+src\kairo-daemon\p_signature_validator.rs:1:use kairo_lib::packet::AiTcpPacket;
+src\kairo-daemon\p_signature_validator.rs:3:pub fn validate(_packet: &AiTcpPacket) -> bool {
+src\kairo-lib\lib.rs:11:pub use packet::AiTcpPacket;
+src\kairo-lib\packet.rs:6:pub struct AiTcpPacket {
+src\kairof\lib.rs:6:/// Build a single AITcpPacket with the given sequence id.
+src\kairof\lib.rs:24:    let pkt = fb::AITcpPacket::create(&mut builder, &fb::AITcpPacketArgs {
+src\kairo_daemon\src\main.rs:9:use kairo_lib::packet::AiTcpPacket;
+src\kairo_daemon\src\main.rs:15:static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> = Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+src\kairo_daemon\src\main.rs:18:fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentConfig]) -> bool {
+src\kairo_daemon\src\main.rs:52:async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+src\mesh-node\main.rs:5:use kairo_lib::packet::AiTcpPacket;
+src\mesh-node\main.rs:17:fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
+src\mesh-node\main.rs:51:static MESSAGE_QUEUE: once_cell::sync::Lazy<Arc<Mutex<std::collections::HashMap<String, Vec<AiTcpPacket>>>>> = once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(std::collections::HashMap::new())));
+src\mesh-node\main.rs:56:async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+src\mesh-node\main.rs:79:        Ok(warp::reply::json(&Vec::<AiTcpPacket>::new()))
+src\server\seed_node.rs:13:use kairo_lib::packet::AiTcpPacket;
+src\server\seed_node.rs:69:fn verify_packet_signature(packet: &AiTcpPacket, registry: &[AgentInfo]) -> bool {
+src\server\seed_node.rs:101:static MESSAGE_QUEUE: Lazy<Arc<Mutex<HashMap<String, Vec<AiTcpPacket>>>>> = Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+src\server\seed_node.rs:103:async fn handle_send(packet: AiTcpPacket) -> Result<impl Reply, Rejection> {
+src\server\seed_node.rs:125:        Ok(warp::reply::json(&Vec::<AiTcpPacket>::new()))
+tests\packet_validator_test.rs:16:    let packet_offset = fb::AITcpPacket::create(
+tests\packet_validator_test.rs:18:        &fb::AITcpPacketArgs {
+tests\packet_validator_test.rs:63:    let packet_offset = fb::AITcpPacket::create(
+tests\packet_validator_test.rs:65:        &fb::AITcpPacketArgs {
+tests\packet_validator_test.rs:102:    let packet_offset = fb::AITcpPacket::create(
+tests\packet_validator_test.rs:104:        &fb::AITcpPacketArgs {
+

@@ -14,6 +14,7 @@ pub mod resolvers;
 
 // NEW
 pub mod error;
+pub mod bot;
 // 他に必要なら pub mod session_reuse; など
 
 // Placeholder for kairo_core
