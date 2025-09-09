@@ -1,0 +1,22 @@
+{
+  "chatgpt_app": {
+    "pid": 2028,
+    "method": "window",
+    "notes": "ChatGPT (OpenAI公式アプリ)"
+  },
+  "gemini_chrome": {
+    "pid": 13908,
+    "method": "window",
+    "notes": "Google Gemini - Google Chrome"
+  },
+  "codex_shell": {
+    "pid": 16072,
+    "method": "noop",
+    "notes": "Codex実行中のPowerShell(送信先には使わない想定)"
+  },
+  "terminal": {
+    "pid": 17032,
+    "method": "noop",
+    "notes": "WindowsTerminal(デバッグ用)"
+  }
+}

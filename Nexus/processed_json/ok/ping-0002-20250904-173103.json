@@ -1,0 +1,18 @@
+{
+  "from": "user",
+  "to": "chatgpt_app",
+  "intent": "chat",
+  "payload": {
+    "meta": {
+      "lang": "ja-JP"
+    },
+    "text": "【Nexus Ping】動作確認です。「PONG-0002」とだけ返答してください。"
+  },
+  "nexus": {
+    "response_timeout_sec": 20
+  },
+  "trace": {
+    "id": "ping-0002",
+    "parent": null
+  }
+}

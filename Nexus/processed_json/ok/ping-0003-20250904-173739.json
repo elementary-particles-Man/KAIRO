@@ -1,0 +1,16 @@
+{
+  "from": "user",
+  "to": "chatgpt_app",
+  "intent": "chat",
+  "payload": {
+    "text": "Nexus ping test. Reply only: PONG-0003",
+    "meta": { "lang": "en-US" }
+  },
+  "nexus": {
+    "response_timeout_sec": 15
+  },
+  "trace": {
+    "id": "ping-0003",
+    "parent": "ping-0002"
+  }
+}

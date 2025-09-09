@@ -1,0 +1,18 @@
+﻿{
+    "chatgpt_app":  {
+                        "title":  "AI-TCP/KAIRO - LLMによる自律攻撃",
+                        "pid":  2028,
+                        "name":  "ChatGPT"
+                    },
+    "gemini_chrome":  null,
+    "pwsh_current":  {
+                         "title":  "",
+                         "pid":  13268,
+                         "name":  "pwsh"
+                     },
+    "terminal":  {
+                     "title":  "Gemini - Nexus",
+                     "pid":  17032,
+                     "name":  "WindowsTerminal"
+                 }
+}

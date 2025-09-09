@@ -1,0 +1,19 @@
+{
+  "poll_interval_sec": 5,
+  "response_timeout_sec": 20,
+  "inbox_dir": "inbox",
+  "processed_dir": "processed",
+  "inbox_json_dir": "inbox_json",
+  "processed_json_dir": "processed_json",
+  "default_address_key": "chatgpt_app",
+  "auto_detect_pids": true,
+  "submit_mode": "enter_double",
+  "type_pause_sec": 0.03,
+  "pre_submit_delay_sec": 0.25,
+  "input_method": "paste",
+  "ocr_enabled": true,
+  "tesseract_path": "",
+  "ocr_lang": "jpn",
+  "ocr_after_wait": true
+  , "embed_ocr_in_json": true
+}
