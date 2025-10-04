@@ -1,7 +1,24 @@
 * text=auto
-*.rs text eol=lf
 *.sh text eol=lf
-*.yml text eol=lf
+*.rs text eol=lf
+*.py text eol=lf
 *.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
 *.md text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
 *.ps1 text eol=crlf
+*.psm1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.props text eol=lf
+*.targets text eol=lf
+*.sln text eol=crlf
+Dockerfile text eol=lf
+Makefile text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
