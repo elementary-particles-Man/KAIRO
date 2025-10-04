@@ -1,0 +1,102 @@
+承知しました。**作業主体が CODEX CLI** である前提に切り替えます。対話なし・一発通過を狙う、**非対話バッチ用（再実行安全）コマンド列**を提示します。EXE に拘らず **DLL 実行（`dotnet <dll>`）を既定**とし、必要時のみ EXE 発行に切替える二段構えです。
+
+---
+
+# CODEX CLI 用 実施手順（非対話・再実行安全）
+
+## 0) 前提チェック（ログ出力込み）
+
+```powershell
+dotnet --info | Out-File -FilePath .\.codex_logs\dotnet_info.txt -Encoding UTF8 -Force
+if ($LASTEXITCODE -ne 0) { exit 1 }
+```
+
+## 1) 既存プロセスとロックの掃除（常に実行してOK）
+
+```powershell
+# 既存常駐の終了（無ければ無視）
+taskkill /IM Kairo.ClipboardListener.exe /F 2>$null
+# 旧 publish 出力の握り潰しを避けるための簡易クリーン
+Remove-Item -Recurse -Force ".\Nexus\src\Kairo.ClipboardListener\bin\Release" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force ".\Nexus\src\Kairo.ClipboardListener\obj\Release" -ErrorAction SilentlyContinue
+```
+
+## 2) 既定：DLL 実行を前提にビルド（AppHost 無効＝ロック事故回避）
+
+```powershell
+cd ".\Nexus\src\Kairo.ClipboardListener"
+dotnet build -c Release -p:UseAppHost=false
+if ($LASTEXITCODE -ne 0) { exit 1 }
+```
+
+### 実行（CODEX ジョブ内・プロセス環境だけで指定）
+
+```powershell
+$env:KAIRO_NEXUS_ROOT = "F:\マイドライブ\Develop\KAIRO\Nexus"
+dotnet ".\bin\Release\net8.0-windows\Kairo.ClipboardListener.dll" 2>&1 `
+ | Tee-Object -FilePath ".\KAIRO_ClipboardListener.runlog.txt"
+```
+
+> これで **WM_CLIPBOARDUPDATE 常駐が DLL で起動**します。トレイアイコンは表示されますが、CODEX ジョブとしてはバックグラウンド常駐で問題ありません。
+
+## 3) EXE が必要な場合のみ：publish で別ディレクトリ出力（ロック回避）
+
+```powershell
+# 別出力に publish（AppHost 有効のまま / EXE 生成）
+dotnet publish -c Release -r win-x64 --self-contained false `
+  -p:PublishSingleFile=false -p:DebugType=None `
+  -p:ErrorOnDuplicatePublishOutputFiles=false
+if ($LASTEXITCODE -ne 0) { exit 1 }
+
+# 実行（EXE）
+$exe = ".\bin\Release\net8.0-windows\win-x64\publish\Kairo.ClipboardListener.exe"
+$env:KAIRO_NEXUS_ROOT = "F:\マイドライブ\Develop\KAIRO\Nexus"
+& $exe 2>&1 | Tee-Object -FilePath ".\KAIRO_ClipboardListener.runlog.txt"
+```
+
+> `CreateAppHost` の IOException（user mapped section）は「既存 EXE が生きている／AV スキャン中」の典型です。上の手順は**出力先を毎回 `publish\` に分離**するため衝突しにくい構成です。EXE 常駐へ切替える必要が出たときのみ使用してください。既定は DLL 実行で十分です。
+
+## 4) CODEX パイプライン用・最短ジョブ分割例
+
+* `job: build-listener`
+
+  ```powershell
+  cd ".\Nexus\src\Kairo.ClipboardListener"
+  dotnet build -c Release -p:UseAppHost=false
+  ```
+
+* `job: run-listener`
+
+  ```powershell
+  $env:KAIRO_NEXUS_ROOT = "F:\マイドライブ\Develop\KAIRO\Nexus"
+  dotnet ".\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows\Kairo.ClipboardListener.dll"
+  ```
+
+* `job: stop-listener`（任意：切替や再デプロイ時）
+
+  ```powershell
+  taskkill /IM Kairo.ClipboardListener.exe /F 2>$null
+  # DLL 実行は dotnet プロセスで常駐するので、必要なら次も併用
+  taskkill /IM dotnet.exe /F 2>$null
+  ```
+
+## 5) 回帰チェック（CODEX のテスト手順として登録）
+
+1. 任意の `aitcp-hilr` 封筒 JSON をクリップボードコピー。
+2. `%KAIRO_NEXUS_ROOT%\inbox\*.json` が UTF-8N で生成される。
+3. `%KAIRO_NEXUS_ROOT%\ledger\ledger-YYYYMMDD.jsonl` に `ts/kind/file/sha256` 追記。
+4. Nexus Router が `inbox/*.json` を消費し、既存フローが継続。
+
+> 封筒判定は `"proto_ver":"aitcp-hilr-"` を含む JSON のみ保存。512KB 超過は破棄。直近 SHA256 重複は破棄。これらは **CODEX 側の e2e テストで“保存されないこと”も期待値**として登録可能です。
+
+---
+
+## 運用方針（CODEX 前提の最適解）
+
+* **既定は DLL 常駐**：`dotnet <dll>` 起動はファイルロック事故が最も少ない。
+* EXE を使う場合は **`publish\` 出力を常用**し、ビルド出力と分離。
+* 再デプロイ時は `taskkill` → `dotnet clean` → `publish` の順で衝突回避。
+* すべて **非対話**で完結。CODEX のジョブにそのまま貼り付け可能。
+
+以上。
+この手順で、CODEX CLI 環境における **Kairo.ClipboardListener のビルド・常駐・再デプロイ**は安定化します。

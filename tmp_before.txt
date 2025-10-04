@@ -1,0 +1,227 @@
+from __future__ import annotations
+import json
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+from .chat import windows as winchat
+from .utils import pid_detect
+
+# --- 定数と設定 ---
+BASE_DIR = Path(__file__).parent.parent.resolve()
+CONFIG_DIR = BASE_DIR / "config"
+INBOX_DIR = BASE_DIR / "inbox_json"
+PROCESSED_DIR = BASE_DIR / "processed_json"
+
+def load_json_config(path: Path, default: Dict = {}) -> Dict:
+    """設定ファイルを安全に読み込む"""
+    if not path.exists():
+        print(f"[NEXUS-WARN] 設定ファイルが見つかりません: {path}")
+        return default
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[NEXUS-ERROR] 設定ファイルの読み込みに失敗しました: {path}, error={e}")
+        return default
+
+# デフォルト設定にGPT-5の提案を反映
+SETTINGS = load_json_config(CONFIG_DIR / "settings.json", default={
+    "poll_interval_sec": 5.0,
+    "pre_submit_delay_sec": 0.5,
+    "response_capture_timeout_sec": 300.0,
+    "response_stability_wait_sec": 2.0,
+    "response_poll_interval_sec": 0.5,
+    "min_growth_chars": 30,
+    "post_send_wait_sec": 30.0,     # ★ 送信後の強制待機
+    "input_method": "paste",        # ★ 常にコピペ（タイプ入力禁止）
+})
+
+def resolve_addresses() -> Dict[str, Dict[str, Any]]:
+    """PIDの自動検出と手動設定をマージし、プロセスの生存確認も行う"""
+    addresses = load_json_config(CONFIG_DIR / "addresses.json")
+    try:
+        keys_to_detect = list(addresses.keys())
+        found_pids = pid_detect.detect_all(keys_to_detect)
+        for key, value in found_pids.items():
+            if key in addresses:
+                pid = value.get("pid")
+                # プロセスが実際に存在するか確認
+                if pid and winchat.is_pid_running(pid):
+                    addresses[key]["pid"] = pid
+                else:
+                    if "pid" in addresses[key]:
+                        del addresses[key]["pid"] # 存在しないPIDは削除
+        print(f"[NEXUS] 最新のアドレス帳: {addresses}")
+    except Exception as e:
+        print(f"[NEXUS-WARN] PIDの自動検出に失敗しました: {e}")
+    return addresses
+
+def read_text_smart(p: Path) -> str:
+    b = p.read_bytes()
+    if b.startswith(b"\xef\xbb\xbf"): return b[3:].decode("utf-8", errors="replace")
+    if b.startswith(b"\xff\xfe"): return b[2:].decode("utf-16-le", errors="replace")
+    if b.startswith(b"\xfe\xff"): return b[2:].decode("utf-16-be", errors="replace")
+    try: return b.decode("utf-8")
+    except UnicodeDecodeError: return b.decode("cp932", errors="replace")
+
+def is_file_stable(p: Path, wait_sec: float = 0.2) -> bool:
+    try:
+        s1 = p.stat().st_size
+        time.sleep(wait_sec)
+        s2 = p.stat().st_size
+        return s1 == s2 and s1 > 0
+    except FileNotFoundError:
+        return False
+
+def capture_response_from_pid(pid: int, timeout: float, stability_wait: float, poll_interval: float, min_growth: int) -> Optional[str]:
+    """UIからの出力を安定してキャプチャする（堅牢化版v3）"""
+    print(f"[NEXUS] PID:{pid}からの応答キャプチャを開始 (timeout={timeout}s)")
+    main_window = winchat.get_window_for_pid(pid)
+    if not main_window:
+        print(f"[NEXUS-ERROR] PID {pid} のウィンドウに接続できませんでした。")
+        return None
+
+    def get_main_text_content() -> str:
+        """ウィンドウから主要なテキストコンテンツを抽出する（Document/Edit 優先）"""
+        try:
+            # Documentコントロールを優先
+            docs = main_window.descendants(control_type="Document")
+            if docs:
+                target = max(docs, key=lambda w: w.rectangle().width() * w.rectangle().height())
+                return target.window_text()
+            # Editコントロールを次に試行
+            edits = main_window.descendants(control_type="Edit")
+            if edits:
+                target = max(edits, key=lambda w: w.rectangle().width() * w.rectangle().height())
+                return target.window_text()
+            # フォールバックとしてPane
+            panes = main_window.descendants(control_type="Pane")
+            if panes:
+                main_pane = max(panes, key=lambda w: w.rectangle().width() * w.rectangle().height())
+                return main_pane.window_text()
+        except Exception:
+            pass
+        return main_window.window_text()
+
+    start_time = time.time()
+    baseline_text = get_main_text_content()
+    last_text = baseline_text
+    response_started_time = None
+    last_change_time = time.time()
+    print(f"[NEXUS] ベースラインテキスト長: {len(baseline_text)}")
+    while time.time() - start_time < timeout:
+        current_text = get_main_text_content()
+        if current_text != last_text:
+            if response_started_time is None and len(current_text) > len(baseline_text) + min_growth:
+                print(f"[NEXUS] 応答開始を検出。文字数: {len(current_text)}")
+                response_started_time = time.time()
+            last_change_time = time.time()
+            last_text = current_text
+        if response_started_time and (time.time() - last_change_time >= stability_wait):
+            print(f"[NEXUS] 応答が安定しました。最終文字数: {len(current_text)}")
+            return current_text[len(baseline_text):].strip()
+        time.sleep(poll_interval)
+    print(f"[NEXUS-WARN] タイムアウトしました。キャプチャされた最新の応答を返します。")
+    return last_text[len(baseline_text):].strip() if len(last_text) > len(baseline_text) else ""
+
+def archive_task(src_path: Path, status: str, data: Dict, note: str = ""):
+    archive_dir = PROCESSED_DIR / status
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    dst_name = f"{src_path.stem}-{ts}{('-'+note if note else '')}.json"
+    dst_path = archive_dir / dst_name
+    try:
+        with dst_path.open("w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        src_path.unlink(missing_ok=True)
+    except Exception as e:
+        print(f"[NEXUS-ERROR] アーカイブに失敗: {src_path} -> {dst_path}, error={e}")
+
+def main():
+    print("[NEXUS] KAIRO-Nexus デーモン起動 (v2.1: 堅牢化モデル)...")
+    INBOX_DIR.mkdir(exist_ok=True)
+    PROCESSED_DIR.mkdir(exist_ok=True)
+    poll_interval = float(SETTINGS.get("poll_interval_sec", 5.0))
+    try:
+        while True:
+            files = sorted([p for p in INBOX_DIR.glob("*.json") if p.is_file()])
+            if not files:
+                time.sleep(poll_interval)
+                continue
+            for f in files:
+                if not is_file_stable(f): continue
+                data = {}
+                try:
+                    content = read_text_smart(f)
+                    data = json.loads(content)
+                    from_key = data.get("from")
+                    to_key = data.get("to")
+                    payload_text = data.get("payload", {}).get("text", "")
+                    if not all([from_key, to_key, payload_text]):
+                        raise ValueError("不正なタスク形式")
+                    
+                    current_addresses = resolve_addresses()
+                    to_info = current_addresses.get(to_key)
+                    if not to_info or not to_info.get("pid"):
+                         raise ValueError(f"宛先'{to_key}'のPIDが見つかりません。")
+                    
+                    print(f"\n[NEXUS] タスク実行: {f.name} ({from_key} -> {to_key})")
+                    send_ok = winchat.send_text_to_pid(
+                        to_info["pid"], payload_text, press_enter=True, input_method="paste"
+                    )
+                    if not send_ok: raise RuntimeError("送信に失敗")
+                    
+                    post_wait = float(SETTINGS.get("post_send_wait_sec", 30.0))
+                    if post_wait > 0:
+                        print(f"[NEXUS] 送信後待機: {post_wait}s")
+                        time.sleep(post_wait)
+
+                    response_text = capture_response_from_pid(
+                        to_info["pid"],
+                        timeout=SETTINGS.get("response_capture_timeout_sec"),
+                        stability_wait=SETTINGS.get("response_stability_wait_sec"),
+                        poll_interval=SETTINGS.get("response_poll_interval_sec"),
+                        min_growth=SETTINGS.get("min_growth_chars"),
+                    )
+                    if response_text is None: raise RuntimeError("応答キャプチャに失敗")
+
+                    # ★ 返信直前にアドレスを再解決
+                    current_addresses = resolve_addresses()
+                    from_info = current_addresses.get(from_key)
+                    terminal_info = current_addresses.get("terminal")
+                    reply_pid = None
+                    reply_target_key = None
+
+                    if from_info and from_info.get("pid"):
+                        reply_pid, reply_target_key = from_info["pid"], from_key
+                    elif terminal_info and terminal_info.get("pid"):
+                        reply_pid, reply_target_key = terminal_info["pid"], "terminal"
+
+                    if not reply_pid:
+                        print(f"[NEXUS-WARN] 返信先'{from_key}'も'terminal'も見つかりません。返信をスキップします。")
+                        data["nexus_log"] = {"status": "ok_no_reply", "response": response_text}
+                        archive_task(f, "ok", data, note="no_reply_target")
+                        continue
+                    
+                    print(f"[NEXUS] 返信先: {reply_target_key} (PID: {reply_pid})")
+                    reply_payload = json.dumps({
+                        "from": to_key, "to": from_key, "intent": "chat_response",
+                        "payload": {"text": response_text}}, ensure_ascii=False
+                    )
+                    reply_ok = winchat.send_text_to_pid(reply_pid, reply_payload, press_enter=True, input_method="paste")
+                    if not reply_ok: raise RuntimeError(f"返信に失敗 (pid={reply_pid})")
+
+                    data["nexus_log"] = {"status": "ok", "response": response_text}
+                    archive_task(f, "ok", data)
+                except Exception as e:
+                    print(f"[NEXUS-ERROR] タスク処理エラー: {f.name}, error={e}")
+                    data["nexus_log"] = {"status": "error", "message": str(e)}
+                    archive_task(f, "error", data, note="processing_error")
+    except KeyboardInterrupt:
+        print("\n[NEXUS] シャットダウンします。")
+
+if __name__ == "__main__":
+    main()
+

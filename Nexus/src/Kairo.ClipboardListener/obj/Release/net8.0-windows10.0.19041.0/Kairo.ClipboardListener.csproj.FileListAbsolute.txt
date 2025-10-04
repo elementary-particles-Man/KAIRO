@@ -1,0 +1,17 @@
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.dll.config
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.deps.json
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.runtimeconfig.json
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.dll
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.pdb
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\Microsoft.Windows.SDK.NET.dll
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\bin\Release\net8.0-windows10.0.19041.0\WinRT.Runtime.dll
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.GeneratedMSBuildEditorConfig.editorconfig
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.AssemblyInfoInputs.cache
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.AssemblyInfo.cs
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.csproj.CoreCompileInputs.cache
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.Cl.1C7F9EFD.Up2Date
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.dll
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\refint\Kairo.ClipboardListener.dll
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.pdb
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\Kairo.ClipboardListener.genruntimeconfig.cache
+F:\マイドライブ\Develop\Nexus\src\Kairo.ClipboardListener\obj\Release\net8.0-windows10.0.19041.0\ref\Kairo.ClipboardListener.dll

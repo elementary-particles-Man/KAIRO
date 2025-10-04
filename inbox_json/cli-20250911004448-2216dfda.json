@@ -1,0 +1,18 @@
+{
+  "from": "terminal",
+  "to": "GPT",
+  "intent": "chat",
+  "payload": {
+    "text": "Nexus Routerからのテストメッセージです。応答をお願いします。",
+    "meta": {
+      "lang": "ja-JP"
+    }
+  },
+  "nexus": {
+    "response_timeout_sec": 20
+  },
+  "trace": {
+    "id": "cli-20250911004448-2216dfda",
+    "parent": null
+  }
+}

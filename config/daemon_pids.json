@@ -1,0 +1,14 @@
+{
+  "processes": {
+    "router": {
+      "pid": 2084,
+      "started": "2025-09-12T01:43:55+09:00"
+    }
+  },
+  "meta": {
+    "cwd": "G:\\マイドライブ\\Develop\\KAIRO",
+    "windowStyle": "Hidden",
+    "updated": "2025-09-12T01:43:55+09:00",
+    "python": ".venv\\Scripts\\pythonw.exe"
+  }
+}

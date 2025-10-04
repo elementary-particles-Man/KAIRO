@@ -1,0 +1,66 @@
+                    
+                    print(f"\n[NEXUS] タスク実行: {f.name} ({from_key} -> {to_key})")
+                    send_ok = winchat.send_text_to_pid(
+                        to_info["pid"], payload_text, press_enter=True, input_method="paste"
+                    )
+                    if not send_ok: raise RuntimeError("送信に失敗")
+                    
+                    post_wait = float(SETTINGS.get("post_send_wait_sec", 30.0))
+                    if post_wait > 0:
+                        print(f"[NEXUS] 送信後待機: {post_wait}s")
+                        time.sleep(post_wait)
+
+                    response_text = capture_response_from_pid(
+                        to_info["pid"],
+                        timeout=SETTINGS.get("response_capture_timeout_sec"),
+                        stability_wait=SETTINGS.get("response_stability_wait_sec"),
+                        poll_interval=SETTINGS.get("response_poll_interval_sec"),
+                        min_growth=SETTINGS.get("min_growth_chars"),
+                    )
+                    if response_text is None: raise RuntimeError("応答キャプチャに失敗")
+
+                    # ★ 返信直前にアドレスを再解決
+                    current_addresses = resolve_addresses()
+                    from_info = current_addresses.get(from_key)
+                    terminal_info = current_addresses.get("terminal")
+                    reply_pid = None
+                    reply_target_key = None
+
+                    if from_info and from_info.get("pid"):
+                        reply_pid, reply_target_key = from_info["pid"], from_key
+                    elif terminal_info and terminal_info.get("pid"):
+                        reply_pid, reply_target_key = terminal_info["pid"], "terminal"
+
+                    if not reply_pid:
+                        print(f"[NEXUS-WARN] 返信先'{from_key}'も'terminal'も見つかりません。返信をスキップします。")
+                        data["nexus_log"] = {"status": "ok_no_reply", "response": response_text}
+                        archive_task(f, "ok", data, note="no_reply_target")
+                        continue
+                    
+                    print(f"[NEXUS] 返信先: {reply_target_key} (PID: {reply_pid})")
+                    reply_payload = json.dumps({
+                        "from": to_key, "to": from_key, "intent": "chat_response",
+                        "payload": {"text": response_text}}, ensure_ascii=False
+                    )
+                    reply_ok = winchat.send_text_to_pid(
+    reply_pid, reply_payload,
+    press_enter=True,
+    submit_mode=submit_mode,
+    type_pause=type_pause,
+    pre_submit_delay_sec=pre_submit,
+    input_method=input_method,
+)
+                    if not reply_ok: raise RuntimeError(f"返信に失敗 (pid={reply_pid})")
+
+                    data["nexus_log"] = {"status": "ok", "response": response_text}
+                    archive_task(f, "ok", data)
+                except Exception as e:
+                    print(f"[NEXUS-ERROR] タスク処理エラー: {f.name}, error={e}")
+                    data["nexus_log"] = {"status": "error", "message": str(e)}
+                    archive_task(f, "error", data, note="processing_error")
+    except KeyboardInterrupt:
+        print("\n[NEXUS] シャットダウンします。")
+
+if __name__ == "__main__":
+    main()
+

@@ -1,0 +1,195 @@
+from __future__ import annotations
+
+import json
+import subprocess
+from typing import Any, Dict, Optional
+import os
+from pathlib import Path
+
+
+def _run_powershell(script: str) -> str:
+    completed = subprocess.run(
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-Command",
+            script,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        return ""
+    return completed.stdout.strip()
+
+
+def _ps_get_process_info_by_id(pid: int) -> Optional[Dict[str, Any]]:
+    try:
+        pid = int(pid)
+    except Exception:
+        return None
+
+
+def _ps_get_parent_pid(pid: int) -> Optional[int]:
+    """Return parent PID via WMI/CIM. None if not found."""
+    try:
+        pid = int(pid)
+    except Exception:
+        return None
+    ps = rf"$p=Get-CimInstance Win32_Process -Filter \"ProcessId={pid}\" -ErrorAction SilentlyContinue; if($p){{$p.ParentProcessId}} else {{''}}"
+    out = _run_powershell(ps)
+    if not out:
+        return None
+    try:
+        return int(out.strip())
+    except Exception:
+        return None
+    ps = rf"$p=Get-Process -Id {pid} -ErrorAction SilentlyContinue | Select-Object -First 1 Id,ProcessName,MainWindowTitle; if($p){{$p|ConvertTo-Json}}else{{''}}"
+    out = _run_powershell(ps)
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def detect_chatgpt() -> Optional[Dict[str, Any]]:
+    ps = r"$p=Get-Process ChatGPT -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0} | Select-Object -First 1 Id,ProcessName,MainWindowTitle; if($p){$p|ConvertTo-Json}else{''}"
+    out = _run_powershell(ps)
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def detect_gemini_edge() -> Optional[Dict[str, Any]]:
+    # Match tab/window titles that start with 'Google Gemini'
+    ps = r"$p=Get-Process msedge -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -match '^Google Gemini'} | Select-Object -First 1 Id,ProcessName,MainWindowTitle; if($p){$p|ConvertTo-Json}else{''}"
+    out = _run_powershell(ps)
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def detect_gemini_any() -> Optional[Dict[str, Any]]:
+    """Detect a top-level window that likely is Gemini in any browser."""
+    # Title is consistently 'Google Gemini' regardless of browser
+    ps = r"$p=Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -match '^Google Gemini' } | Select-Object -First 1 Id,ProcessName,MainWindowTitle; if($p){$p|ConvertTo-Json}else{''}"
+    out = _run_powershell(ps)
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def detect_by_process_and_title(process_name: str, title_regex: str) -> Optional[Dict[str, Any]]:
+    """Generic detector by process name and title regex."""
+    process_name = process_name.strip()
+    title_regex = title_regex or ".*"
+    ps = rf"$p=Get-Process {process_name} -ErrorAction SilentlyContinue | Where-Object {{ $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -match '{title_regex}' }} | Select-Object -First 1 Id,ProcessName,MainWindowTitle; if($p){{$p|ConvertTo-Json}}else{{''}}"
+    out = _run_powershell(ps)
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def detect_by_listen_port(port: int) -> Optional[Dict[str, Any]]:
+    """Find owning process of a listening TCP port and return shaped info.
+
+    Uses Get-NetTCPConnection to get OwningProcess, then queries process info.
+    """
+    try:
+        port = int(port)
+    except Exception:
+        return None
+    ps = rf"$x=Get-NetTCPConnection -State Listen -LocalPort {port} -ErrorAction SilentlyContinue | Select-Object -First 1 OwningProcess; if($x){{$x.OwningProcess}} else {{''}}"
+    out = _run_powershell(ps)
+    if not out:
+        return None
+    try:
+        pid = int(out.strip())
+    except Exception:
+        return None
+    info = _ps_get_process_info_by_id(pid)
+    if not info:
+        return None
+    return {"pid": info.get("Id"), "title": info.get("MainWindowTitle"), "name": info.get("ProcessName")}
+
+
+def detect_windows_terminal(title_regex: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Detect WindowsTerminal main window. Optionally filter by title regex."""
+    cond = "$_.MainWindowHandle -ne 0"
+    if title_regex:
+        cond += f" -and $_.MainWindowTitle -match '{title_regex}'"
+    ps = rf"$p=Get-Process WindowsTerminal -ErrorAction SilentlyContinue | Where-Object {{{cond}}} | Select-Object -First 1 Id,ProcessName,MainWindowTitle; if($p){{$p|ConvertTo-Json}}else{{''}}"
+    out = _run_powershell(ps)
+    try:
+        return json.loads(out) if out else None
+    except json.JSONDecodeError:
+        return None
+
+
+def _shape(obj: Dict[str, Any]) -> Dict[str, Any]:
+    return {"pid": obj.get("Id"), "title": obj.get("MainWindowTitle"), "name": obj.get("ProcessName")}
+
+
+def detect_all(target_keys: Optional[list[str]] = None) -> Dict[str, Dict[str, Any]]:
+    """Detect known app PIDs. Supports multiple naming schemes for compatibility.
+
+    Keys supported:
+      - 'GPT' / 'chatgpt_app'
+      - 'Gemini' / 'gemini_chrome'
+      - 'CLI' / 'terminal'
+    """
+    want_all = target_keys is None
+    tk = set(target_keys or [])
+    result: Dict[str, Dict[str, Any]] = {}
+
+    if want_all or any(k in tk for k in ("GPT", "chatgpt_app")):
+        gpt = detect_chatgpt()
+        if gpt:
+            shaped = _shape(gpt)
+            result["GPT"] = shaped
+            result["chatgpt_app"] = shaped
+
+    if want_all or any(k in tk for k in ("Gemini", "gemini_chrome")):
+        env_proc = os.environ.get("NEXUS_GEMINI_PROCESS")
+        gm = None
+        if env_proc:
+            gm = detect_by_process_and_title(env_proc, r"^Google Gemini")
+        gm = gm or detect_gemini_edge() or detect_gemini_any()
+        if gm:
+            shaped = _shape(gm)
+            result["Gemini"] = shaped
+            result["gemini_chrome"] = shaped
+
+    if want_all or any(k in tk for k in ("CLI", "terminal")):
+        shaped = None
+        # 1) Optional: environment-provided beacon port
+        env_port = os.environ.get("NEXUS_CLI_PORT") or os.environ.get("KAIRO_CLI_PORT")
+        if env_port:
+            try:
+                info = detect_by_listen_port(int(env_port))
+            except Exception:
+                info = None
+            if info:
+                # If it's pwsh, prefer its terminal parent when available
+                if str(info.get("name")).lower() in ("pwsh", "powershell"):
+                    ppid = _ps_get_parent_pid(info.get("pid", 0) or 0)
+                    if ppid:
+                        parent = _ps_get_process_info_by_id(ppid)
+                        if parent:
+                            shaped = _shape(parent)
+                shaped = shaped or info
+        # 2) Fallback: Windows Terminal (prefer KAIRO/CLI in title)
+        if not shaped:
+            term = detect_windows_terminal(title_regex="KAIRO|CLI") or detect_windows_terminal()
+            if term:
+                shaped = _shape(term)
+        if shaped:
+            result["CLI"] = shaped
+            result["terminal"] = shaped
+
+    return result
+

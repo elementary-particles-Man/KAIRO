@@ -1,0 +1,18 @@
+{
+  "from": "CLI",
+  "to": "Gemini",
+  "intent": "chat",
+  "payload": {
+    "text": "CLIからの状況報告。短く返信してください。",
+    "meta": {
+      "lang": "ja-JP"
+    }
+  },
+  "nexus": {
+    "response_timeout_sec": 20
+  },
+  "trace": {
+    "id": "cli-20250911193433-fce1292c",
+    "parent": null
+  }
+}

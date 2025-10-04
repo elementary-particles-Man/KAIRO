@@ -1,0 +1,18 @@
+{
+  "from": "CLI",
+  "to": "GPT",
+  "intent": "chat",
+  "payload": {
+    "text": "CLIからの状況報告。短く返信してください。",
+    "meta": {
+      "lang": "ja-JP"
+    }
+  },
+  "nexus": {
+    "response_timeout_sec": 20
+  },
+  "trace": {
+    "id": "cli-20250911171956-b0f83c8f",
+    "parent": null
+  }
+}

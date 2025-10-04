@@ -1,0 +1,44 @@
+.NET SDK:
+ Version:           8.0.414
+ Commit:            62977d44a9
+ Workload version:  8.0.400-manifests.8441bccd
+ MSBuild version:   17.11.41+18f1ecf82
+
+繝ｩ繝ｳ繧ｿ繧､繝迺ｰ蠅・
+ OS Name:     Windows
+ OS Version:  10.0.26100
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\8.0.414\
+
+繧､繝ｳ繧ｹ繝医・繝ｫ貂医∩縺ｮ .NET 繝ｯ繝ｼ繧ｯ繝ｭ繝ｼ繝・
+譁ｰ縺励＞繝槭ル繝輔ぉ繧ｹ繝医ｒ繧､繝ｳ繧ｹ繝医・繝ｫ縺吶ｋ縺ｨ縺阪↓ loose manifests 繧剃ｽｿ逕ｨ縺吶ｋ繧医≧縺ｫ讒区・縺輔ｌ縺ｦ縺・∪縺吶・
+陦ｨ遉ｺ縺吶ｋ繧､繝ｳ繧ｹ繝医・繝ｫ貂医∩繝ｯ繝ｼ繧ｯ繝ｭ繝ｼ繝峨・縺ゅｊ縺ｾ縺帙ｓ縲・
+
+Host:
+  Version:      8.0.20
+  Architecture: x64
+  Commit:       574100b692
+
+.NET SDKs installed:
+  8.0.414 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.20 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.20 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.20 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  None
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
