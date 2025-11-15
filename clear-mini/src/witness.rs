@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 #[repr(C)]
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct WitnessRecord {
     pub mono: u128,
     pub utc: u128,
@@ -14,6 +14,23 @@ pub struct WitnessRecord {
     pub port: u16,
     pub ip: [u8; 16],
     pub pad: [u8; 48],
+}
+
+impl Default for WitnessRecord {
+    fn default() -> Self {
+        Self {
+            mono: 0,
+            utc: 0,
+            src: 0,
+            dst: 0,
+            len: 0,
+            hash32: 0,
+            flags: 0,
+            port: 0,
+            ip: [0; 16],
+            pad: [0; 48],
+        }
+    }
 }
 
 pub struct Ring {

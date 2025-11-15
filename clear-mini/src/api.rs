@@ -8,7 +8,7 @@ pub struct ClearMini {
 
 impl ClearMini {
     pub fn new() -> Self {
-        time::mono_init();
+        time::init_monotonic_base();
         Self {
             ring: Ring::new(4096),
         }
@@ -26,8 +26,8 @@ impl ClearMini {
         let mut hasher = Hasher::new();
         hasher.update(&ip);
         let record = WitnessRecord {
-            mono: time::now_mono(),
-            utc: time::now_utc(),
+            mono: time::now_monotonic_ns(),
+            utc: time::now_utc_ns(),
             src: src.id,
             dst: dst.id,
             len,
