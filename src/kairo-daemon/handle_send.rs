@@ -114,9 +114,9 @@ pub async fn handle_send(packet: Packet) -> Result<impl warp::Reply, warp::Rejec
 
     if packet.destination_p_address == "gpt://main" {
         match crate::gpt_responder::gpt_log_and_respond(&packet).await {
-            Ok(resp) => {
-                info!("✅ [GPT] Response delivered");
-                Ok(warp::reply::with_status(resp.as_str(), warp::http::StatusCode::OK))
+            Ok((resp, remote_addr)) => {
+                info!("✅ [GPT] Response delivered via {}", remote_addr);
+                Ok(warp::reply::with_status(resp, warp::http::StatusCode::OK))
             },
             Err(e) => {
                 error!("❌ [GPT] Failed to handle packet: {}", e);
