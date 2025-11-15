@@ -1,1 +1,4 @@
 
+[submodule "bin"]
+	path = bin
+	url = https://github.com/elementary-particles-Man/bin
