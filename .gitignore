@@ -82,6 +82,7 @@ dist/
 
 # Binaries
 bin/
+**/bin/
 
 # Archived projects
 archives/
@@ -167,3 +168,10 @@ dist/
 
 # Binaries
 bin/
+**/bin/
+Nexus/**/bin/
+Nexus/**/obj/
+
+
+
+

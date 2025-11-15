@@ -13,9 +13,11 @@ pub async fn execute(command: &str) -> bool {
     command_builder.arg("/C").arg(command);
 
     #[cfg(not(target_os = "windows"))]
-    let mut command_builder = Command::new(program);
+    let mut command_builder = Command::new("/bin/sh");
     #[cfg(not(target_os = "windows"))]
-    command_builder.args(&args);
+    command_builder.arg("-c").arg(command);
+
+
 
     let Ok(mut child) = command_builder.spawn() else {
         eprintln!("Plugin(Shell): Failed to spawn command.");

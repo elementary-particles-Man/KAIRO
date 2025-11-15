@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <KairoBinRoot Condition="'$(KairoBinRoot)' == ''">C:\dev\bin\</KairoBinRoot>
+    <BaseOutputPath>$(KairoBinRoot)dotnet\$(MSBuildProjectName)\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(KairoBinRoot)dotnet\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

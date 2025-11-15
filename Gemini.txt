@@ -1,0 +1,42 @@
+This codebase is an **auxiliary automation toolkit** designed to support a user who is manually interacting with a web-based service (like an AI chat).
+
+It does **not** provide full automation. Instead, it automates the tedious "housekeeping" tasks around the manual workflow.
+
+---
+
+## System Overview
+
+The system's goal is to streamline the process of logging interactions and handling common browser issues, assuming a human is still performing the core tasks of logging in and generating responses. It consists of two main parts: a clipboard data pipeline and a browser stability manager.
+
+---
+
+## Core Components
+
+### 1. Clipboard Data Pipeline (`Kairo.ClipboardListener` & `nexus_router.py`)
+
+This is the data logging part of the system.
+* **`Kairo.ClipboardListener`**: This is a background process that constantly **monitors the system's clipboard**.
+* **How it works**: When the user manually copies a piece of text (specifically, a JSON object from the web service) to their clipboard (e.g., using `Ctrl+C`), the `Listener` detects this action and captures the data.
+* **`nexus_router.py`**: This script takes the data captured by the `Listener` and automatically **organizes and logs it**. The described workflow is:
+    1.  **`inbox`**: The raw copied data is placed here first.
+    2.  **`archive/processed`**: After processing, the data is moved here for archival.
+    3.  **`ledger`**: A final, persistent log is updated with metadata, including the **timestamp** of when the data was copied and its **SHA256 hash** for integrity verification.
+
+**In short, this pipeline automates the entire process of saving and cataloging data after the user has manually copied it.**
+
+### 2. Browser Stability Manager ("Watchdog" & Custom Launch)
+
+This part of the system is designed to make the manual browser interaction less frustrating.
+* **"Watchdog" Script**: A background process that **monitors the browser tabs**. Its specific job is to detect when a tab becomes unresponsive or gets stuck in a "Thinking" state. When this happens, the script **automatically reloads the tab**. This saves the user from having to manually watch for hangs and press F5.
+* **Custom Chrome Launch**: The system launches the Chrome browser with a specific command-line flag (`--user-data-dir=...`). This tells Chrome to use a persistent, dedicated user profile. The benefit is that login sessions and cookies are saved, which can reduce how often the user needs to log in from a completely fresh state.
+
+---
+
+## Limitations
+
+As the provided conversation makes clear, this codebase has critical limitations:
+* **It cannot automate logins**: User authentication, including passwords and 2FA, must be done manually.
+* **It cannot control the UI**: It cannot type prompts, click buttons, or perform any actions within the web page.
+* **It is not a replacement for the user**: It only acts on data the user has already generated and copied, or on browser states (like a hang).
+
+The system is only valuable if the primary goal is **meticulous logging of a manual process** and reducing the friction of that process, rather than achieving true, unattended automation.

@@ -36,7 +36,6 @@ members = [
   "src/kairof",
   "src/bot",
   "src/mesh-node",
-  "src/server",
-  "Kairo-Nexus",
+  "src/server", "clear-mini",
 ]
 resolver = "2"

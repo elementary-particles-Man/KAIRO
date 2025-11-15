@@ -52,6 +52,7 @@ async fn main() {
     axum::serve(listener, app.into_make_service()).await.unwrap();
 }
 
+
 // 🧪 root応答用（テスト用）
 async fn root() -> &'static str {
     "KAIRO Daemon Online"
