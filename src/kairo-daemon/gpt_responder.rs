@@ -2,17 +2,45 @@ use anyhow::{anyhow, Error};
 use kairo_lib::packet::Packet;
 use log::{error, info, warn};
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::time::Duration;
 
-const NO_COST_ENDPOINT: &str = "https://example.com/";
-const DEFAULT_TIMEOUT_SECS: u64 = 10;
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Message {
+    pub role: String,
+    pub content: String,
+}
 
-/// Zero-cost A-scheme: send payload to example.com to capture remote_addr without incurring GPT charges.
+#[derive(Serialize, Debug, Clone)]
+pub struct GptRequest {
+    pub model: String,
+    pub messages: Vec<Message>,
+    pub temperature: f32,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct GptResponse {
+    pub id: String,
+    pub object: String,
+    pub created: i64,
+    pub model: String,
+    pub choices: Vec<Choice>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct Choice {
+    pub index: i32,
+    pub message: Message,
+}
+
+const DEFAULT_TIMEOUT_SECS: u64 = 10;
+const ZERO_COST_ENDPOINT: &str = "https://example.com";
+
 pub async fn gpt_log_and_respond(packet: &Packet) -> Result<(String, SocketAddr), Error> {
     info!(
-        "  [GPT_Subsystem/NoCost] Processing packet seq={} from {}",
-        packet.sequence, packet.source_p_address
+        "  [GPT_Subsystem] Processing packet seq={} (Zero-Cost Mode)",
+        packet.sequence
     );
 
     let client = Client::builder()
@@ -20,24 +48,27 @@ pub async fn gpt_log_and_respond(packet: &Packet) -> Result<(String, SocketAddr)
         .build()?;
 
     let response = client
-        .post(NO_COST_ENDPOINT)
-        .body(packet.payload.clone())
+        .get(ZERO_COST_ENDPOINT)
         .send()
         .await
         .map_err(|e| {
-            error!("Failed to reach {}: {}", NO_COST_ENDPOINT, e);
-            anyhow!("Failed to reach {}: {}", NO_COST_ENDPOINT, e)
+            error!("Failed to connect for remote_addr test: {}", e);
+            anyhow!("Failed to connect for remote_addr test: {}", e)
         })?;
 
     let remote_addr = response.remote_addr().unwrap_or_else(|| {
-        warn!("[NoCost] remote_addr unavailable, using 0.0.0.0:0 fallback");
+        warn!("Could not get remote_addr from response, falling back to 0.0.0.0:0");
         "0.0.0.0:0".parse().unwrap()
     });
+    info!("  [GPT_Subsystem] Actual remote addr: {}", remote_addr);
 
-    info!(
-        "  [GPT_Subsystem/NoCost] Actual remote addr observed: {}",
-        remote_addr
-    );
+    if !response.status().is_success() {
+        let status = response.status();
+        warn!(
+            "Test connection to example.com failed ({}). Still got remote_addr.",
+            status
+        );
+    }
 
-    Ok(("OK".to_string(), remote_addr))
+    Ok(("OK (Zero-Cost Response)".to_string(), remote_addr))
 }

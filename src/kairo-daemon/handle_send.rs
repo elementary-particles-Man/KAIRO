@@ -22,14 +22,13 @@ struct SendRequest {
 }
 
 impl SendRequest {
-    fn from_packet(packet: &Packet) -> Self {
-        let (dst_ip, dst_port) = parse_destination_endpoint(&packet.destination_p_address);
+    fn new(packet: &Packet, dst_ip: [u8; 16], dst_port: u16, route_flags: u32) -> Self {
         Self {
             src_id: derive_agent_id(&packet.source_p_address),
             src_nick: packet.source_p_address.clone(),
             dst_ip,
             dst_port,
-            route_flags: 0,
+            route_flags,
             payload_len: packet.payload.as_bytes().len() as u32,
         }
     }
@@ -96,35 +95,67 @@ fn format_ip(ip: [u8; 16]) -> String {
 
 /// Handle POST /send_packet
 pub async fn handle_send(packet: Packet) -> Result<impl warp::Reply, warp::Rejection> {
-    info!("DEBUG: handle_send called");
-    info!("🔵 [SEND] Received POST: from_public_key={}, to={}", packet.source_p_address, packet.destination_p_address);
-    info!("DEBUG: packet.destination_p_address = {:?}", packet.destination_p_address);
+    info!(
+        "🔵 [SEND] Received POST: from_public_key={}, to={}",
+        packet.source_p_address, packet.destination_p_address
+    );
+    info!(
+        "DEBUG: packet.destination_p_address = {:?}",
+        packet.destination_p_address
+    );
 
-    // KAIRO_SEND_PATH_START
-    let req = SendRequest::from_packet(&packet);
-    record_witness(&req);
-    detect_burst(req.dst_ip, req.dst_port);
-
-    // 署名検証（現段階では常に true）
     let valid = crate::p_signature_validator::validate(&packet);
     if !valid {
         error!("❌ Invalid signature from {}", packet.source_p_address);
-        return Ok(warp::reply::with_status("Forbidden", warp::http::StatusCode::FORBIDDEN));
+        return Ok(warp::reply::with_status(
+            "Forbidden",
+            warp::http::StatusCode::FORBIDDEN,
+        ));
     }
 
     if packet.destination_p_address == "gpt://main" {
         match crate::gpt_responder::gpt_log_and_respond(&packet).await {
-            Ok((resp, remote_addr)) => {
-                info!("✅ [GPT] Response delivered via {}", remote_addr);
-                Ok(warp::reply::with_status(resp, warp::http::StatusCode::OK))
-            },
+            Ok(resp_tuple) => {
+                let (resp_str, actual_socket_addr) = resp_tuple;
+
+                info!(
+                    "✅ [GPT] Response delivered. Actual remote addr: {}",
+                    actual_socket_addr
+                );
+
+                let dst_ip = encode_ip(actual_socket_addr.ip());
+                let dst_port = actual_socket_addr.port();
+                let route_flags = 1;
+
+                let req = SendRequest::new(&packet, dst_ip, dst_port, route_flags);
+                record_witness(&req);
+                detect_burst(req.dst_ip, req.dst_port);
+
+                Ok(warp::reply::with_status(
+                    resp_str.as_str(),
+                    warp::http::StatusCode::OK,
+                ))
+            }
             Err(e) => {
                 error!("❌ [GPT] Failed to handle packet: {}", e);
-                Ok(warp::reply::with_status("Internal Server Error", warp::http::StatusCode::INTERNAL_SERVER_ERROR))
+                Ok(warp::reply::with_status(
+                    "Internal Server Error",
+                    warp::http::StatusCode::INTERNAL_SERVER_ERROR,
+                ))
             }
         }
     } else {
         error!("❌ Unsupported destination: {}", packet.destination_p_address);
-        Ok(warp::reply::with_status("Not Implemented", warp::http::StatusCode::NOT_IMPLEMENTED))
+
+        let (dst_ip, dst_port) = parse_destination_endpoint(&packet.destination_p_address);
+        let route_flags = 2;
+        let req = SendRequest::new(&packet, dst_ip, dst_port, route_flags);
+        record_witness(&req);
+        detect_burst(req.dst_ip, req.dst_port);
+
+        Ok(warp::reply::with_status(
+            "Not Implemented",
+            warp::http::StatusCode::NOT_IMPLEMENTED,
+        ))
     }
 }
