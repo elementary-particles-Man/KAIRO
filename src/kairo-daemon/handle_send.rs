@@ -7,6 +7,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Mutex;
+use crate::ip_classifier::{classify_ip, EndpointClass};
 use crate::clear_mini_state::CLEAR_MINI;
 
 static DET_DST_10S: Lazy<Mutex<Window>> = Lazy::new(|| Mutex::new(Window::new(10)));
@@ -128,6 +129,14 @@ pub async fn handle_send(packet: Packet) -> Result<impl warp::Reply, warp::Rejec
 
                 let req = SendRequest::new(&packet, dst_ip, dst_port, route_flags);
                 record_witness(&req);
+                let class = classify_ip(actual_socket_addr.ip());
+                match class {
+                    EndpointClass::Local => info!("[CLASS] Local traffic to {}", actual_socket_addr),
+                    EndpointClass::KnownTest => info!("[CLASS] Test endpoint (example.com) {}", actual_socket_addr),
+                    EndpointClass::KnownPeer => info!("[CLASS] Known KAIRO peer {}", actual_socket_addr),
+                    EndpointClass::Suspicious => error!("[CLASS] Suspicious endpoint {}", actual_socket_addr),
+                    EndpointClass::Unknown => warn!("[CLASS] Unknown endpoint {}", actual_socket_addr),
+                }
                 detect_burst(req.dst_ip, req.dst_port);
 
                 Ok(warp::reply::with_status(

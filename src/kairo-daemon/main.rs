@@ -1,5 +1,6 @@
 mod handler;
 mod clear_mini_state;
+mod ip_classifier;
 mod task_queue;
 mod api {
     pub mod controller;
