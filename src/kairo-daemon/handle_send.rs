@@ -1,4 +1,3 @@
-use clear_mini::api::ClearMini;
 use clear_mini::detector::Window;
 use clear_mini::kairo_p::PAddressRecord;
 use kairo_lib::packet::Packet;
@@ -8,8 +7,8 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Mutex;
+use crate::clear_mini_state::CLEAR_MINI;
 
-static CLEAR_MINI: Lazy<Mutex<ClearMini>> = Lazy::new(|| Mutex::new(ClearMini::new()));
 static DET_DST_10S: Lazy<Mutex<Window>> = Lazy::new(|| Mutex::new(Window::new(10)));
 
 struct SendRequest {

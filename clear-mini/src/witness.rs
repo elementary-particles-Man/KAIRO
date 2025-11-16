@@ -1,3 +1,5 @@
+use serde::ser::SerializeStruct;
+use serde::Serialize;
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
@@ -30,6 +32,26 @@ impl Default for WitnessRecord {
             ip: [0; 16],
             pad: [0; 48],
         }
+    }
+}
+
+impl Serialize for WitnessRecord {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("WitnessRecord", 10)?;
+        state.serialize_field("mono", &self.mono)?;
+        state.serialize_field("utc", &self.utc)?;
+        state.serialize_field("src", &self.src)?;
+        state.serialize_field("dst", &self.dst)?;
+        state.serialize_field("len", &self.len)?;
+        state.serialize_field("hash32", &self.hash32)?;
+        state.serialize_field("flags", &self.flags)?;
+        state.serialize_field("port", &self.port)?;
+        state.serialize_field("ip", &self.ip)?;
+        state.serialize_field("pad", &&self.pad[..])?;
+        state.end()
     }
 }
 

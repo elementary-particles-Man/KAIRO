@@ -23,20 +23,25 @@ impl ClearMini {
         ip: [u8; 16],
         port: u16,
     ) {
-        let mut hasher = Hasher::new();
-        hasher.update(&ip);
-        let record = WitnessRecord {
+        let mut h = Hasher::new();
+        h.update(&ip);
+        let r = WitnessRecord {
             mono: time::now_monotonic_ns(),
             utc: time::now_utc_ns(),
             src: src.id,
             dst: dst.id,
             len,
-            hash32: hasher.finalize(),
+            hash32: h.finalize(),
             flags,
             port,
             ip,
             ..Default::default()
         };
-        self.ring.push(record);
+        self.ring.push(r);
+    }
+
+    /// Return a snapshot of the witness ring for internal control-plane use.
+    pub fn dump_witness_snapshot(&self) -> Vec<WitnessRecord> {
+        self.ring.snapshot()
     }
 }
